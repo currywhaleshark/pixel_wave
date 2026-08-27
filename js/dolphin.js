@@ -1,0 +1,122 @@
+// ============================================================
+// dolphin.js — 옵션 돌고래 3종 (GDD 6장)
+// 유도(homing) / 폭발(burst) / 관통(pierce), Lv1~3
+// 공통 기능: 보스 발사 예고 "힌트!" (Lv1부터, 종류 무관)
+// ============================================================
+class Dolphin {
+  constructor(type, lv) {
+    this.type = type;
+    this.lv = lv;
+    this.def = DOLPHIN_DEFS[type];
+    this.x = 0; this.y = 0;
+    this.t = Math.random() * 6.28;
+    this.fireT = 0.6;
+    this.waveT = 4;      // 관통 Lv3: 더블 파도 주기
+    this.slowCd = 0;     // 유도 Lv3: 자동 슬로우 쿨다운
+  }
+
+  update(dt, game) {
+    const p = game.player;
+    this.t += dt;
+    if (this.slowCd > 0) this.slowCd -= dt;
+
+    // 플레이어 뒤를 둥실둥실 따라다님
+    const tx = p.x - 36, ty = p.y - 22 + Math.sin(this.t * 3) * 7;
+    this.x += (tx - this.x) * Math.min(1, dt * 6);
+    this.y += (ty - this.y) * Math.min(1, dt * 6);
+
+    if (p.bubble > 0) return;
+
+    // --- 서브샷 ---
+    this.fireT -= dt;
+    if (this.fireT <= 0) {
+      if (this.type === 'homing') {
+        // GDD 6장: 유도 = 단발 화력 최저. 조준 불필요의 대가는 낮은 DPS
+        this.fireT = this.lv >= 2 ? 1.0 : 0.9;
+        const shots = this.lv >= 2 ? 2 : 1;
+        for (let i = 0; i < shots; i++) {
+          const a = -0.4 + i * 0.8;
+          game.shots.push({
+            kind: 'homing', x: this.x, y: this.y,
+            vx: Math.cos(a) * 330, vy: Math.sin(a) * 330,
+            spd: 330, turn: 5.5, dmg: 1, r: 5, pierce: 0, t: 0,
+          });
+        }
+      } else if (this.type === 'burst') {
+        this.fireT = this.lv >= 2 ? 1.0 : 1.2;
+        game.shots.push({
+          kind: 'bomb', x: this.x, y: this.y,
+          vx: 280, vy: -20, timer: 0.65,
+          dmg: this.lv >= 2 ? 3 : 2,
+          radius: this.lv >= 2 ? 90 : 60,
+          clearBullets: this.lv >= 3,
+          r: 7, t: 0,
+        });
+      } else { // pierce
+        this.fireT = this.lv >= 2 ? 0.6 : 0.75;
+        game.shots.push({
+          kind: 'beam', x: this.x + 10, y: this.y,
+          vx: 700, vy: 0, dmg: this.lv >= 2 ? 3 : 2,
+          pierce: 999, r: 4, t: 0,
+        });
+      }
+    }
+
+    // 관통 Lv3 고유기: 주기적 더블 파도
+    if (this.type === 'pierce' && this.lv >= 3) {
+      this.waveT -= dt;
+      if (this.waveT <= 0) {
+        this.waveT = 4;
+        game.shots.push({
+          kind: 'beam', x: this.x + 10, y: this.y,
+          vx: 420, vy: 0, dmg: 8, pierce: 999, r: 13, big: true, t: 0,
+        });
+        game.message('더블 파도!', '#cfd8e8');
+      }
+    }
+
+    // 유도 Lv3 고유기: 피격 직전 자동 슬로우 (돌고래가 위험을 먼저 감지)
+    if (this.type === 'homing' && this.lv >= 3 && this.slowCd <= 0 && p.invuln <= 0) {
+      for (const b of game.ebullets) {
+        const dx = p.x - b.x, dy = p.y - b.y;
+        const d2 = dx * dx + dy * dy;
+        // 가까이 + 접근 중일 때만
+        if (d2 < 52 * 52 && (dx * b.vx + dy * b.vy) > 0) {
+          game.slowT = 0.35;
+          this.slowCd = 2.5;
+          game.addFx(this.x, this.y, '#5aa9ff', 6);
+          break;
+        }
+      }
+    }
+  }
+
+  draw(ctx, game) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    const t = this.t;
+    // 임시 돌고래: 몸통 + 등지느러미 + 꼬리
+    ctx.fillStyle = this.def.color;
+    ctx.beginPath(); ctx.ellipse(0, 0, 12, 6, -0.15, 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-2, -5); ctx.lineTo(2, -10); ctx.lineTo(5, -5); ctx.fill(); // 등지느러미
+    const wag = Math.sin(t * 9) * 3;
+    ctx.beginPath(); ctx.moveTo(-10, 0); ctx.lineTo(-17, -4 + wag); ctx.lineTo(-17, 4 + wag); ctx.fill(); // 꼬리
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(6, -2, 1.4, 0, 6.28); ctx.fill(); // 눈
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.beginPath(); ctx.ellipse(2, 2.5, 8, 2.5, -0.1, 0, 6.28); ctx.fill(); // 배
+
+    // 공통 기능: 보스 발사 예고에 맞춰 "힌트!" 말풍선
+    if (game.boss && !game.boss.dead && game.boss.telegraph > 0) {
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
+      ctx.strokeStyle = '#5aa9ff'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(-24, -38, 48, 18, 8);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#2b5bb8';
+      ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('힌트!', 0, -25);
+    }
+    ctx.restore();
+  }
+}
