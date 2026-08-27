@@ -355,11 +355,12 @@ const Game = {
           this.ride = null;
           this.message('[DEBUG] 보스 직행', '#ff8fd8');
         }
-      } else if (k === '5') {    // 보스 페이즈 스킵 (P3에서 누르면 격파)
+      } else if (k === '5') {    // 보스 페이즈 스킵 (마지막 페이즈에서 누르면 격파)
         const b = this.boss;
         if (b && !b.dead && b.phase >= 1) {
           if (b.phase === 1) { b.hp = b.maxHp * 0.65; b.enterPhase(2); }
           else if (b.phase === 2) { b.hp = b.maxHp * 0.32; b.enterPhase(3); }
+          else if (b.phase === 3 && this.diff >= 2) { b.hp = b.maxHp * 0.17; b.enterPhase(4); }
           else b.takeDamage(b.hp);
           this.message('[DEBUG] 보스 페이즈 스킵', '#ff8fd8');
         }
@@ -467,6 +468,10 @@ const Game = {
       // 난이도: 적탄 속도 배율 (탄 자체 속도에만 — 해류는 그대로)
       const sm = this.D.ebSpd;
       if (b.armT !== undefined && b.armT > 0) b.armT -= dt; // 태어나는 중 (무해 예고)
+      if (b.fallTo) { // 별똥별 (초롱 진 대파도): 완만한 가속 — 읽힌다
+        b.vx += (b.fallTo.vx - b.vx) * Math.min(1, dt * 2.2);
+        b.vy += (b.fallTo.vy - b.vy) * Math.min(1, dt * 2.2);
+      }
       b.x += (b.vx * sm + this.curX * 0.75) * dt; b.y += (b.vy * sm + this.curY * 0.6) * dt;
       if (b.kind === 'mine') {
         b.vy *= (1 - 1.5 * dt); // 설치 후 서서히 정지
@@ -630,8 +635,8 @@ const Game = {
       }
     }
 
-    // P3 대파도: 화면 어두워짐 (어둠 스테이지에선 자체 어둠이 담당)
-    if (this.boss && this.boss.phase === 3 && !this.boss.dead && this.targetDark <= 0) {
+    // P3+ 대파도: 화면 어두워짐 (어둠 스테이지에선 자체 어둠이 담당)
+    if (this.boss && this.boss.phase >= 3 && !this.boss.dead && this.targetDark <= 0) {
       ctx.fillStyle = 'rgba(8, 12, 50, 0.3)';
       ctx.fillRect(0, 0, CFG.W, CFG.H);
       if (this.boss) this.boss.draw(ctx); // 보스는 어둠 위에 다시

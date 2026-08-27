@@ -9,6 +9,7 @@ const BOSS7_PATTERNS = {
   1: { id: 'hwii-maelstrom',    name: '소용돌이' },
   2: { id: 'hwii-gale',         name: '돌풍 밀당' },
   3: { id: 'hwii-eye-of-storm', name: '태풍의 눈' },  // 대파도
+  4: { id: 'hwii-wandering-eye', name: '진·태풍의 눈' },  // 하드 전용: 눈이 움직인다
 };
 
 class BossHwii {
@@ -49,6 +50,7 @@ class BossHwii {
     const r = this.hpRatio();
     if (this.phase === 1 && r <= 0.66) this.enterPhase(2);
     else if (this.phase === 2 && r <= 0.33) this.enterPhase(3);
+    else if (this.phase === 3 && this.game.diff >= 2 && r <= 0.18) this.enterPhase(4); // 하드: 진 대파도
     if (this.hp <= 0 && !this.dead) this.die();
   }
 
@@ -63,6 +65,11 @@ class BossHwii {
     } else if (p === 3) {
       this.game.message('"...오지 마. 가까이 오면... 다 망가진단 말이야."', '#d8e8f8');
       this.game.message('(...태풍의 눈 속은 고요하다)', '#ffe9a8');
+      this.game.addBattery(1);
+      this.game.phaseReward(this.x, this.y);
+    } else if (p === 4) {
+      // 진 대파도: 눈이 움직인다 — 안전지대가 궤도를 돈다
+      this.game.message('"...눈이, 움직여. 나도, 어쩔 수 없어...!"', '#eef6ff');
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
     }
@@ -158,11 +165,18 @@ class BossHwii {
         g.bolts.push({ x: Math.max(0.06, Math.min(0.94, px)) * CFG.W, w: CFG.boltW, telT: CFG.boltTelT, strikeT: CFG.boltStrikeT, hitDone: false });
         g.bolts.push({ x: Math.max(0.06, Math.min(0.94, px + (Math.random() < 0.5 ? 0.16 : -0.16))) * CFG.W, w: CFG.boltW, telT: CFG.boltTelT + 0.3, strikeT: CFG.boltStrikeT, hitDone: false });
       }
-    } else if (this.phase === 3) {
+    } else if (this.phase >= 3) {
       // P3 대파도: 태풍의 눈 — 화면 전체가 회전 폭풍, 보스 근처만 고요.
       // 바람은 밀어내지만(방출 해류), 다가가야 끝난다.
-      this.x += (CFG.W * 0.62 - this.x) * Math.min(1, dt * 0.8);
-      this.y += (CFG.H * 0.5 - this.y) * Math.min(1, dt * 0.8);
+      // 진 대파도(P4): 눈이 큰 궤도를 천천히 돈다 — 안전지대와 함께 움직여라
+      if (this.phase === 4) {
+        this.orbitA = (this.orbitA ?? 0) + 0.22 * dt;
+        this.x += (CFG.W * 0.5 + Math.cos(this.orbitA) * CFG.W * 0.16 - this.x) * Math.min(1, dt * 1.5);
+        this.y += (CFG.H * 0.5 + Math.sin(this.orbitA) * CFG.H * 0.2 - this.y) * Math.min(1, dt * 1.5);
+      } else {
+        this.x += (CFG.W * 0.62 - this.x) * Math.min(1, dt * 0.8);
+        this.y += (CFG.H * 0.5 - this.y) * Math.min(1, dt * 0.8);
+      }
       // 방출 해류: 눈에서 밀어냄
       const dx = pl.x - this.x, dy = pl.y - this.y;
       const d = Math.hypot(dx, dy) || 1;

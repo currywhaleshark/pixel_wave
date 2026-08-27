@@ -9,6 +9,7 @@ const BOSS3_PATTERNS = {
   1: { id: 'ssing-delivery-dash',  name: '특급 돌진' },
   2: { id: 'ssing-lane-traffic',   name: '차선 트래픽' },
   3: { id: 'ssing-overtake-lanes', name: '추월차선' },  // 대파도
+  4: { id: 'ssing-round-trip',     name: '진·추월차선' },  // 하드 전용: 왕복 돌진
 };
 
 class BossSsing {
@@ -52,6 +53,7 @@ class BossSsing {
     const r = this.hpRatio();
     if (this.phase === 1 && r <= 0.66) this.enterPhase(2);
     else if (this.phase === 2 && r <= 0.33) this.enterPhase(3);
+    else if (this.phase === 3 && this.game.diff >= 2 && r <= 0.18) this.enterPhase(4); // 하드: 진 대파도
     if (this.hp <= 0 && !this.dead) this.die();
   }
 
@@ -68,6 +70,11 @@ class BossSsing {
       this.game.phaseReward(this.x, this.y);
     } else if (p === 3) {
       this.game.message('"풀스로틀이다아아—!!"', '#ff8f8f');
+      this.game.addBattery(1);
+      this.game.phaseReward(this.x, this.y);
+    } else if (p === 4) {
+      // 진 대파도: 왕복 돌진 — 나갔으면 되돌아온다
+      this.game.message('"리미터 해제!! 왕복 배송이다아—!!"', '#ffb3b3');
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
     }
@@ -196,8 +203,9 @@ class BossSsing {
           }});
         }
       }
-    } else if (this.phase === 3) {
+    } else if (this.phase >= 3) {
       // P3 대파도: 추월차선 — 5개 차선에 방향·속도 제각각인 탄 트래픽 + 주기적 예고 돌진
+      // 진 대파도(P4): 돌진이 왕복 — 왼쪽으로 나간 씽씽이 새 차선으로 되돌아온다
       // 호버 복귀는 hover 모드에서만! (돌진 중에 실행되면 두 힘이 평형을 이뤄 중간에 멈춰버림)
       if (this.mode === 'hover') {
         this.x += (CFG.W * 0.85 - this.x) * Math.min(1, dt * 2);
@@ -236,9 +244,29 @@ class BossSsing {
         this.x -= 820 * dt;
         this.y = this.dashY;
         if (this.x < -80) {
-          this.x = CFG.W + 80;
+          if (this.phase === 4) {
+            // 왕복: 왼쪽에서 새 차선 예고 후 되돌아온다
+            this.mode = 'telBack';
+            this.modeT = 0.8;
+            this.dashY = [0.15, 0.32, 0.5, 0.68, 0.85][Math.floor(Math.random() * 5)] * CFG.H;
+            this.dashTel = 0.8;
+            this.x = -80;
+          } else {
+            this.x = CFG.W + 80;
+            this.mode = 'hover';
+            this.dashCycleT = 5.2 * m;
+          }
+        }
+      } else if (this.mode === 'telBack') {
+        this.modeT -= dt;
+        this.y += (this.dashY - this.y) * Math.min(1, dt * 6);
+        if (this.modeT <= 0) this.mode = 'dashBack';
+      } else if (this.mode === 'dashBack') {
+        this.x += 820 * dt;
+        this.y = this.dashY;
+        if (this.x > CFG.W + 80) {
           this.mode = 'hover';
-          this.dashCycleT = 5.2 * m;
+          this.dashCycleT = 5.6 * m;
         }
       }
     }

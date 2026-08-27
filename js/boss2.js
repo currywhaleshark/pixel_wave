@@ -8,6 +8,7 @@ const BOSS2_PATTERNS = {
   1: { id: 'mongsil-tentacle-curtain', name: '촉수 커튼' },
   2: { id: 'mongsil-lantern-lay',      name: '등불 설치' },
   3: { id: 'mongsil-lantern-garden',   name: '등불 정원' },  // 대파도
+  4: { id: 'mongsil-true-garden',      name: '진·등불 정원' },  // 하드 전용: 두 줄 동시 점등
 };
 
 class BossMongsil {
@@ -48,6 +49,7 @@ class BossMongsil {
     const r = this.hpRatio();
     if (this.phase === 1 && r <= 0.66) this.enterPhase(2);
     else if (this.phase === 2 && r <= 0.33) this.enterPhase(3);
+    else if (this.phase === 3 && this.game.diff >= 2 && r <= 0.18) this.enterPhase(4); // 하드: 진 대파도
     if (this.hp <= 0 && !this.dead) this.die();
   }
 
@@ -63,6 +65,12 @@ class BossMongsil {
     } else if (p === 3) {
       this.targetScale = 1.3;
       this.game.message('"정원 가득 반짝반짝... 예쁘지?"', '#c9a3ff');
+      this.game.addBattery(1);
+      this.game.phaseReward(this.x, this.y);
+    } else if (p === 4) {
+      // 진 대파도: 두 줄 동시 점등 — 안전한 줄이 하나뿐
+      this.targetScale = 1.42;
+      this.game.message('"...정원의 진짜 모습, 보여줄게."', '#e2ccff');
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
     }
@@ -159,22 +167,25 @@ class BossMongsil {
         this.rainT = 0.55 * m;
         g.ebullets.push({ x: Math.random() * CFG.W * 0.75, y: -10, vx: -10, vy: 85, r: CFG.ebR, kind: 'bubble' });
       }
-    } else if (this.phase === 3) {
+    } else if (this.phase >= 3) {
       // P3 대파도: 등불 정원 — 줄 단위로 등불이 켜지고 터진다 (위→중→아래 순환)
-      // 순서를 읽고 안 켜진 줄로 이동하면 안전
+      // 순서를 읽고 안 켜진 줄로 이동하면 안전. 진 대파도(P4): 두 줄 동시 — 남는 줄은 하나
       this.gardenT -= dt;
       if (g.dolphin && this.gardenT <= 0.6 && this.gardenT > 0 && this.telegraph <= 0) this.telegraph = 0.6;
       if (this.gardenT <= 0) {
-        this.gardenT = 2.6 * m;
-        const rowY = [0.22, 0.5, 0.78][this.gardenRow] * CFG.H;
-        this.gardenRow = (this.gardenRow + 1) % 3;
+        this.gardenT = (this.phase === 4 ? 3.0 : 2.6) * m;
+        const rowsToLight = this.phase === 4 ? 2 : 1;
         const gn = 5 + g.diff; // 난이도: 정원 등불 밀도
-        for (let i = 0; i < gn; i++) {
-          g.ebullets.push({
-            x: 60 + i * (CFG.W * 0.68 / (gn - 1)),
-            y: rowY + (Math.random() - 0.5) * 20,
-            vx: 0, vy: 0, r: 7, kind: 'mine', timer: 1.4,
-          });
+        for (let rr = 0; rr < rowsToLight; rr++) {
+          const rowY = [0.22, 0.5, 0.78][this.gardenRow] * CFG.H;
+          this.gardenRow = (this.gardenRow + 1) % 3;
+          for (let i = 0; i < gn; i++) {
+            g.ebullets.push({
+              x: 60 + i * (CFG.W * 0.68 / (gn - 1)),
+              y: rowY + (Math.random() - 0.5) * 20,
+              vx: 0, vy: 0, r: 7, kind: 'mine', timer: 1.4,
+            });
+          }
         }
       }
       // 느린 커튼도 계속

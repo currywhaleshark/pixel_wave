@@ -9,6 +9,7 @@ const BOSS5_PATTERNS = {
   1: { id: 'buu-hide-and-seek', name: '숨바꼭질' },
   2: { id: 'buu-boo-everywhere', name: '여기저기 부우' },
   3: { id: 'buu-ghost-parade',   name: '유령 대행진' },  // 대파도
+  4: { id: 'buu-twin-parade',    name: '진·유령 대행진' },  // 하드 전용: 거울 분신
 };
 
 class BossBuu {
@@ -56,6 +57,7 @@ class BossBuu {
     const r = this.hpRatio();
     if (this.phase === 1 && r <= 0.66) this.enterPhase(2);
     else if (this.phase === 2 && r <= 0.33) this.enterPhase(3);
+    else if (this.phase === 3 && this.game.diff >= 2 && r <= 0.18) this.enterPhase(4); // 하드: 진 대파도
     if (this.hp <= 0 && !this.dead) this.die();
   }
 
@@ -76,6 +78,11 @@ class BossBuu {
       this.x = CFG.W + 80;
       this.baseY = CFG.H * 0.5;
       this.trail = [];
+      this.game.addBattery(1);
+      this.game.phaseReward(this.x, this.y);
+    } else if (p === 4) {
+      // 진 대파도: 거울 분신 — 반투명 유령 뱀이 반대 위상으로 교차
+      this.game.message('"유령은 원래... 둘이서 놀아! 부우부우!!"', '#e8fff0');
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
     }
@@ -200,8 +207,9 @@ class BossBuu {
           }
         }
       }
-    } else if (this.phase === 3) {
+    } else if (this.phase >= 3) {
       // P3 대파도: 유령 대행진 — 장신 몸통이 화면을 뱀처럼 휘젓는다
+      // 진 대파도(P4): 거울 분신이 상하 반전 위상으로 함께 휘젓는다 (두 뱀 사이를 누벼라)
       this.hittable = true;
       this.x -= 235 * dt;
       this.y = this.baseY + Math.sin(this.t * 2.4) * 130;
@@ -219,6 +227,16 @@ class BossBuu {
         const seg = this.trail[i];
         const rr = CFG.playerHitR + 17;
         if ((seg.x - pl.x) ** 2 + (seg.y - pl.y) ** 2 < rr * rr) { pl.hit(g); break; }
+        // 거울 분신 몸통 (P4): 상하 반전 위치
+        if (this.phase === 4) {
+          const my = CFG.H - seg.y;
+          if ((seg.x - pl.x) ** 2 + (my - pl.y) ** 2 < rr * rr) { pl.hit(g); break; }
+        }
+      }
+      // 거울 분신 머리 vs 플레이어 (P4)
+      if (this.phase === 4) {
+        const rr2 = CFG.playerHitR + 26;
+        if ((this.x - pl.x) ** 2 + ((CFG.H - this.y) - pl.y) ** 2 < rr2 * rr2) pl.hit(g);
       }
       // 몸에서 유령불 뚝뚝
       this.flameT -= dt;
@@ -288,7 +306,7 @@ class BossBuu {
       return;
     }
 
-    if (this.phase === 3) {
+    if (this.phase >= 3) {
       // 몸통 마디 (머리 궤적 추종 — 꼬리로 갈수록 가늘고 투명)
       for (let i = 10; i < this.trail.length; i += 10) {
         const seg = this.trail[i];
@@ -304,9 +322,21 @@ class BossBuu {
         // 등지느러미 물결
         ctx.strokeStyle = 'rgba(159,232,184,0.6)'; ctx.lineWidth = 3;
         ctx.beginPath(); ctx.arc(seg.x, seg.y - r - 2, 6, Math.PI, 0); ctx.stroke();
+        // 거울 분신 마디 (P4, 반투명)
+        if (this.phase === 4) {
+          ctx.globalAlpha *= 0.5;
+          ctx.fillStyle = '#e8fff0';
+          ctx.beginPath(); ctx.arc(seg.x, CFG.H - seg.y, r, 0, 6.28); ctx.fill();
+        }
         ctx.restore();
       }
       this.drawHead(ctx, this.x, this.y, 1);
+      if (this.phase === 4) {
+        ctx.save();
+        ctx.globalAlpha = 0.5;
+        this.drawHead(ctx, this.x, CFG.H - this.y, 1);
+        ctx.restore();
+      }
     } else if (this.mode === 'out' || this.mode === 'tel') {
       // 구멍에서 미끄러져 나오는 중 — 작게 시작해 커진다
       if (this.mode === 'out') this.drawHead(ctx, this.x, this.y, 0.4 + 0.6 * this.emerge);

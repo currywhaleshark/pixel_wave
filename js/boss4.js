@@ -9,6 +9,7 @@ const BOSS4_PATTERNS = {
   1: { id: 'chorong-dark-fishing', name: '어둠 낚시' },
   2: { id: 'chorong-light-rings',  name: '불 켜기 링' },
   3: { id: 'chorong-deep-stars',   name: '심해의 별밤' },  // 대파도
+  4: { id: 'chorong-falling-stars', name: '진·심해의 별밤' },  // 하드 전용: 별똥별
 };
 
 class BossChorong {
@@ -52,6 +53,7 @@ class BossChorong {
     const r = this.hpRatio();
     if (this.phase === 1 && r <= 0.66) this.enterPhase(2);
     else if (this.phase === 2 && r <= 0.33) this.enterPhase(3);
+    else if (this.phase === 3 && this.game.diff >= 2 && r <= 0.18) this.enterPhase(4); // 하드: 진 대파도
     if (this.hp <= 0 && !this.dead) this.die();
   }
 
@@ -69,6 +71,11 @@ class BossChorong {
     } else if (p === 3) {
       this.game.message('"별... 예쁘지? 나만 아는 곳이야."', '#aef7ee');
       this.game.targetDark = 0.94;  // 가장 깊은 어둠 — 별만 빛난다
+      this.game.addBattery(1);
+      this.game.phaseReward(this.x, this.y);
+    } else if (p === 4) {
+      // 진 대파도: 별똥별 — 별자리가 무너져 내린다 (본인도 당황)
+      this.game.message('"어, 어어?! 별이... 떨어진다?!"', '#d8fff8');
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
     }
@@ -193,8 +200,23 @@ class BossChorong {
           dirX: -1, dirY: 0, groupId: -1, phase: 0,
         }});
       }
-    } else if (this.phase === 3) {
+    } else if (this.phase >= 3) {
       // P3 대파도: 심해의 별밤 — 스스로 빛나는 별탄이 어둠을 채운다
+      // 진 대파도(P4): 별똥별 — 활성 별이 플레이어 쪽으로 완만히 미끄러진다
+      if (this.phase === 4) {
+        this.fallT = (this.fallT ?? 2.0) - dt;
+        if (this.fallT <= 0) {
+          this.fallT = 2.4 * m;
+          if (g.dolphin && this.telegraph <= 0) this.telegraph = 0.6;
+          const px = g.player.x, py = g.player.y;
+          const actives = g.ebullets.filter(b => b.kind === 'star' && (!b.armT || b.armT <= 0));
+          for (let i = 0; i < Math.min(6, actives.length); i++) {
+            const b = actives[Math.floor(Math.random() * actives.length)];
+            const d = Math.hypot(px - b.x, py - b.y) || 1;
+            b.fallTo = { vx: (px - b.x) / d * 130, vy: (py - b.y) / d * 130 };
+          }
+        }
+      }
       if (this.mode === 'drift') {
         this.x += (CFG.W * 0.82 - this.x) * Math.min(1, dt * 2);
         this.y = CFG.H * 0.5 + Math.sin(this.anim * 0.6) * 100;

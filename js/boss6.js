@@ -9,6 +9,7 @@ const BOSS6_PATTERNS = {
   1: { id: 'ureu-charge-beam',  name: '축전 빔' },
   2: { id: 'ureu-bolt-call',    name: '낙뢰 소환' },
   3: { id: 'ureu-great-storm',  name: '대폭풍' },  // 대파도
+  4: { id: 'ureu-twin-thunder', name: '진·대폭풍' },  // 하드 전용: 이중 낙뢰 빔
 };
 
 class BossUreu {
@@ -50,6 +51,7 @@ class BossUreu {
     const r = this.hpRatio();
     if (this.phase === 1 && r <= 0.66) this.enterPhase(2);
     else if (this.phase === 2 && r <= 0.33) this.enterPhase(3);
+    else if (this.phase === 3 && this.game.diff >= 2 && r <= 0.18) this.enterPhase(4); // 하드: 진 대파도
     if (this.hp <= 0 && !this.dead) this.die();
   }
 
@@ -66,6 +68,11 @@ class BossUreu {
     } else if (p === 3) {
       this.game.message('"대폭풍이다아아—!! 우르르릉!!"', '#ffe9a8');
       this.game.stormScale = 2;   // 해류 2배 — 탄막이 크게 휜다
+      this.game.addBattery(1);
+      this.game.phaseReward(this.x, this.y);
+    } else if (p === 4) {
+      // 진 대파도: 이중 빔 — 자기 줄 + 너의 줄, 동시에
+      this.game.message('"진정한 왕의!! 이중 낙뢰다아아!!"', '#fff3b0');
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
     }
@@ -131,20 +138,27 @@ class BossUreu {
           g.fx.push({ x: this.x + (Math.random() - 0.5) * 70, y: this.y + (Math.random() - 0.5) * 70,
                       vx: 0, vy: 0, life: 0.25, color: '#fff3b0' });
         }
+        // 진 대파도(P4): 예고 시작 시 플레이어 줄 스냅샷 — 두 번째 빔의 줄
+        if (this.phase === 4 && this.beamY2 === undefined) this.beamY2 = g.player.y;
         this.modeT -= dt;
         if (this.modeT <= 0) {
           this.mode = 'beam';
           this.beam = { y: this.y, strikeT: 0.55 };
+          if (this.phase === 4) this.beam2 = { y: this.beamY2, strikeT: 0.55 };
+          this.beamY2 = undefined;
           g.flashT = Math.max(g.flashT, 0.15);
           g.shake = Math.max(g.shake, 0.25);
         }
       } else if (this.mode === 'beam') {
         this.beam.strikeT -= dt;
-        // 빔 줄 판정
+        if (this.beam2) this.beam2.strikeT -= dt;
+        // 빔 줄 판정 (이중 빔 포함)
         const pl = g.player;
         if (pl.bubble <= 0 && Math.abs(pl.y - this.beam.y) < 27 + CFG.playerHitR) pl.hit(g);
+        if (this.beam2 && pl.bubble <= 0 && Math.abs(pl.y - this.beam2.y) < 27 + CFG.playerHitR) pl.hit(g);
         if (this.beam.strikeT <= 0) {
           this.beam = null;
+          this.beam2 = null;
           this.mode = 'hover';
           this.beamCycleT = interval * m;
         }
@@ -185,8 +199,9 @@ class BossUreu {
         this.ringT = 2.9 * m;
         g.bossRing(this.x, this.y, 16, 108, Math.random() * 6.28);
       }
-    } else if (this.phase === 3) {
+    } else if (this.phase >= 3) {
       // P3 대파도: 대폭풍 — 강화 해류에 휘는 스파크 + 낙뢰 파도 + 가끔 빔
+      // 진 대파도(P4): 빔이 이중 — 자기 줄 + 플레이어 줄(예고 시점 스냅샷)
       if (this.mode === 'hover') {
         this.x += (CFG.W * 0.84 - this.x) * Math.min(1, dt * 2);
         this.y = CFG.H * 0.5 + Math.sin(this.anim * 0.7) * 130;
@@ -219,35 +234,37 @@ class BossUreu {
   }
 
   draw(ctx) {
-    // 가로 빔
-    if (this.beam) {
-      const a = Math.max(0, this.beam.strikeT / 0.55);
+    // 가로 빔 (진 대파도에선 이중)
+    for (const bm of [this.beam, this.beam2]) {
+      if (!bm) continue;
+      const a = Math.max(0, bm.strikeT / 0.55);
       ctx.save();
-      const grad = ctx.createLinearGradient(0, this.beam.y - 27, 0, this.beam.y + 27);
+      const grad = ctx.createLinearGradient(0, bm.y - 27, 0, bm.y + 27);
       grad.addColorStop(0, 'rgba(255,240,150,0)');
       grad.addColorStop(0.5, `rgba(255,250,220,${0.6 * a})`);
       grad.addColorStop(1, 'rgba(255,240,150,0)');
       ctx.fillStyle = grad;
-      ctx.fillRect(0, this.beam.y - 27, CFG.W, 54);
+      ctx.fillRect(0, bm.y - 27, CFG.W, 54);
       ctx.strokeStyle = `rgba(255,255,255,${0.95 * a})`;
       ctx.lineWidth = 4;
       ctx.beginPath();
-      let zx = CFG.W, zy = this.beam.y;
+      let zx = CFG.W, zy = bm.y;
       ctx.moveTo(zx, zy);
       while (zx > 0) {
         zx -= 40 + Math.random() * 24;
-        zy = this.beam.y + (Math.random() - 0.5) * 30;
+        zy = bm.y + (Math.random() - 0.5) * 30;
         ctx.lineTo(zx, zy);
       }
       ctx.stroke();
       ctx.restore();
     }
-    // 빔 예고: 자기 줄 표시
+    // 빔 예고: 자기 줄 표시 (+진 대파도: 플레이어 스냅샷 줄도)
     if (this.mode === 'chargeTel') {
       ctx.save();
       const blink = Math.floor(this.modeT * 12) % 2 === 0;
       ctx.fillStyle = `rgba(255,240,150,${blink ? 0.13 : 0.06})`;
       ctx.fillRect(0, this.y - 27, CFG.W, 54);
+      if (this.beamY2 !== undefined) ctx.fillRect(0, this.beamY2 - 27, CFG.W, 54);
       ctx.restore();
     }
 

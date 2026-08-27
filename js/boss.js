@@ -8,6 +8,7 @@ const BOSS1_PATTERNS = {
   1: { id: 'pangpang-needle-fan',  name: '가시 삼연발' },
   2: { id: 'pangpang-bubble-ring', name: '부풀부풀 기포 링' },
   3: { id: 'pangpang-spa-bubbles', name: '뾰족뾰족 온천기포' },  // 대파도
+  4: { id: 'pangpang-true-spa',    name: '진·뾰족뾰족 온천기포' },  // 하드 전용 진 대파도: 역회전 나선 교차
 };
 
 class Boss {
@@ -47,6 +48,7 @@ class Boss {
     const r = this.hpRatio();
     if (this.phase === 1 && r <= 0.66) this.enterPhase(2);
     else if (this.phase === 2 && r <= 0.33) this.enterPhase(3);
+    else if (this.phase === 3 && this.game.diff >= 2 && r <= 0.18) this.enterPhase(4); // 하드: 진 대파도
     if (this.hp <= 0 && !this.dead) this.die();
   }
 
@@ -63,6 +65,12 @@ class Boss {
     } else if (p === 3) {
       this.targetScale = 1.75;
       this.game.message('"진짜로 화났다아—!! 뿌우우우!!"', '#ff9ec7');
+      this.game.addBattery(1);
+      this.game.phaseReward(this.x, this.y);
+    } else if (p === 4) {
+      // 진 대파도: 역회전 나선이 교차 — 안전지대가 여닫힌다
+      this.targetScale = 1.95;
+      this.game.message('"아직 하나 남았어!! 진짜 화났을 때 얘기!!"', '#ff6fa5');
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
     }
@@ -156,14 +164,28 @@ class Boss {
           g.bossRing(this.x, this.y, 16, CFG.ebSpeedRing, Math.random() * 6.28);
         }
       }
-    } else if (this.phase === 3) {
+    } else if (this.phase >= 3) {
       // P3 대파도: 나선 4줄기 회전(6초/바퀴) + 진주 가시 낙하
       // 나선과 같이 돌면 안 맞는 구조
       this.spiralAngle += (Math.PI * 2 / 6) * dt;
+      if (this.phase === 4) this.spiralAngle2 = (this.spiralAngle2 ?? 0) - (Math.PI * 2 / 7.5) * dt; // 역회전
       this.fireT -= dt;
       if (this.fireT <= 0) {
         this.fireT = 0.15 * m;
-        const arms = 4 + (g.diff >= 2 ? 1 : 0); // 하드: 나선 5줄기
+        const arms = (this.phase === 4 ? 3 : 4) + (g.diff >= 2 && this.phase === 3 ? 1 : 0);
+        // 진 대파도: 정회전 3 + 역회전 3 — 교차 타이밍을 읽어라
+        if (this.phase === 4) {
+          for (let k = 0; k < 3; k++) {
+            const a2 = this.spiralAngle2 + k * (Math.PI * 2 / 3);
+            g.ebullets.push({
+              x: this.x + Math.cos(a2) * 30 * this.scale,
+              y: this.y + Math.sin(a2) * 30 * this.scale,
+              vx: Math.cos(a2) * CFG.ebSpeedSpiral,
+              vy: Math.sin(a2) * CFG.ebSpeedSpiral,
+              r: CFG.ebR, kind: 'spike',
+            });
+          }
+        }
         for (let k = 0; k < arms; k++) {
           const a = this.spiralAngle + k * (Math.PI * 2 / arms);
           g.ebullets.push({
