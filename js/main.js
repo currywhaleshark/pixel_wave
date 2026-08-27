@@ -15,6 +15,19 @@ worldCtx.imageSmoothingEnabled = false;
 // 현재 그리기 대상. 월드 구간에선 worldCtx로 바뀐다 (엔티티 코드는 그대로 게임 좌표를 쓴다)
 let ctx = mainCtx;
 
+// 화면 맞춤: 픽셀아트는 비정수 배율로 늘리면 픽셀이 뭉개진다.
+// 월드(480×270)의 정수 배로만 표시하고, 그보다 작은 화면에서만 어쩔 수 없이 소수 배율.
+function fitCanvas() {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const exact = Math.min(vw / CFG.WORLD_W, vh / CFG.WORLD_H);
+  const scale = exact >= 1 ? Math.floor(exact) : exact;
+  canvas.style.width = `${Math.round(CFG.WORLD_W * scale)}px`;
+  canvas.style.height = `${Math.round(CFG.WORLD_H * scale)}px`;
+}
+window.addEventListener('resize', fitCanvas);
+window.addEventListener('orientationchange', fitCanvas);
+fitCanvas();
+
 Input.init(canvas);
 Meta.load();
 

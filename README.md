@@ -47,6 +47,7 @@ js/boss*.js         보스 1~7
 js/map.js           항해도 · 상점 UI
 js/main.js          게임 루프 · 충돌 · 렌더
 assets/             스프라이트 시트 (없으면 도형 폴백)
+assets/fonts/       갈무리 픽셀 폰트 (OFL-1.1)
 docs/GDD.md         게임 기획서
 docs/ART_SPEC.md    픽셀아트·폰트 제작 규격
 ```
