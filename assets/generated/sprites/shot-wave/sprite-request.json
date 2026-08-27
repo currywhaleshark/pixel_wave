@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "shot-wave",
+    "description": "tiny cyan teal right-moving water wave projectile",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "rect",
+    "width": 10,
+    "height": 6,
+    "safe_margin_x": 0,
+    "safe_margin_y": 0
+  },
+  "chroma_key": {
+    "name": "magenta",
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "selection": "manual"
+  },
+  "states": {
+    "shot": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one compact right-moving cyan and teal water-wave projectile, broad bright crest facing right and a short dark trailing tail on the left; centered, no shadow, glow or detached droplets"
+    }
+  },
+  "style": "crisp compact Korean arcade pixel art, readable silhouette, no antialiasing",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": true,
+    "palette_size": 4
+  },
+  "chroma": {
+    "mode": "ycbcr",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

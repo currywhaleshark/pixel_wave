@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "pearl-small",
+    "description": "tiny white lavender pearl pickup",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "square",
+    "width": 6,
+    "height": 6,
+    "safe_margin_x": 0,
+    "safe_margin_y": 0,
+    "size": 6,
+    "safe_margin": 0
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "manual"
+  },
+  "states": {
+    "idle": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one tiny round pearl pickup, bright white center with a pale lavender lower rim and one crisp highlight; centered, no glow, trail, shadow or detached pixels"
+    }
+  },
+  "style": "crisp compact Korean arcade pixel art, readable silhouette, no antialiasing",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": true,
+    "palette_size": 4
+  },
+  "chroma": {
+    "mode": "ycbcr",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

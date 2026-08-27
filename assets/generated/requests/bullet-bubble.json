@@ -1,0 +1,10 @@
+{
+  "states": {
+    "idle": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one compact circular cyan bubble projectile with a dark blue lower rim and a single white highlight; centered, no trail, glow, shadow or detached droplets"
+    }
+  }
+}

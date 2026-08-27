@@ -1,0 +1,10 @@
+{
+  "states": {
+    "shot": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one compact right-moving cyan and teal water-wave projectile, broad bright crest facing right and a short dark trailing tail on the left; centered, no shadow, glow or detached droplets"
+    }
+  }
+}

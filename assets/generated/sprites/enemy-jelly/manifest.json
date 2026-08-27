@@ -1,0 +1,68 @@
+{
+  "characterId": "enemy-jelly",
+  "engine": "component-row",
+  "game_input": "sprite-sheet-alpha.png",
+  "degraded_static_fallback": false,
+  "curation_applied": false,
+  "frame_variant": "pixel",
+  "sprite_sheet_alpha": "sprite-sheet-alpha.png",
+  "sprite_sheet_alpha_report": "sprite-sheet-alpha.report.json",
+  "base_image": "base-source.png",
+  "cell": {
+    "shape": "rect",
+    "width": 16,
+    "height": 20,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "manual"
+  },
+  "animation": {
+    "cellWidth": 16,
+    "cellHeight": 20,
+    "columns": 2,
+    "rows": {
+      "float": {
+        "row": 0,
+        "frames": 2,
+        "fps": 4,
+        "durations_ms": [
+          250,
+          250
+        ],
+        "loop": true,
+        "frame_variant": "pixel"
+      }
+    }
+  },
+  "frame_layout": {
+    "sheetWidth": 32,
+    "sheetHeight": 20,
+    "cellWidth": 16,
+    "cellHeight": 20,
+    "rows": {
+      "float": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 16,
+          "h": 20
+        },
+        {
+          "x": 16,
+          "y": 0,
+          "w": 16,
+          "h": 20
+        }
+      ]
+    }
+  }
+}

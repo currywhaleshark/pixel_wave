@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-curation",
+  "states": {
+    "swim": {
+      "selected": [
+        0,
+        1
+      ],
+      "order": [
+        0,
+        1
+      ],
+      "clones": {
+        "1": 0
+      },
+      "revision": [
+        "284eb19f005b"
+      ]
+    }
+  },
+  "run_revision": "0d2f6968100b309c"
+}

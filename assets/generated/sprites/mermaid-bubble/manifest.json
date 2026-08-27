@@ -1,0 +1,70 @@
+{
+  "characterId": "mermaid-bubble",
+  "engine": "component-row",
+  "game_input": "sprite-sheet-alpha.png",
+  "degraded_static_fallback": false,
+  "curation_applied": true,
+  "frame_variant": "pixel",
+  "sprite_sheet_alpha": "sprite-sheet-alpha.png",
+  "sprite_sheet_alpha_report": "sprite-sheet-alpha.report.json",
+  "base_image": "base-source.png",
+  "cell": {
+    "shape": "square",
+    "width": 24,
+    "height": 24,
+    "safe_margin_x": 2,
+    "safe_margin_y": 2,
+    "size": 24,
+    "safe_margin": 2
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "manual"
+  },
+  "animation": {
+    "cellWidth": 24,
+    "cellHeight": 24,
+    "columns": 1,
+    "rows": {
+      "bubble": {
+        "row": 0,
+        "frames": 2,
+        "fps": 4,
+        "durations_ms": [
+          250,
+          250
+        ],
+        "loop": true,
+        "frame_variant": "pixel"
+      }
+    }
+  },
+  "frame_layout": {
+    "sheetWidth": 24,
+    "sheetHeight": 24,
+    "cellWidth": 24,
+    "cellHeight": 24,
+    "rows": {
+      "bubble": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 24,
+          "h": 24
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "w": 24,
+          "h": 24
+        }
+      ]
+    }
+  }
+}

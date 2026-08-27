@@ -22,8 +22,8 @@ const SHEETS = {
 //            (시트 로드만 보고 판단하면, 아직 안 그린 칸이 투명하게 그려져 적이 사라진다)
 const SPRITES = {
   // ---- 플레이어 ----
-  'mermaid.swim':   { sheet: 'main', x: 0,   y: 0,  w: 24, h: 16, frames: 4, fps: 8,  ax: 12, ay: 8,  on: false },
-  'mermaid.bubble': { sheet: 'main', x: 96,  y: 0,  w: 24, h: 24, frames: 2, fps: 4,  ax: 12, ay: 12, on: false },
+  'mermaid.swim':   { sheet: 'main', x: 0,   y: 0,  w: 24, h: 16, frames: 4, fps: 8,  ax: 12, ay: 8,  on: true },
+  'mermaid.bubble': { sheet: 'main', x: 96,  y: 0,  w: 24, h: 24, frames: 2, fps: 4,  ax: 12, ay: 12, on: true },
 
   // ---- 돌고래 (옵션) ----
   'dolphin.homing': { sheet: 'main', x: 0,   y: 24, w: 18, h: 10, frames: 2, fps: 6,  ax: 9,  ay: 5,  on: false },
@@ -31,28 +31,28 @@ const SPRITES = {
   'dolphin.pierce': { sheet: 'main', x: 72,  y: 24, w: 18, h: 10, frames: 2, fps: 6,  ax: 9,  ay: 5,  on: false },
 
   // ---- 잡몹 (kind 이름과 1:1) ----
-  'enemy.fish':     { sheet: 'main', x: 0,   y: 40, w: 16, h: 10, frames: 2, fps: 8,  ax: 8,  ay: 5,  on: false },
-  'enemy.jelly':    { sheet: 'main', x: 32,  y: 40, w: 16, h: 20, frames: 2, fps: 4,  ax: 8,  ay: 6,  on: false },
+  'enemy.fish':     { sheet: 'main', x: 0,   y: 40, w: 16, h: 10, frames: 2, fps: 8,  ax: 8,  ay: 5,  on: true },
+  'enemy.jelly':    { sheet: 'main', x: 32,  y: 40, w: 16, h: 20, frames: 2, fps: 4,  ax: 8,  ay: 6,  on: true },
   'enemy.ray':      { sheet: 'main', x: 64,  y: 40, w: 20, h: 14, frames: 2, fps: 6,  ax: 10, ay: 7,  on: false },
-  'enemy.turret':   { sheet: 'main', x: 104, y: 40, w: 16, h: 14, frames: 1, fps: 0,  ax: 8,  ay: 7,  on: false },
+  'enemy.turret':   { sheet: 'main', x: 104, y: 40, w: 16, h: 14, frames: 1, fps: 0,  ax: 8,  ay: 7,  on: true },
   'enemy.lantern':  { sheet: 'main', x: 0,   y: 64, w: 18, h: 24, frames: 2, fps: 4,  ax: 9,  ay: 8,  on: false },
   'enemy.viper':    { sheet: 'main', x: 36,  y: 64, w: 20, h: 10, frames: 2, fps: 8,  ax: 10, ay: 5,  on: false },
   'enemy.ghost':    { sheet: 'main', x: 76,  y: 64, w: 14, h: 12, frames: 2, fps: 4,  ax: 7,  ay: 6,  on: false },
-  'enemy.big':      { sheet: 'main', x: 0,   y: 96, w: 32, h: 24, frames: 2, fps: 4,  ax: 16, ay: 12, on: false },
+  'enemy.big':      { sheet: 'main', x: 0,   y: 96, w: 32, h: 24, frames: 2, fps: 4,  ax: 16, ay: 12, on: true },
   'enemy.wreck':    { sheet: 'main', x: 64,  y: 96, w: 40, h: 32, frames: 1, fps: 0,  ax: 20, ay: 16, on: false },
   'turtle.taxi':    { sheet: 'main', x: 0,   y: 128, w: 32, h: 20, frames: 2, fps: 6, ax: 16, ay: 10, on: false },
 
   // ---- 진주 · 탄 ----
-  'pearl.small':    { sheet: 'main', x: 0,   y: 152, w: 6,  h: 6,  frames: 1, fps: 0, ax: 3,  ay: 3,  on: false },
-  'pearl.big':      { sheet: 'main', x: 8,   y: 152, w: 10, h: 10, frames: 1, fps: 0, ax: 5,  ay: 5,  on: false },
-  'bullet.bubble':  { sheet: 'main', x: 24,  y: 152, w: 8,  h: 8,  frames: 1, fps: 0, ax: 4,  ay: 4,  on: false },
-  'bullet.spike':   { sheet: 'main', x: 32,  y: 152, w: 8,  h: 8,  frames: 1, fps: 0, ax: 4,  ay: 4,  on: false },
-  'bullet.mine':    { sheet: 'main', x: 40,  y: 152, w: 10, h: 10, frames: 2, fps: 8, ax: 5,  ay: 5,  on: false },
+  'pearl.small':    { sheet: 'main', x: 0,   y: 152, w: 6,  h: 6,  frames: 1, fps: 0, ax: 3,  ay: 3,  on: true },
+  'pearl.big':      { sheet: 'main', x: 8,   y: 152, w: 10, h: 10, frames: 1, fps: 0, ax: 5,  ay: 5,  on: true },
+  'bullet.bubble':  { sheet: 'main', x: 24,  y: 152, w: 8,  h: 8,  frames: 1, fps: 0, ax: 4,  ay: 4,  on: true },
+  'bullet.spike':   { sheet: 'main', x: 32,  y: 152, w: 8,  h: 8,  frames: 1, fps: 0, ax: 4,  ay: 4,  on: true },
+  'bullet.mine':    { sheet: 'main', x: 40,  y: 152, w: 10, h: 10, frames: 2, fps: 8, ax: 5,  ay: 5,  on: true },
   'bullet.star':    { sheet: 'main', x: 64,  y: 152, w: 10, h: 10, frames: 2, fps: 6, ax: 5,  ay: 5,  on: false },
-  'shot.wave':      { sheet: 'main', x: 88,  y: 152, w: 10, h: 6,  frames: 1, fps: 0, ax: 5,  ay: 3,  on: false },
+  'shot.wave':      { sheet: 'main', x: 88,  y: 152, w: 10, h: 6,  frames: 1, fps: 0, ax: 5,  ay: 3,  on: true },
 
   // ---- 보스 (별도 시트) ----
-  'boss.pangpang':  { sheet: 'boss', x: 0,   y: 0,   w: 48, h: 48, frames: 2, fps: 4, ax: 24, ay: 24, on: false },
+  'boss.pangpang':  { sheet: 'boss', x: 0,   y: 0,   w: 48, h: 48, frames: 2, fps: 4, ax: 24, ay: 24, on: true },
   'boss.mongsil':   { sheet: 'boss', x: 96,  y: 0,   w: 48, h: 56, frames: 2, fps: 4, ax: 24, ay: 24, on: false },
   'boss.ssing':     { sheet: 'boss', x: 0,   y: 64,  w: 56, h: 40, frames: 2, fps: 6, ax: 28, ay: 20, on: false },
   'boss.chorong':   { sheet: 'boss', x: 112, y: 64,  w: 56, h: 48, frames: 2, fps: 4, ax: 28, ay: 24, on: false },

@@ -1,0 +1,10 @@
+{
+  "states": {
+    "swim": {
+      "frames": 1,
+      "fps": 4,
+      "loop": true,
+      "action": "one stable left-facing large-grouper swim pose: plump teal-blue body, lighter belly, gold spots, thick lips, tiny eye, broad tail and attached fins remain identical to the accepted 32×24 anchor; no whole-character scaling, translation, redesign or detached fins"
+    }
+  }
+}

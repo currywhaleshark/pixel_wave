@@ -1,0 +1,127 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "engine_revision": "866582aacc15",
+  "extract_args": {
+    "chroma_mode": "ycbcr",
+    "min_used_pixels": 15
+  },
+  "run_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\sprites\\pearl-big",
+  "cell": {
+    "shape": "square",
+    "width": 10,
+    "height": 10,
+    "safe_margin_x": 0,
+    "safe_margin_y": 0,
+    "size": 10,
+    "safe_margin": 0
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "manual"
+  },
+  "rows": [
+    {
+      "state": "idle",
+      "frames": 1,
+      "method": "components",
+      "files": [
+        "frames/idle/frame-0.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 66,
+          "bbox": [
+            0,
+            0,
+            10,
+            10
+          ],
+          "edge_pixels": 30,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true,
+      "engine_revision": "866582aacc15",
+      "plain_files": [
+        "frames/idle/frame-0.plain.png"
+      ],
+      "orig_files": [
+        "frames/idle/orig/frame-0.png"
+      ],
+      "input_grids": [
+        {
+          "x": [
+            0.0,
+            0.4,
+            0.8,
+            1.2,
+            1.7,
+            2.1,
+            2.5,
+            3.0,
+            3.3,
+            3.7,
+            4.2,
+            4.6,
+            5.0,
+            5.4,
+            5.8,
+            6.2,
+            6.7,
+            7.1,
+            7.5,
+            7.9,
+            8.3,
+            8.8,
+            9.2,
+            9.6,
+            10.0
+          ],
+          "y": [
+            0.0,
+            0.4,
+            0.7,
+            1.3,
+            1.6,
+            2.1,
+            2.4,
+            2.9,
+            3.3,
+            3.8,
+            4.1,
+            4.6,
+            5.0,
+            5.5,
+            5.8,
+            6.3,
+            6.6,
+            7.2,
+            7.5,
+            8.0,
+            8.3,
+            8.8,
+            9.1,
+            9.7,
+            10.0
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "warnings": [
+    "idle: pitch crosscheck: run-length mode estimates y=2.06 but grid detection returned y=39.50 — likely a multiple/harmonic misdetection",
+    "idle: native logical exceeds the physical cap 10x10 — capped frames (reroll candidates): 0:24x24",
+    "palette: rebuilt+pinned (5 colors → palette.lock.json)",
+    "idle: frame 00 has 30 non-transparent edge pixels",
+    "pixel-perfect: pitch=(39.0, 39.5) scale=1x logical<=10x10 palette=5"
+  ]
+}

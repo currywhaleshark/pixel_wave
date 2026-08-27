@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-curation",
+  "states": {
+    "blink": {
+      "selected": [
+        0,
+        1
+      ],
+      "order": [
+        0,
+        1
+      ],
+      "clones": {
+        "1": 0
+      },
+      "revision": [
+        "389e64425f9a"
+      ]
+    }
+  },
+  "run_revision": "82ba952f9dbb9dd9"
+}

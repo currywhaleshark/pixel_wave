@@ -4,3 +4,7 @@ node_modules/
 __pycache__/
 *.pyc
 tmp/
+tools/.sprite-gen-runtime/
+*.sg-rwlock
+assets/generated/attempts/
+assets/generated/sprites/*/correction-loop/

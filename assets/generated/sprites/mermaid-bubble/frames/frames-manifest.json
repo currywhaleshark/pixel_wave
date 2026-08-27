@@ -1,0 +1,123 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "engine_revision": "866582aacc15",
+  "extract_args": {
+    "chroma_mode": "ycbcr",
+    "min_used_pixels": 40
+  },
+  "run_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\sprites\\mermaid-bubble",
+  "cell": {
+    "shape": "square",
+    "width": 24,
+    "height": 24,
+    "safe_margin_x": 2,
+    "safe_margin_y": 2,
+    "size": 24,
+    "safe_margin": 2
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "manual"
+  },
+  "rows": [
+    {
+      "state": "bubble",
+      "frames": 1,
+      "method": "components",
+      "files": [
+        "frames/bubble/frame-0.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 263,
+          "bbox": [
+            3,
+            0,
+            21,
+            22
+          ],
+          "edge_pixels": 12,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true,
+      "engine_revision": "866582aacc15",
+      "plain_files": [
+        "frames/bubble/frame-0.plain.png"
+      ],
+      "orig_files": [
+        "frames/bubble/orig/frame-0.png"
+      ],
+      "input_grids": [
+        {
+          "x": [
+            3.0,
+            3.9,
+            4.8,
+            5.7,
+            6.6,
+            7.8,
+            8.7,
+            9.2,
+            10.1,
+            11.1,
+            12.0,
+            12.9,
+            13.9,
+            14.7,
+            15.7,
+            16.5,
+            17.5,
+            18.4,
+            19.2,
+            20.2,
+            21.0
+          ],
+          "y": [
+            0.0,
+            0.5,
+            1.3,
+            2.2,
+            3.1,
+            4.1,
+            5.1,
+            5.9,
+            6.9,
+            7.8,
+            8.7,
+            9.7,
+            10.5,
+            11.5,
+            12.4,
+            13.3,
+            14.2,
+            14.7,
+            15.7,
+            16.5,
+            17.4,
+            18.4,
+            19.3,
+            20.2,
+            21.1,
+            22.0
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "warnings": [
+    "bubble: pitch crosscheck: axis ratio y/x disagrees — run-length 1.047 vs grid 1.000 (4.7%); one axis may have collapsed to the other",
+    "bubble: native logical exceeds the physical cap 24x22 — capped frames (reroll candidates): 0:20x25",
+    "palette: pinned (18 colors, palette.lock.json)",
+    "pixel-perfect: pitch=22.66 scale=1x logical<=24x24 palette=18"
+  ]
+}

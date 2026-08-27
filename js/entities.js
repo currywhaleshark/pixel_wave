@@ -156,6 +156,19 @@ class Player {
     if (Sprites.draw(ctx, this.bubble > 0 ? 'mermaid.bubble' : 'mermaid.swim', this.x, this.y, {
       t, alpha: (this.invuln > 0 && this.bubble <= 0 && Math.floor(t * 12) % 2 === 0) ? 0.35 : 1,
     })) {
+      // 기포·탑승 아우라는 상태 이펙트이므로 본체 스프라이트와 별도로 유지한다.
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      if (this.bubble > 0) {
+        ctx.globalAlpha = 0.85;
+        ctx.strokeStyle = '#bfe8ff'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(0, 0, 24 + Math.sin(t * 6) * 2, 0, 6.28); ctx.stroke();
+      } else if (typeof Game !== 'undefined' && Game.ride) {
+        ctx.strokeStyle = `rgba(255,230,140,${0.5 + Math.sin(t * 6) * 0.2})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(0, 4, 30, 0, 6.28); ctx.stroke();
+      }
+      ctx.restore();
       this.drawHitbox(ctx);
       return;
     }
@@ -262,6 +275,7 @@ class Pearl {
     const r = this.big ? 9 : 4.5;
     const blink = this.scattered && this.life < 1 && Math.floor(this.life * 10) % 2 === 0;
     if (blink) return;
+    if (Sprites.draw(ctx, this.big ? 'pearl.big' : 'pearl.small', this.x, this.y, { t: this.t })) return;
     ctx.save();
     ctx.translate(this.x, this.y);
     const g = ctx.createRadialGradient(-r * 0.3, -r * 0.3, 0, 0, 0, r);

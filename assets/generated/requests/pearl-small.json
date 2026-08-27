@@ -1,0 +1,10 @@
+{
+  "states": {
+    "idle": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one tiny round pearl pickup, bright white center with a pale lavender lower rim and one crisp highlight; centered, no glow, trail, shadow or detached pixels"
+    }
+  }
+}

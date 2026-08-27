@@ -1,0 +1,70 @@
+{
+  "characterId": "pangpang",
+  "engine": "component-row",
+  "game_input": "sprite-sheet-alpha.png",
+  "degraded_static_fallback": false,
+  "curation_applied": false,
+  "frame_variant": "pixel",
+  "sprite_sheet_alpha": "sprite-sheet-alpha.png",
+  "sprite_sheet_alpha_report": "sprite-sheet-alpha.report.json",
+  "base_image": "base-source.png",
+  "cell": {
+    "shape": "square",
+    "width": 48,
+    "height": 48,
+    "safe_margin_x": 4,
+    "safe_margin_y": 4,
+    "size": 48,
+    "safe_margin": 4
+  },
+  "chroma_key": {
+    "name": "magenta",
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "selection": "manual"
+  },
+  "animation": {
+    "cellWidth": 48,
+    "cellHeight": 48,
+    "columns": 2,
+    "rows": {
+      "idle": {
+        "row": 0,
+        "frames": 2,
+        "fps": 4,
+        "durations_ms": [
+          250,
+          250
+        ],
+        "loop": true,
+        "frame_variant": "pixel"
+      }
+    }
+  },
+  "frame_layout": {
+    "sheetWidth": 96,
+    "sheetHeight": 48,
+    "cellWidth": 48,
+    "cellHeight": 48,
+    "rows": {
+      "idle": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 48
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 48
+        }
+      ]
+    }
+  }
+}

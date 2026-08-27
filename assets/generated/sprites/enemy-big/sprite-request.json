@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "enemy-big",
+    "description": "same accepted 32x24 left-facing teal-blue grouper with light belly, gold spots, thick lips and broad fins",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "rect",
+    "width": 32,
+    "height": 24,
+    "safe_margin_x": 3,
+    "safe_margin_y": 2
+  },
+  "chroma_key": {
+    "name": "magenta",
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "selection": "manual"
+  },
+  "states": {
+    "swim": {
+      "frames": 1,
+      "fps": 4,
+      "loop": true,
+      "action": "one stable left-facing large-grouper swim pose: plump teal-blue body, lighter belly, gold spots, thick lips, tiny eye, broad tail and attached fins remain identical to the accepted 32×24 anchor; no whole-character scaling, translation, redesign or detached fins"
+    }
+  },
+  "style": "match the attached base/anchor reference image EXACTLY: same pixel density (logical pixel block size), same body proportions, same outline weight, same palette, same shading style, same level of detail. Do not restyle, do not change proportions, do not add or remove detail density. Avoid polished illustration, painterly rendering, anime key art, 3D render, vector app-icon polish, glossy lighting, soft gradients, and anti-aliased high-detail edges.",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": true,
+    "logical_height": 24,
+    "palette_size": 16
+  },
+  "chroma": {
+    "mode": "ycbcr",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

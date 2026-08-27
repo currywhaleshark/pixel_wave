@@ -1,0 +1,10 @@
+{
+  "states": {
+    "swim": {
+      "frames": 1,
+      "fps": 8,
+      "loop": true,
+      "action": "one stable left-facing tropical-fish swim pose: body, tiny dark eye, orange/yellow palette, turquoise tail and fins remain identical to the accepted 16×10 anchor; no whole-character scaling, translation, redesign or detached pixels"
+    }
+  }
+}

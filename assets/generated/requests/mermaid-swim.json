@@ -1,0 +1,10 @@
+{
+  "states": {
+    "swim": {
+      "frames": 4,
+      "fps": 8,
+      "loop": true,
+      "action": "gentle horizontal swimming cycle facing right: compact body stays centered, teal tail fin alternates up, neutral, down, neutral; pink bob shifts only one pixel; arms remain tucked; seamless loop; no detached effects"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "states": {
+    "idle": {
+      "frames": 2,
+      "fps": 4,
+      "loop": true,
+      "action": "subtle pufferfish body-only breathing loop with strict scale lock: both frames occupy exactly the same bounding box, have the same head and belly dimensions, and use the same pixel density; frame 2 changes only the outer left and right contour by one logical pixel and moves the tiny side fins one logical pixel; never zoom, rescale, enlarge, shrink, or move the whole character; angry eyebrows, eyes, pink cheeks, cream belly and tiny O mouth remain stable; no external spikes or detached effects"
+    }
+  }
+}

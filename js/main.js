@@ -843,6 +843,11 @@ const Game = {
   // 플레이어/돌고래 샷 렌더 (alphaMul: 어둠 위 재드로용)
   drawShots(alphaMul) {
     for (const s of this.shots) {
+      if (!['homing', 'bomb', 'beam'].includes(s.kind) && Sprites.draw(ctx, 'shot.wave', s.x, s.y, {
+        t: s.t,
+        alpha: 0.9 * alphaMul,
+        rot: Math.atan2(s.dirY, s.dirX),
+      })) continue;
       ctx.save();
       ctx.translate(s.x, s.y);
       ctx.globalAlpha = 0.9 * alphaMul;
@@ -882,6 +887,13 @@ const Game = {
   // 적탄 렌더 (alphaMul: 어둠 위 희미 재드로용 — 안 보여서 맞는 건 금지)
   drawEBullets(alphaMul) {
     for (const b of this.ebullets) {
+      const spriteId = b.kind === 'bubble' ? 'bullet.bubble'
+        : b.kind === 'mine' ? 'bullet.mine'
+          : (b.kind === 'spike' || b.kind === 'drop') ? 'bullet.spike' : null;
+      if (spriteId && Sprites.draw(ctx, spriteId, b.x, b.y, {
+        t: b.kind === 'mine' ? Math.max(0, b.timer ?? 0) : 0,
+        alpha: alphaMul,
+      })) continue;
       ctx.save();
       ctx.translate(b.x, b.y);
       ctx.globalAlpha = alphaMul;

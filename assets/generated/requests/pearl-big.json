@@ -1,0 +1,10 @@
+{
+  "states": {
+    "idle": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one large round pearl pickup, luminous white core with a warm gold rim and one crisp highlight; centered, no glow, trail, shadow or detached pixels"
+    }
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "engine_revision": "866582aacc15",
+  "extract_args": {
+    "chroma_mode": "ycbcr",
+    "min_used_pixels": 100
+  },
+  "run_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\sprites\\enemy-big",
+  "cell": {
+    "shape": "rect",
+    "width": 32,
+    "height": 24,
+    "safe_margin_x": 3,
+    "safe_margin_y": 2
+  },
+  "chroma_key": {
+    "name": "magenta",
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "selection": "manual"
+  },
+  "rows": [
+    {
+      "state": "swim",
+      "frames": 1,
+      "method": "components",
+      "files": [
+        "frames/swim/frame-0.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 421,
+          "bbox": [
+            0,
+            2,
+            32,
+            22
+          ],
+          "edge_pixels": 22,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true,
+      "engine_revision": "866582aacc15",
+      "plain_files": [
+        "frames/swim/frame-0.plain.png"
+      ],
+      "orig_files": [
+        "frames/swim/orig/frame-0.png"
+      ],
+      "input_grids": [
+        {
+          "x": [
+            0.0,
+            0.2,
+            1.0,
+            1.3,
+            2.3,
+            2.9,
+            3.6,
+            4.0,
+            4.8,
+            5.1,
+            5.9,
+            6.5,
+            7.3,
+            7.6,
+            8.4,
+            9.0,
+            9.4,
+            10.2,
+            11.0,
+            11.6,
+            12.0,
+            12.7,
+            13.2,
+            13.9,
+            14.8,
+            15.2,
+            16.1,
+            16.6,
+            17.3,
+            17.9,
+            18.5,
+            19.1,
+            19.7,
+            20.4,
+            21.0,
+            21.6,
+            22.2,
+            22.9,
+            23.5,
+            24.1,
+            24.7,
+            25.3,
+            26.0,
+            26.6,
+            27.2,
+            27.8,
+            28.4,
+            29.2,
+            29.6,
+            30.1,
+            30.7,
+            31.2
+          ],
+          "y": [
+            2.0,
+            2.6,
+            3.3,
+            3.9,
+            4.5,
+            5.1,
+            5.7,
+            6.3,
+            7.0,
+            7.6,
+            8.2,
+            8.9,
+            9.5,
+            10.1,
+            10.7,
+            11.4,
+            12.0,
+            12.6,
+            13.2,
+            13.9,
+            14.5,
+            15.1,
+            15.7,
+            16.4,
+            17.0,
+            17.6,
+            18.3,
+            18.9,
+            19.5,
+            20.1,
+            20.7,
+            21.3,
+            22.0
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "warnings": [
+    "swim: native logical exceeds the physical cap 32x22 — capped frames (reroll candidates): 0:51x32",
+    "palette: pinned (16 colors, palette.lock.json)",
+    "pixel-perfect: pitch=19.56 scale=1x logical<=32x24 palette=16"
+  ]
+}

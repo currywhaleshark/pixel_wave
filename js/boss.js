@@ -241,6 +241,11 @@ class Boss {
       ctx.lineTo(Math.cos(a) * (R * puff + len), Math.sin(a) * (R * puff + len));
       ctx.stroke();
     }
+    // 본체만 스프라이트로 교체하고, 위의 가시·예고 및 바깥 회전/부풀기 연출은 유지한다.
+    if (Sprites.draw(ctx, 'boss.pangpang', 0, 0, { t: this.anim, scale: s * puff })) {
+      ctx.restore();
+      return;
+    }
     // 몸통 (연두빛 노랑)
     const grad = ctx.createRadialGradient(-R * 0.3, -R * 0.3, R * 0.2, 0, 0, R);
     grad.addColorStop(0, '#fdf3a6');

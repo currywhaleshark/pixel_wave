@@ -1,0 +1,10 @@
+{
+  "states": {
+    "float": {
+      "frames": 2,
+      "fps": 4,
+      "loop": true,
+      "action": "front-facing two-frame jellyfish float loop at equal scale: lavender-pink bell, two eyes and upper-third bell center stay fixed; bell compresses vertically by one logical pixel while four attached tentacles curl upward by one pixel, then returns; no scaling, translation, loose bubbles or detached tentacles"
+    }
+  }
+}

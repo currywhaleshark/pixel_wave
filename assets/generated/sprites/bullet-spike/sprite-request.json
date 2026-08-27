@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "bullet-spike",
+    "description": "tiny white coral four-point spike projectile",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "square",
+    "width": 8,
+    "height": 8,
+    "safe_margin_x": 0,
+    "safe_margin_y": 0,
+    "size": 8,
+    "safe_margin": 0
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "manual"
+  },
+  "states": {
+    "idle": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one compact white and coral-pink four-point sea spike projectile with a dark plum outline; centered, no trail, glow, shadow or detached fragments"
+    }
+  },
+  "style": "crisp compact Korean arcade pixel art, readable silhouette, no antialiasing",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": true,
+    "palette_size": 4
+  },
+  "chroma": {
+    "mode": "ycbcr",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

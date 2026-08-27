@@ -1,0 +1,121 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "engine_revision": "866582aacc15",
+  "extract_args": {
+    "chroma_mode": "ycbcr",
+    "min_used_pixels": 25
+  },
+  "run_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\sprites\\enemy-fish",
+  "cell": {
+    "shape": "rect",
+    "width": 16,
+    "height": 10,
+    "safe_margin_x": 1,
+    "safe_margin_y": 0
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "manual"
+  },
+  "rows": [
+    {
+      "state": "swim",
+      "frames": 1,
+      "method": "components",
+      "files": [
+        "frames/swim/frame-0.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 82,
+          "bbox": [
+            1,
+            0,
+            15,
+            10
+          ],
+          "edge_pixels": 22,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true,
+      "engine_revision": "866582aacc15",
+      "plain_files": [
+        "frames/swim/frame-0.plain.png"
+      ],
+      "orig_files": [
+        "frames/swim/orig/frame-0.png"
+      ],
+      "input_grids": [
+        {
+          "x": [
+            1.0,
+            1.2,
+            1.8,
+            2.4,
+            2.8,
+            3.2,
+            3.7,
+            4.2,
+            4.7,
+            5.4,
+            5.8,
+            6.3,
+            7.0,
+            7.5,
+            8.1,
+            8.6,
+            9.1,
+            9.7,
+            10.2,
+            10.7,
+            11.3,
+            11.9,
+            12.4,
+            12.7,
+            13.3,
+            13.8,
+            14.3,
+            14.9
+          ],
+          "y": [
+            0.0,
+            0.5,
+            1.0,
+            1.6,
+            2.1,
+            2.7,
+            3.2,
+            3.7,
+            4.3,
+            4.8,
+            5.3,
+            5.8,
+            6.3,
+            6.9,
+            7.4,
+            7.9,
+            8.4,
+            9.0,
+            9.5,
+            10.0
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "warnings": [
+    "swim: native logical exceeds the physical cap 16x10 — capped frames (reroll candidates): 0:27x19",
+    "palette: pinned (10 colors, palette.lock.json)",
+    "pixel-perfect: pitch=24.48 scale=1x logical<=16x10 palette=10"
+  ]
+}

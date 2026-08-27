@@ -1,0 +1,10 @@
+{
+  "states": {
+    "blink": {
+      "frames": 1,
+      "fps": 8,
+      "loop": true,
+      "action": "one stable amber lantern mine pose: bright yellow square core inside a dark brown round mechanical shell with four attached short cardinal nubs; centered, no explosion, glow, shadow or detached parts"
+    }
+  }
+}

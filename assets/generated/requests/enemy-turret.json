@@ -1,0 +1,10 @@
+{
+  "states": {
+    "idle": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one stable coral turret pose: squat connected coral base with one short hollow tube aimed left, pale yellow rim and dark opening; no projectile, detached branch, motion or effect"
+    }
+  }
+}

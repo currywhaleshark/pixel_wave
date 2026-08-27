@@ -1,0 +1,10 @@
+{
+  "states": {
+    "idle": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one compact white and coral-pink four-point sea spike projectile with a dark plum outline; centered, no trail, glow, shadow or detached fragments"
+    }
+  }
+}

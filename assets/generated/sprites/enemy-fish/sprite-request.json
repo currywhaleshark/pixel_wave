@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "enemy-fish",
+    "description": "same accepted 16x10 left-facing coral-orange fish with yellow belly, turquoise fins and tiny dark eye",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "rect",
+    "width": 16,
+    "height": 10,
+    "safe_margin_x": 1,
+    "safe_margin_y": 0
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "manual"
+  },
+  "states": {
+    "swim": {
+      "frames": 1,
+      "fps": 8,
+      "loop": true,
+      "action": "one stable left-facing tropical-fish swim pose: body, tiny dark eye, orange/yellow palette, turquoise tail and fins remain identical to the accepted 16×10 anchor; no whole-character scaling, translation, redesign or detached pixels"
+    }
+  },
+  "style": "match the attached base/anchor reference image EXACTLY: same pixel density (logical pixel block size), same body proportions, same outline weight, same palette, same shading style, same level of detail. Do not restyle, do not change proportions, do not add or remove detail density. Avoid polished illustration, painterly rendering, anime key art, 3D render, vector app-icon polish, glossy lighting, soft gradients, and anti-aliased high-detail edges.",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": true,
+    "logical_height": 10,
+    "palette_size": 10
+  },
+  "chroma": {
+    "mode": "ycbcr",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

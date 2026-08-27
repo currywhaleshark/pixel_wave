@@ -1,0 +1,10 @@
+{
+  "states": {
+    "bubble": {
+      "frames": 1,
+      "fps": 4,
+      "loop": true,
+      "action": "one stable defeated but safe curled pose facing right: same compact mermaid curls slightly with arms tucked and teal tail bent upward; body scale, one-pixel dark eye, face, short pink bob, outline and palette stay locked; draw the mermaid body only because the enclosing bubble ring is rendered by game code; no bubble outline, detached bubbles, accessories, long hair or extra effects"
+    }
+  }
+}
