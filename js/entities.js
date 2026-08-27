@@ -151,6 +151,15 @@ class Player {
 
   draw(ctx) {
     const t = this.anim;
+
+    // 스프라이트가 있으면 그것으로, 없으면 아래 임시 도형으로 (교체는 항목별로)
+    if (Sprites.draw(ctx, this.bubble > 0 ? 'mermaid.bubble' : 'mermaid.swim', this.x, this.y, {
+      t, alpha: (this.invuln > 0 && this.bubble <= 0 && Math.floor(t * 12) % 2 === 0) ? 0.35 : 1,
+    })) {
+      this.drawHitbox(ctx);
+      return;
+    }
+
     ctx.save();
     ctx.translate(this.x, this.y);
     if (this.bubble > 0) {
@@ -190,13 +199,19 @@ class Player {
     ctx.beginPath(); ctx.arc(10, -2, 4, 0, 6.28); ctx.fill();
     ctx.fillStyle = '#333';
     ctx.fillRect(11, -3, 1.6, 2.2);
-    // 피격판정 표시 (저속/포인터 근접 시)
-    if (this.slowVisual && this.bubble <= 0) {
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath(); ctx.arc(0, 0, CFG.playerHitR, 0, 6.28); ctx.fill();
-      ctx.strokeStyle = '#ff6fa5'; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(0, 0, CFG.playerHitR + 2, 0, 6.28); ctx.stroke();
-    }
+    ctx.restore();
+    this.drawHitbox(ctx);
+  }
+
+  // 피격판정 표시 (저속/포인터 근접 시) — 스프라이트 유무와 무관하게 항상 같은 규칙
+  drawHitbox(ctx) {
+    if (!this.slowVisual || this.bubble > 0) return;
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(0, 0, CFG.playerHitR, 0, 6.28); ctx.fill();
+    ctx.strokeStyle = '#ff6fa5'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, 0, CFG.playerHitR + 2, 0, 6.28); ctx.stroke();
     ctx.restore();
   }
 }
@@ -404,6 +419,13 @@ class Enemy {
   }
 
   draw(ctx) {
+    // 스프라이트 우선, 없으면 임시 도형 (kind 이름이 곧 스프라이트 id)
+    let alpha = this.flash > 0 ? 0.6 : 1;
+    if (this.kind === 'ghost') alpha *= this.solid ? 0.9 : 0.25;
+    if (Sprites.draw(ctx, `enemy.${this.kind}`, this.x, this.y, {
+      t: this.t, alpha, flipX: this.dirX > 0,
+    })) return;
+
     ctx.save();
     ctx.translate(this.x, this.y);
     if (this.flash > 0) { ctx.globalAlpha = 0.6; }

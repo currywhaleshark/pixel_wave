@@ -2,7 +2,19 @@
 // main.js — 게임 루프 / 충돌 / 배경 / HUD / 상태 전환
 // ============================================================
 const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
+const mainCtx = canvas.getContext('2d');
+mainCtx.imageSmoothingEnabled = false;
+
+// 월드 레이어: 480×270에 그린 뒤 2배 확대 (픽셀아트 규격)
+const worldCanvas = document.createElement('canvas');
+worldCanvas.width = CFG.WORLD_W;
+worldCanvas.height = CFG.WORLD_H;
+const worldCtx = worldCanvas.getContext('2d');
+worldCtx.imageSmoothingEnabled = false;
+
+// 현재 그리기 대상. 월드 구간에선 worldCtx로 바뀐다 (엔티티 코드는 그대로 게임 좌표를 쓴다)
+let ctx = mainCtx;
+
 Input.init(canvas);
 Meta.load();
 
@@ -413,6 +425,9 @@ const Game = {
           this.ride = null;
           this.message('[DEBUG] 보스 직행', '#ff8fd8');
         }
+      } else if (k === '6') {    // 픽셀 렌더 토글 (480×270 ↔ 960×540 비교용)
+        CFG.pixelMode = !CFG.pixelMode;
+        this.message(`[DEBUG] 픽셀 렌더 ${CFG.pixelMode ? 'ON (480×270)' : 'OFF (960×540)'}`, '#ff8fd8');
       } else if (k === '5') {    // 보스 페이즈 스킵 (마지막 페이즈에서 누르면 격파)
         const b = this.boss;
         if (b && !b.dead && b.phase >= 1) {
@@ -655,15 +670,53 @@ const Game = {
   },
 
   // ================= DRAW =================
-  draw() {
+  // 월드 레이어 시작: 이후 그리기는 480×270 캔버스로 (게임 좌표는 그대로 쓴다)
+  beginWorld() {
+    if (!CFG.pixelMode) {
+      ctx = mainCtx;
+      ctx.save();
+      if (this.shake > 0) ctx.translate((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8);
+      return;
+    }
+    ctx = worldCtx;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, CFG.WORLD_W, CFG.WORLD_H);
     ctx.save();
-    if (this.shake > 0) ctx.translate((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8);
+    const s = 1 / CFG.pxUnit;               // 게임 좌표 → 월드 픽셀
+    ctx.scale(s, s);
+    if (this.shake > 0) {
+      // 흔들림도 월드 픽셀 단위로 스냅 (반픽셀 떨림 방지)
+      const sx = Math.round((Math.random() - 0.5) * 8 / CFG.pxUnit) * CFG.pxUnit;
+      const sy = Math.round((Math.random() - 0.5) * 8 / CFG.pxUnit) * CFG.pxUnit;
+      ctx.translate(sx, sy);
+    }
+  },
+  // 월드 레이어 종료: 2배 확대해 메인 캔버스로 올리고, 이후엔 UI를 풀 해상도로
+  endWorld() {
+    ctx.restore();
+    if (!CFG.pixelMode) { ctx = mainCtx; return; }
+    ctx = mainCtx;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(worldCanvas, 0, 0, CFG.W, CFG.H);
+  },
 
+  draw() {
+    // UI 화면(타이틀·항해도·엔딩)은 풀 해상도로 또렷하게
+    if (this.state === 'title' || this.state === 'map' || this.state === 'ending') {
+      ctx = mainCtx;
+      ctx.save();
+      this.drawBackground();
+      if (this.state === 'title') this.drawTitle();
+      else if (this.state === 'map') MapUI.draw(ctx, this);
+      else this.drawEnding();
+      ErrLog.draw(ctx);
+      ctx.restore();
+      return;
+    }
+
+    this.beginWorld();
     this.drawBackground();
-
-    if (this.state === 'title') { this.drawTitle(); ctx.restore(); return; }
-    if (this.state === 'map') { MapUI.draw(ctx, this); ctx.restore(); return; }
-    if (this.state === 'ending') { this.drawEnding(); ctx.restore(); return; }
 
     // 진주 → 적 → 보스 → 탄 → 플레이어 순
     for (const p of this.pearls) p.draw(ctx);
@@ -751,6 +804,9 @@ const Game = {
     // 심해 어둠 (광원 구멍 + 탄 희미 재드로)
     this.drawDarkness();
 
+    // ---- 여기부터 UI 레이어 (풀 해상도) ----
+    this.endWorld();
+
     this.drawHud();
     if (this.boss) this.boss.drawHpBar(ctx);
 
@@ -769,7 +825,6 @@ const Game = {
 
     if (this.state === 'victory') this.drawVictory();
     ErrLog.draw(ctx);
-    ctx.restore();
   },
 
   // 플레이어/돌고래 샷 렌더 (alphaMul: 어둠 위 재드로용)
@@ -1162,7 +1217,7 @@ const Game = {
     ctx.fillText(Input.mode === 'keys' ? '키보드: 이동 ←↑↓→ · 저속 Shift · 봄 Space' : '포인터: 따라 유영 · 봄 클릭/버튼', CFG.W - 12, 18);
     if (this.debug) {
       ctx.fillStyle = '#ff8fd8';
-      ctx.fillText(`DEBUG${this.god ? ' · 무적' : ''} — 1 파워 · 2 진주 · 3 무적 · 4 보스직행 · 5 페이즈스킵`, CFG.W - 12, 34);
+      ctx.fillText(`DEBUG${this.god ? ' · 무적' : ''} — 1 파워 · 2 진주 · 3 무적 · 4 보스직행 · 5 페이즈스킵 · 6 픽셀${CFG.pixelMode ? 'ON' : 'OFF'}`, CFG.W - 12, 34);
       // 디버그 통계: 프레임·엔티티 수·경과
       const rl = this.runLog || {};
       const bossT = rl.bossStart != null ? (this.stageT - rl.bossStart).toFixed(0) : '-';

@@ -34,7 +34,9 @@ python server.py
 
 ```
 index.html          진입점
-js/config.js        튜닝 수치 · 난이도 테이블
+js/config.js        튜닝 수치 · 난이도 테이블 · 픽셀 렌더 규격
+js/assets.js        스프라이트 시트/프레임/앵커 정의 (아트 단일 진실 원천)
+js/spriteRenderer.js 스프라이트 그리기 (프레임·반전·픽셀 스냅)
 js/input.js         키보드/마우스/터치 (속도 상한 통일)
 js/meta.js          영구 저장 · 상점 카탈로그
 js/entities.js      플레이어 · 잡몹 · 진주
@@ -43,11 +45,20 @@ js/waves.js         잡몹 문법(5축) + 스테이지 타임라인
 js/boss*.js         보스 1~7
 js/map.js           항해도 · 상점 UI
 js/main.js          게임 루프 · 충돌 · 렌더
+assets/             스프라이트 시트 (없으면 도형 폴백)
 docs/GDD.md         게임 기획서
+docs/ART_SPEC.md    픽셀아트 제작 규격
 ```
 
 웨이브는 전부 데이터입니다 — `waves.js`의 타임라인 한 줄이 웨이브 하나(`{ t, kind, M, D, F, S, n, ... }`). 잡몹 문법 5축(이동·진입·편대·사격·스펙)의 조합으로 만들어집니다. 자세한 설계는 [docs/GDD.md](docs/GDD.md) 참고.
 
 ## 상태
 
-콘텐츠 전량 플레이 가능. 스프라이트는 전부 캔버스 도형 임시품이며, 픽셀아트·사운드는 미구현입니다.
+**Playable Alpha** — 콘텐츠(해역 7 + 엔딩 + 난이도 3단) 전량 플레이 가능.
+
+렌더는 **480×270 월드를 2배 확대**하는 픽셀아트 규격으로 동작하며(HUD는 960×540 별도 레이어),
+스프라이트 파이프라인(`assets.js` + `spriteRenderer.js`)이 준비돼 있습니다.
+아직 스프라이트 시트가 없어 각 엔티티는 **임시 캔버스 도형**으로 그려지고,
+아트가 완성된 항목부터 `on: true`로 켜면서 하나씩 교체합니다 — [docs/ART_SPEC.md](docs/ART_SPEC.md).
+
+사운드는 미구현입니다.

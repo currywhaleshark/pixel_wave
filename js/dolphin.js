@@ -92,6 +92,11 @@ class Dolphin {
   }
 
   draw(ctx, game) {
+    // 스프라이트 우선 (힌트 말풍선은 아래 공통 처리)
+    if (Sprites.draw(ctx, `dolphin.${this.type}`, this.x, this.y, { t: this.t })) {
+      this.drawHint(ctx, game);
+      return;
+    }
     ctx.save();
     ctx.translate(this.x, this.y);
     const t = this.t;
@@ -106,17 +111,23 @@ class Dolphin {
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.beginPath(); ctx.ellipse(2, 2.5, 8, 2.5, -0.1, 0, 6.28); ctx.fill(); // 배
 
-    // 공통 기능: 보스 발사 예고에 맞춰 "힌트!" 말풍선
-    if (game.boss && !game.boss.dead && game.boss.telegraph > 0) {
-      ctx.fillStyle = 'rgba(255,255,255,0.95)';
-      ctx.strokeStyle = '#5aa9ff'; ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.roundRect(-24, -38, 48, 18, 8);
-      ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#2b5bb8';
-      ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText('힌트!', 0, -25);
-    }
+    ctx.restore();
+    this.drawHint(ctx, game);
+  }
+
+  // 공통 기능: 보스 발사 예고에 맞춰 "힌트!" 말풍선
+  drawHint(ctx, game) {
+    if (!(game.boss && !game.boss.dead && game.boss.telegraph > 0)) return;
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    ctx.strokeStyle = '#5aa9ff'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(-24, -38, 48, 18, 8);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#2b5bb8';
+    ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('힌트!', 0, -25);
     ctx.restore();
   }
 }
