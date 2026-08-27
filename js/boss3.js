@@ -344,7 +344,7 @@ class BossSsing {
     ctx.beginPath(); ctx.arc(-R * 0.45, -R * 0.12, R * 0.13, 0, 6.28); ctx.fill();
     if (this.dead) {
       ctx.fillStyle = '#333';
-      ctx.font = `${8 * s}px sans-serif`; ctx.textAlign = 'center';
+      ctx.font = Fonts.f(8 * s); ctx.textAlign = 'center';
       ctx.fillText('><', -R * 0.45, -R * 0.08);
     } else {
       ctx.fillStyle = '#333';
@@ -375,7 +375,7 @@ class BossSsing {
         ctx.beginPath(); ctx.arc(bx, y, 5, 0, 6.28); ctx.stroke();
       }
     }
-    ctx.fillStyle = '#c3ceff'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#c3ceff'; ctx.font = Fonts.f(13); ctx.textAlign = 'center';
     ctx.fillText('특송 가오리 「씽씽」', CFG.W / 2, 50);
     ctx.restore();
   }

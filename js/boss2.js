@@ -273,7 +273,7 @@ class BossMongsil {
     // 눈 (나른한 반달)
     ctx.strokeStyle = '#5c4a7a'; ctx.lineWidth = 2.5 * s;
     if (this.dead) {
-      ctx.font = `${9 * s}px sans-serif`; ctx.textAlign = 'center';
+      ctx.font = Fonts.f(9 * s); ctx.textAlign = 'center';
       ctx.fillStyle = '#5c4a7a';
       ctx.fillText('u   u', sway, -R * 0.35);
     } else {
@@ -308,7 +308,7 @@ class BossMongsil {
         ctx.beginPath(); ctx.arc(bx, y, 5, 0, 6.28); ctx.stroke();
       }
     }
-    ctx.fillStyle = '#e2ccff'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#e2ccff'; ctx.font = Fonts.f(13); ctx.textAlign = 'center';
     ctx.fillText('등불 여왕 「몽실」', CFG.W / 2, 50);
     ctx.restore();
   }

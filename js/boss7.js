@@ -277,7 +277,7 @@ class BossHwii {
         ctx.beginPath(); ctx.arc(bx, y, 5, 0, 6.28); ctx.stroke();
       }
     }
-    ctx.fillStyle = '#d8e8f8'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#d8e8f8'; ctx.font = Fonts.f(13); ctx.textAlign = 'center';
     ctx.fillText('폭풍의 근원 「휘이」', CFG.W / 2, 50);
     ctx.restore();
   }

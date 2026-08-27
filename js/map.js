@@ -169,9 +169,9 @@ const MapUI = {
     ctx.save();
     ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    ctx.font = 'bold 22px sans-serif';
+    ctx.font = Fonts.f(22, true);
     ctx.fillText('태평양 항해도', CFG.W / 2, 40);
-    ctx.font = '12px sans-serif';
+    ctx.font = Fonts.f(12);
     ctx.fillStyle = 'rgba(255,255,255,0.55)';
     ctx.fillText('별빛 길을 따라 집으로', CFG.W / 2, 60);
 
@@ -213,7 +213,7 @@ const MapUI = {
         this.star(ctx, 0, 0, 16 * pulse, 8 * pulse);
         ctx.fill(); ctx.stroke();
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
+        ctx.font = Fonts.f(13, true); ctx.textAlign = 'center';
         ctx.fillText(`${i + 1}. ${n.name}`, 0, -28);
         if (cleared) {
           // 친구가 된 보스 얼굴 (해역별 색)
@@ -229,7 +229,7 @@ const MapUI = {
         ctx.fillStyle = 'rgba(255,255,255,0.18)';
         ctx.beginPath(); ctx.arc(0, 0, 11, 0, 6.28); ctx.fill();
         ctx.fillStyle = 'rgba(255,255,255,0.4)';
-        ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+        ctx.font = Fonts.f(12, true); ctx.textAlign = 'center';
         ctx.fillText('?', 0, 4);
       }
       ctx.restore();
@@ -245,7 +245,7 @@ const MapUI = {
     ctx.fillRect(-3, -44, 2, 14); // 깃대
     ctx.beginPath(); ctx.moveTo(-1, -44); ctx.lineTo(12, -40); ctx.lineTo(-1, -36); ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+    ctx.font = Fonts.f(12, true); ctx.textAlign = 'center';
     ctx.fillText('집', 0, 32);
     ctx.restore();
 
@@ -259,7 +259,7 @@ const MapUI = {
     ctx.fillStyle = pg;
     ctx.beginPath(); ctx.arc(32, 502, 9, 0, 6.28); ctx.fill();
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'left';
+    ctx.font = Fonts.f(16, true); ctx.textAlign = 'left';
     ctx.fillText(`${Meta.data.bank}`, 48, 508);
 
     // 돌고래 슬롯
@@ -276,7 +276,7 @@ const MapUI = {
       ctx.textAlign = 'center';
       if (t === null) {
         ctx.fillStyle = 'rgba(255,255,255,0.6)';
-        ctx.font = '12px sans-serif';
+        ctx.font = Fonts.f(12);
         ctx.fillText('혼자', r.x + r.w / 2, r.y + 31);
       } else {
         const d = DOLPHIN_DEFS[t];
@@ -284,7 +284,7 @@ const MapUI = {
         ctx.fillStyle = d.color;
         ctx.beginPath(); ctx.ellipse(r.x + r.w / 2, r.y + 20, 13, 7, -0.15, 0, 6.28); ctx.fill();
         ctx.fillStyle = unlocked ? '#fff' : 'rgba(255,255,255,0.5)';
-        ctx.font = '11px sans-serif';
+        ctx.font = Fonts.f(11);
         ctx.fillText(unlocked ? `${d.label} Lv${Meta.data.dolphinLv[t]}` : '잠김', r.x + r.w / 2, r.y + 44);
         ctx.globalAlpha = 1;
       }
@@ -305,13 +305,13 @@ const MapUI = {
       ctx.lineWidth = selD ? 2 : 1;
       ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 7); ctx.fill(); ctx.stroke();
       ctx.fillStyle = open ? (selD ? DIFFS[d].color : 'rgba(255,255,255,0.6)') : 'rgba(255,255,255,0.25)';
-      ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+      ctx.font = Fonts.f(12, true); ctx.textAlign = 'center';
       ctx.fillText(open ? DIFFS[d].name : '🔒', r.x + r.w / 2, r.y + 18);
     }
 
     // 키보드 조작 힌트
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
-    ctx.font = '11px sans-serif';
+    ctx.font = Fonts.f(11);
     ctx.textAlign = 'center';
     ctx.fillText('←→ 해역 · ↑↓ 난이도 · Enter 출격 · S 상점 · C 돌고래 교체', CFG.W / 2, 460);
 
@@ -321,7 +321,7 @@ const MapUI = {
     if (this.toastT > 0 && this.toast) {
       ctx.globalAlpha = Math.min(1, this.toastT / 0.4);
       ctx.fillStyle = this.toast.ok ? '#7dffd8' : '#ff9e9e';
-      ctx.font = 'bold 15px sans-serif'; ctx.textAlign = 'center';
+      ctx.font = Fonts.f(15, true); ctx.textAlign = 'center';
       ctx.fillText(this.toast.msg, CFG.W / 2, 448);
       ctx.globalAlpha = 1;
     }
@@ -333,7 +333,7 @@ const MapUI = {
     ctx.strokeStyle = color; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 10); ctx.fill(); ctx.stroke();
     ctx.fillStyle = color;
-    ctx.font = `bold ${big ? 18 : 14}px sans-serif`; ctx.textAlign = 'center';
+    ctx.font = Fonts.f(big ? 18 : 14, true); ctx.textAlign = 'center';
     ctx.fillText(label, r.x + r.w / 2, r.y + r.h / 2 + 6);
   },
 
@@ -357,25 +357,25 @@ const MapUI = {
 
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffb0c8';
-    ctx.font = 'bold 19px sans-serif';
+    ctx.font = Fonts.f(19, true);
     ctx.fillText('🏝 세이브 섬 상점', CFG.W / 2, 66);
-    ctx.font = '12px sans-serif';
+    ctx.font = Fonts.f(12);
     ctx.fillStyle = 'rgba(255,255,255,0.55)';
     ctx.fillText(`보유 진주: ${Meta.data.bank} · 기본샷은 못 키워요 — 살아남는 법과 돌고래를 팔죠`, CFG.W / 2, 86);
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.font = '11px sans-serif';
+    ctx.font = Fonts.f(11);
     ctx.fillText('↑↓ 이동 · ←→ 칸 전환 · Enter 구매 · Esc 닫기', CFG.W / 2, 486);
 
     // 닫기
     const c = this.BTN.close;
     ctx.fillStyle = 'rgba(255,255,255,0.12)';
     ctx.beginPath(); ctx.roundRect(c.x, c.y, c.w, c.h, 6); ctx.fill();
-    ctx.fillStyle = '#fff'; ctx.font = 'bold 13px sans-serif';
+    ctx.fillStyle = '#fff'; ctx.font = Fonts.f(13, true);
     ctx.fillText('✕', c.x + c.w / 2, c.y + 18);
 
     // 컬럼 헤더
     ctx.textAlign = 'left';
-    ctx.fillStyle = '#7dffd8'; ctx.font = 'bold 14px sans-serif';
+    ctx.fillStyle = '#7dffd8'; ctx.font = Fonts.f(14, true);
     ctx.fillText('몸 · 조개폰 (구제책)', 95, 114);
     ctx.fillStyle = '#5aa9ff';
     ctx.fillText('돌고래 (빌드)', 495, 114);
@@ -395,19 +395,19 @@ const MapUI = {
       }
 
       ctx.fillStyle = owned ? '#7dffd8' : can.ok ? '#fff' : 'rgba(255,255,255,0.45)';
-      ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'left';
+      ctx.font = Fonts.f(13, true); ctx.textAlign = 'left';
       ctx.fillText(it.name, row.x + 10, row.y + 16);
-      ctx.font = '11px sans-serif';
+      ctx.font = Fonts.f(11);
       ctx.fillStyle = 'rgba(255,255,255,0.5)';
       ctx.fillText(it.desc, row.x + 10, row.y + row.h - 7);
 
       ctx.textAlign = 'right';
       if (owned) {
-        ctx.fillStyle = '#7dffd8'; ctx.font = 'bold 12px sans-serif';
+        ctx.fillStyle = '#7dffd8'; ctx.font = Fonts.f(12, true);
         ctx.fillText('보유', row.x + row.w - 10, row.y + 18);
       } else {
         ctx.fillStyle = can.ok ? '#ffe9a8' : 'rgba(255,233,168,0.4)';
-        ctx.font = 'bold 12px sans-serif';
+        ctx.font = Fonts.f(12, true);
         ctx.fillText(`◉ ${it.cost}`, row.x + row.w - 10, row.y + 18);
       }
     }

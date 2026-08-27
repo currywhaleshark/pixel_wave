@@ -5,6 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>픽셀 파도: 집으로 가는 길</title>
 <style>
+  /* 픽셀 폰트 — 파일이 없으면 자동으로 sans-serif 폴백 (js/fonts.js가 감지)
+     후보·라이선스는 docs/ART_SPEC.md 7장 참고 */
+  @font-face {
+    font-family: 'Galmuri9';
+    src: url('assets/fonts/Galmuri9.woff2') format('woff2'),
+         url('assets/fonts/Galmuri9.ttf') format('truetype');
+    font-display: block;
+  }
+  @font-face {
+    font-family: 'Galmuri11';
+    src: url('assets/fonts/Galmuri11.woff2') format('woff2'),
+         url('assets/fonts/Galmuri11.ttf') format('truetype');
+    font-display: block;
+  }
   html, body {
     margin: 0; padding: 0; height: 100%;
     background: #071b3f;
@@ -30,6 +44,7 @@
 <div id="wrap"><canvas id="game" width="960" height="540"></canvas></div>
 <!-- ?v= : 브라우저 휴리스틱 캐시 무효화용. 배포 시 버전 올리기 -->
 <script src="js/config.js?v=1"></script>
+<script src="js/fonts.js?v=1"></script>
 <script src="js/input.js?v=1"></script>
 <script src="js/assets.js?v=1"></script>
 <script src="js/spriteRenderer.js?v=1"></script>

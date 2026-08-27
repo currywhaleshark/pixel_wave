@@ -354,7 +354,7 @@ class BossChorong {
         ctx.beginPath(); ctx.arc(bx, y, 5, 0, 6.28); ctx.stroke();
       }
     }
-    ctx.fillStyle = '#aef7ee'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#aef7ee'; ctx.font = Fonts.f(13); ctx.textAlign = 'center';
     ctx.fillText('심해 아귀 「초롱」', CFG.W / 2, 50);
     ctx.restore();
   }

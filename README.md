@@ -37,6 +37,7 @@ index.html          진입점
 js/config.js        튜닝 수치 · 난이도 테이블 · 픽셀 렌더 규격
 js/assets.js        스프라이트 시트/프레임/앵커 정의 (아트 단일 진실 원천)
 js/spriteRenderer.js 스프라이트 그리기 (프레임·반전·픽셀 스냅)
+js/fonts.js         픽셀 폰트 (고유 크기 배수 스냅 · sans-serif 폴백)
 js/input.js         키보드/마우스/터치 (속도 상한 통일)
 js/meta.js          영구 저장 · 상점 카탈로그
 js/entities.js      플레이어 · 잡몹 · 진주
@@ -47,7 +48,7 @@ js/map.js           항해도 · 상점 UI
 js/main.js          게임 루프 · 충돌 · 렌더
 assets/             스프라이트 시트 (없으면 도형 폴백)
 docs/GDD.md         게임 기획서
-docs/ART_SPEC.md    픽셀아트 제작 규격
+docs/ART_SPEC.md    픽셀아트·폰트 제작 규격
 ```
 
 웨이브는 전부 데이터입니다 — `waves.js`의 타임라인 한 줄이 웨이브 하나(`{ t, kind, M, D, F, S, n, ... }`). 잡몹 문법 5축(이동·진입·편대·사격·스펙)의 조합으로 만들어집니다. 자세한 설계는 [docs/GDD.md](docs/GDD.md) 참고.

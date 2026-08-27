@@ -126,7 +126,7 @@ class Dolphin {
     ctx.roundRect(-24, -38, 48, 18, 8);
     ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#2b5bb8';
-    ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
+    ctx.font = Fonts.f(11, true); ctx.textAlign = 'center';
     ctx.fillText('힌트!', 0, -25);
     ctx.restore();
   }

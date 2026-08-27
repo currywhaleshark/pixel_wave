@@ -272,7 +272,7 @@ class Pearl {
     ctx.beginPath(); ctx.arc(0, 0, r, 0, 6.28); ctx.fill();
     if (this.big) {
       ctx.fillStyle = '#fff';
-      ctx.font = '8px sans-serif'; ctx.textAlign = 'center';
+      ctx.font = Fonts.f(8); ctx.textAlign = 'center';
       ctx.fillText('★', 0, 3);
     }
     ctx.restore();

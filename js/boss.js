@@ -257,7 +257,7 @@ class Boss {
     // 눈 (화남 → 죽으면 @@)
     ctx.fillStyle = '#333';
     if (this.dead) {
-      ctx.font = `${10 * s}px sans-serif`; ctx.textAlign = 'center';
+      ctx.font = Fonts.f(10 * s); ctx.textAlign = 'center';
       ctx.fillText('@   @', 0, -R * 0.15);
     } else {
       ctx.beginPath(); ctx.arc(-R * 0.25, -R * 0.2, R * 0.09, 0, 6.28); ctx.fill();
@@ -293,7 +293,7 @@ class Boss {
         ctx.beginPath(); ctx.arc(bx, y, 5, 0, 6.28); ctx.stroke();
       }
     }
-    ctx.fillStyle = '#ffe9a8'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffe9a8'; ctx.font = Fonts.f(13); ctx.textAlign = 'center';
     ctx.fillText('뾰족복어 「팡팡」', CFG.W / 2, 50);
     ctx.restore();
   }

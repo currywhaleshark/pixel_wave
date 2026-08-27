@@ -365,7 +365,7 @@ class BossUreu {
         ctx.beginPath(); ctx.arc(bx, y, 5, 0, 6.28); ctx.stroke();
       }
     }
-    ctx.fillStyle = '#ffe9a8'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffe9a8'; ctx.font = Fonts.f(13); ctx.textAlign = 'center';
     ctx.fillText('천둥 뱀장어 「우르릉」', CFG.W / 2, 50);
     ctx.restore();
   }

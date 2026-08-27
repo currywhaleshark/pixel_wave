@@ -407,7 +407,7 @@ class BossBuu {
         ctx.beginPath(); ctx.arc(bx, y, 5, 0, 6.28); ctx.stroke();
       }
     }
-    ctx.fillStyle = '#c8ffd8'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#c8ffd8'; ctx.font = Fonts.f(13); ctx.textAlign = 'center';
     ctx.fillText('유령 곰치 「부우」', CFG.W / 2, 50);
     ctx.restore();
   }

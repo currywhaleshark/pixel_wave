@@ -31,7 +31,7 @@ const ErrLog = {
     if (!this.items.length) return;
     ctx.save();
     ctx.textAlign = 'left';
-    ctx.font = '11px monospace';
+    ctx.font = Fonts.f(11);
     let y = CFG.H - 8 - this.items.length * 15;
     ctx.fillStyle = 'rgba(60,0,0,0.72)';
     ctx.fillRect(6, y - 12, CFG.W - 12, this.items.length * 15 + 8);
@@ -816,7 +816,7 @@ const Game = {
       ctx.save();
       ctx.globalAlpha = Math.min(1, m.life / 0.5);
       ctx.fillStyle = m.color;
-      ctx.font = 'bold 22px sans-serif';
+      ctx.font = Fonts.f(22, true);
       ctx.textAlign = 'center';
       ctx.fillText(m.text, CFG.W / 2, my - Math.min(m.t, 0.3) * 30);
       ctx.restore();
@@ -1151,7 +1151,7 @@ const Game = {
     ctx.textAlign = 'left';
     // 진주
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 16px sans-serif';
+    ctx.font = Fonts.f(16, true);
     const grd = ctx.createRadialGradient(20, 18, 0, 22, 20, 8);
     grd.addColorStop(0, '#fff'); grd.addColorStop(1, '#d8b4e8');
     ctx.fillStyle = grd;
@@ -1160,7 +1160,7 @@ const Game = {
     ctx.fillText(`× ${this.stats.pearls}`, 36, 26);
 
     // 파워 게이지
-    ctx.font = '13px sans-serif';
+    ctx.font = Fonts.f(13);
     ctx.fillStyle = '#7dffd8';
     ctx.fillText(`파워 Lv${this.player.level}`, 16, 50);
     if (this.player.level < 3) {
@@ -1192,7 +1192,7 @@ const Game = {
         ctx.fillRect(bx + gap + i * (cw + gap), by + 3, cw, cellH);
       }
       if (empty && blink) {
-        ctx.fillStyle = '#ff8f8f'; ctx.font = 'bold 10px sans-serif';
+        ctx.fillStyle = '#ff8f8f'; ctx.font = Fonts.f(10, true);
         ctx.fillText('LOW!', bx + bw + 12, by + 14); // 앨범아트 오마주
       }
     }
@@ -1206,13 +1206,13 @@ const Game = {
         ctx.fillStyle = '#ffe9a8';
         ctx.beginPath(); ctx.arc(24 + Math.cos(a) * 7, 96 + Math.sin(a) * 7, 2, 0, 6.28); ctx.fill();
       }
-      ctx.fillStyle = '#ffe9a8'; ctx.font = '11px sans-serif'; ctx.textAlign = 'left';
+      ctx.fillStyle = '#ffe9a8'; ctx.font = Fonts.f(11); ctx.textAlign = 'left';
       ctx.fillText('목걸이', 38, 100);
     }
 
     // 입력 모드 안내
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
-    ctx.font = '11px sans-serif';
+    ctx.font = Fonts.f(11);
     ctx.textAlign = 'right';
     ctx.fillText(Input.mode === 'keys' ? '키보드: 이동 ←↑↓→ · 저속 Shift · 봄 Space' : '포인터: 따라 유영 · 봄 클릭/버튼', CFG.W - 12, 18);
     if (this.debug) {
@@ -1231,7 +1231,7 @@ const Game = {
     // 난이도 뱃지
     if (this.diff > 0) {
       ctx.fillStyle = this.D.color;
-      ctx.font = 'bold 12px sans-serif';
+      ctx.font = Fonts.f(12, true);
       ctx.fillText(this.D.name, CFG.W - 12, this.debug ? 50 : 34);
     }
 
@@ -1249,7 +1249,7 @@ const Game = {
         ctx.stroke();
       }
       ctx.fillStyle = 'rgba(220,235,255,0.5)';
-      ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+      ctx.font = Fonts.f(10); ctx.textAlign = 'center';
       ctx.fillText('해류', cx, cy + 16);
     }
 
@@ -1262,7 +1262,7 @@ const Game = {
     ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 6.28); ctx.stroke();
     ctx.fillStyle = this.battery > 0 ? '#dffff4' : '#999';
-    ctx.font = 'bold 14px sans-serif';
+    ctx.font = Fonts.f(14, true);
     ctx.textAlign = 'center';
     ctx.fillText('소나', b.x, b.y + 5);
     ctx.restore();
@@ -1362,15 +1362,15 @@ const Game = {
       ctx.font = font;
       ctx.fillText(text, CFG.W / 2, y);
     };
-    line('폭풍이 걷혔다.', 2, CFG.H * 0.2, '18px sans-serif', 'rgba(255,255,255,0.9)');
-    line('별빛 길의 끝 — 집.', 5, CFG.H * 0.27, '18px sans-serif', 'rgba(255,255,255,0.9)');
-    line('"다녀왔습니다!"', 8.5, CFG.H * 0.35, 'bold 24px sans-serif', '#fff3b0');
-    line(`여정의 기록 — 진주 ${Meta.data.bank}개, 그리고 친구 일곱.`, 11.5, CFG.H * 0.42, '15px sans-serif', 'rgba(255,255,255,0.8)');
-    line('픽셀 파도: 집으로 가는 길', 14, CFG.H * 0.88, 'bold 20px sans-serif', '#ff9ec7');
+    line('폭풍이 걷혔다.', 2, CFG.H * 0.2, Fonts.f(18), 'rgba(255,255,255,0.9)');
+    line('별빛 길의 끝 — 집.', 5, CFG.H * 0.27, Fonts.f(18), 'rgba(255,255,255,0.9)');
+    line('"다녀왔습니다!"', 8.5, CFG.H * 0.35, Fonts.f(24, true), '#fff3b0');
+    line(`여정의 기록 — 진주 ${Meta.data.bank}개, 그리고 친구 일곱.`, 11.5, CFG.H * 0.42, Fonts.f(15), 'rgba(255,255,255,0.8)');
+    line('픽셀 파도: 집으로 가는 길', 14, CFG.H * 0.88, Fonts.f(20, true), '#ff9ec7');
     if (T > 15 && Math.sin(performance.now() / 300) > -0.3) {
       ctx.globalAlpha = 1;
       ctx.fillStyle = '#ffe9a8';
-      ctx.font = '14px sans-serif';
+      ctx.font = Fonts.f(14);
       ctx.fillText('아무 키 / 클릭 — 항해도로', CFG.W / 2, CFG.H * 0.94);
     }
     ctx.restore();
@@ -1380,23 +1380,23 @@ const Game = {
     ctx.save();
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ff9ec7';
-    ctx.font = 'bold 44px sans-serif';
+    ctx.font = Fonts.f(44, true);
     ctx.fillText('픽셀 파도', CFG.W / 2, CFG.H * 0.32);
     ctx.fillStyle = '#8ff7ff';
-    ctx.font = 'bold 30px sans-serif';
+    ctx.font = Fonts.f(30, true);
     ctx.fillText('집으로 가는 길', CFG.W / 2, CFG.H * 0.42);
     ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    ctx.font = '15px sans-serif';
+    ctx.font = Fonts.f(15);
     ctx.fillText('별빛 길을 따라 집으로', CFG.W / 2, CFG.H * 0.52);
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
-    ctx.font = '11px sans-serif';
+    ctx.font = Fonts.f(11);
     ctx.fillText('Playable Alpha', CFG.W / 2, CFG.H * 0.57);
     ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.font = '14px sans-serif';
+    ctx.font = Fonts.f(14);
     ctx.fillText('키보드: 방향키/WASD 이동 · Shift 저속 · Space 봄', CFG.W / 2, CFG.H * 0.64);
     ctx.fillText('마우스/터치: 포인터를 따라 유영 · 클릭/버튼 봄 · 샷은 자동', CFG.W / 2, CFG.H * 0.70);
     ctx.fillStyle = '#ffe9a8';
-    ctx.font = 'bold 18px sans-serif';
+    ctx.font = Fonts.f(18, true);
     const blink = Math.sin(performance.now() / 300) > -0.3;
     if (blink) ctx.fillText('아무 키 / 클릭 — 항해도로', CFG.W / 2, CFG.H * 0.82);
     ctx.restore();
@@ -1408,20 +1408,20 @@ const Game = {
     ctx.fillRect(0, 0, CFG.W, CFG.H);
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffe9a8';
-    ctx.font = 'bold 36px sans-serif';
+    ctx.font = Fonts.f(36, true);
     ctx.fillText('해역 클리어!', CFG.W / 2, CFG.H * 0.34);
     ctx.fillStyle = '#a8ffcf';
-    ctx.font = '16px sans-serif';
+    ctx.font = Fonts.f(16);
     ctx.fillText(STAGES[this.stageIdx].clearMsg, CFG.W / 2, CFG.H * 0.44);
     ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    ctx.font = '15px sans-serif';
+    ctx.font = Fonts.f(15);
     ctx.fillText(`진주 ${this.stats.pearls} · 격침 ${this.stats.deaths}회 · 소나 ${this.stats.bombs}회 · ${Math.floor(this.stats.time)}초`, CFG.W / 2, CFG.H * 0.54);
     ctx.fillStyle = '#d8b4e8';
-    ctx.font = '14px sans-serif';
+    ctx.font = Fonts.f(14);
     const bk = this.stats.banked ?? this.stats.pearls;
     ctx.fillText(`[${this.D.name}] 진주 ${bk}개 입금 완료 (×${this.D.pearlMul}) — 보유 ${Meta.data.bank}개`, CFG.W / 2, CFG.H * 0.60);
     ctx.fillStyle = '#ffe9a8';
-    ctx.font = 'bold 16px sans-serif';
+    ctx.font = Fonts.f(16, true);
     if (Math.sin(performance.now() / 300) > -0.3) ctx.fillText('아무 키 / 클릭 — 항해도로', CFG.W / 2, CFG.H * 0.7);
     ctx.restore();
   },
