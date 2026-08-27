@@ -361,7 +361,7 @@ const MapUI = {
     ctx.fillText('🏝 세이브 섬 상점', CFG.W / 2, 66);
     ctx.font = '12px sans-serif';
     ctx.fillStyle = 'rgba(255,255,255,0.55)';
-    ctx.fillText(`보유 진주: ${Meta.data.bank} · 화력은 팔지 않아요, 안 죽는 법을 팔죠`, CFG.W / 2, 86);
+    ctx.fillText(`보유 진주: ${Meta.data.bank} · 기본샷은 못 키워요 — 살아남는 법과 돌고래를 팔죠`, CFG.W / 2, 86);
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
     ctx.font = '11px sans-serif';
     ctx.fillText('↑↓ 이동 · ←→ 칸 전환 · Enter 구매 · Esc 닫기', CFG.W / 2, 486);

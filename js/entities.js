@@ -114,15 +114,20 @@ class Player {
   hit(game) {
     if (this.invuln > 0 || this.bubble > 0) return false;
     if (this.level > 1) {
-      // 레벨 다운 + 진주 튕김 (3초 내 회수 가능)
+      // 레벨 다운 + 진주 튕김: 보유분에서 실제로 차감해 흩뿌린다(복제 아님).
+      // 0.35초간 회수 불가 — 그동안 바깥으로 튕겨나가고, 이후 3초 안에 주우면 회수.
       this.level--;
       this.gauge = 0;
       this.invuln = CFG.hitInvuln;
-      for (let i = 0; i < CFG.hitScatterPearls; i++) {
-        const a = Math.random() * 6.28, s = 120 + Math.random() * 120;
-        game.pearls.push(new Pearl(this.x, this.y, {
-          vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: CFG.scatterLife, scattered: true,
-        }));
+      const n = Math.min(CFG.hitScatterPearls, game.stats.pearls);
+      game.stats.pearls -= n;
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * 6.28, s = 150 + Math.random() * 130;
+        game.pearls.push(new Pearl(
+          this.x + Math.cos(a) * 12, this.y + Math.sin(a) * 12, {
+            vx: Math.cos(a) * s, vy: Math.sin(a) * s,
+            life: CFG.scatterLife, scattered: true, noCollectT: CFG.scatterNoCollect,
+          }));
       }
       game.message('앗! 파워 다운...', '#ffb0c8');
     } else if (this.armor > 0) {
@@ -139,6 +144,7 @@ class Player {
       game.stats.pearls -= loss;
       game.message('뽀글... 잠시 후 부활!', '#a8d8ff');
     }
+    if (game.runLog) game.runLog.hitsTaken++;
     game.addFx(this.x, this.y, '#ff9ec7', 14);
     return true;
   }
@@ -207,14 +213,16 @@ class Pearl {
     this.scattered = opt.scattered ?? false;
     this.stream = opt.stream ?? false;
     this.auto = opt.auto ?? false;   // 자동 흡수 (거리 무관 — 페이즈 돌파 보상)
+    this.noCollectT = opt.noCollectT ?? 0; // >0 동안 자석·회수 비활성 (바깥으로 튕겨나가는 구간)
     this.t = Math.random() * 6.28;
   }
   update(dt, player) {
     this.t += dt; this.life -= dt;
+    if (this.noCollectT > 0) this.noCollectT -= dt;
     // 자석 흡수
     const dx = player.x - this.x, dy = player.y - this.y;
-    const d = Math.hypot(dx, dy);
-    if ((d < CFG.pearlMagnetR || this.auto) && player.bubble <= 0) {
+    const d = Math.hypot(dx, dy) || 0.0001; // 거리 0 가드 (NaN 방지)
+    if ((d < CFG.pearlMagnetR || this.auto) && player.bubble <= 0 && this.noCollectT <= 0) {
       // 속도를 플레이어 방향으로 직접 조향.
       // (가속 방식은 접선 속도가 안 죽어서 플레이어가 움직이면 궤도를 돌게 됨)
       const spd = Math.max(

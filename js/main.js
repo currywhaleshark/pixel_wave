@@ -6,6 +6,36 @@ const ctx = canvas.getContext('2d');
 Input.init(canvas);
 Meta.load();
 
+// ---- 오류 로그: 조용히 죽지 않게 화면에 띄운다 (루프가 멈추면 원인을 봐야 한다) ----
+const ErrLog = {
+  items: [],   // { msg, count }
+  push(msg) {
+    const last = this.items[this.items.length - 1];
+    if (last && last.msg === msg) { last.count++; return; }
+    this.items.push({ msg, count: 1 });
+    if (this.items.length > 4) this.items.shift();
+  },
+  draw(ctx) {
+    if (!this.items.length) return;
+    ctx.save();
+    ctx.textAlign = 'left';
+    ctx.font = '11px monospace';
+    let y = CFG.H - 8 - this.items.length * 15;
+    ctx.fillStyle = 'rgba(60,0,0,0.72)';
+    ctx.fillRect(6, y - 12, CFG.W - 12, this.items.length * 15 + 8);
+    for (const it of this.items) {
+      ctx.fillStyle = '#ff9e9e';
+      ctx.fillText(`⚠ ${it.msg}${it.count > 1 ? ` ×${it.count}` : ''}`.slice(0, 150), 12, y);
+      y += 15;
+    }
+    ctx.restore();
+  },
+};
+window.addEventListener('error', (e) => {
+  ErrLog.push(`${e.message} @ ${(e.filename || '').split('/').pop()}:${e.lineno}`);
+});
+window.addEventListener('unhandledrejection', (e) => ErrLog.push(`unhandled: ${e.reason}`));
+
 const KIND_R = { fish: 10, jelly: 11, ray: 15, turret: 13, lantern: 13, big: 24, viper: 11, ghost: 10 };
 const PEARL_DROP = { fish: 2, jelly: 2, ray: 4, turret: 5, lantern: 4, big: 10, viper: 3, ghost: 3 };
 
@@ -38,6 +68,8 @@ const Game = {
   battery: 0, batteryMax: 2,
   slowT: 0,              // 유도 Lv3 자동 슬로우 타이머
   dark: 0, targetDark: 0, // 어둠 오버레이 (심해 스테이지)
+  perf: { fps: 60, worst: 60, samples: 0, acc: 0 }, // 디버그 통계
+  runLog: null,          // 런 기록 (잡몹 구간·보스전·페이즈별 시간)
   storm: false, stormScale: 1, curX: 0, curY: 0, surfaceY: 20, // 폭풍 해류 (폭풍 수면)
   bolts: [], flashT: 0,   // 물속 번개
   stats: { pearls: 0, deaths: 0, bombs: 0, time: 0 },
@@ -59,6 +91,9 @@ const Game = {
     this.dolphin = sel && Meta.data.dolphinLv[sel] > 0
       ? new Dolphin(sel, Meta.data.dolphinLv[sel]) : null;
     this.stats = { pearls: 0, deaths: 0, bombs: 0, time: 0 };
+    // 런 기록: 실플레이 밸런스 측정용 (잡몹 구간 / 보스전 / 페이즈별 체류)
+    this.runLog = { bossStart: null, phaseTime: [0, 0, 0, 0, 0], hitsTaken: 0 };
+    this.perf = { fps: 60, worst: 999, samples: 0, acc: 0 };
     const stage = STAGES[this.stageIdx];
     this.dark = 0;
     this.targetDark = stage.dark ?? 0;  // 어둠은 서서히 내려온다
@@ -82,9 +117,10 @@ const Game = {
     this.reset();
   },
 
-  // 후퇴 (Esc): 모은 진주는 챙겨서 항해도로 — 파밍런 지원
+  // 후퇴 (Esc): 모은 진주는 챙겨서 항해도로 — 파밍런 지원 (클리어 기록은 없음)
   retreat() {
-    Meta.data.bank += Math.round(this.stats.pearls * this.D.pearlMul);
+    this.stats.banked = Math.round(this.stats.pearls * this.D.pearlMul);
+    Meta.data.bank += this.stats.banked;
     Meta.save();
     this.state = 'map';
     Input.anyPressed = false;
@@ -220,6 +256,7 @@ const Game = {
     }
   },
   startBoss() {
+    if (this.runLog) this.runLog.bossStart = this.stageT;
     this.boss = STAGES[this.stageIdx].boss(this);
     // 난이도 체력 배율 (패턴 강화는 각 보스 mercy()의 bossInt가 담당)
     this.boss.maxHp = Math.round(this.boss.maxHp * this.D.bossHp);
@@ -239,13 +276,38 @@ const Game = {
     this.message('소나 펄스!', '#7dffd8');
   },
 
-  // 라스보스 격파 → 엔딩 시퀀스 (일반 victory 대신)
-  startEnding() {
+  // 런 정산: 입금 + 클리어 기록 + 저장을 한 곳에서 (분산되면 저장 누락이 생긴다)
+  commitRun() {
     this.stats.time = this.stageT;
     this.stats.banked = Math.round(this.stats.pearls * this.D.pearlMul);
     Meta.data.bank += this.stats.banked;
     Meta.recordClear(STAGES[this.stageIdx].id, this.diff);
-    Meta.save();
+    Meta.save();   // 재클리어(기록 갱신 없음) 시에도 은행 잔액은 반드시 저장
+
+    // 런 리포트 — 밸런스 측정용. Game.lastRun 으로도 확인 가능
+    const rl = this.runLog || { bossStart: this.stageT, phaseTime: [] };
+    const f = (v) => +(v || 0).toFixed(1);
+    this.lastRun = {
+      stage: STAGES[this.stageIdx].name,
+      difficulty: this.D.name,
+      total: f(this.stageT),
+      mobs: f(rl.bossStart),
+      boss: f(this.stageT - (rl.bossStart ?? this.stageT)),
+      phases: (rl.phaseTime || []).slice(1).map(f),
+      deaths: this.stats.deaths,
+      hits: rl.hitsTaken || 0,
+      bombs: this.stats.bombs,
+      pearls: this.stats.pearls,
+      banked: this.stats.banked,
+      dolphin: this.dolphin ? `${this.dolphin.type}Lv${this.dolphin.lv}` : 'none',
+      worstFps: Math.round(this.perf.worst),
+    };
+    console.log('[RUN]', this.lastRun);
+  },
+
+  // 라스보스 격파 → 엔딩 시퀀스 (일반 victory 대신)
+  startEnding() {
+    this.commitRun();
     this.state = 'ending';
     this.endingT = 0;
     this.bolts = [];
@@ -255,11 +317,7 @@ const Game = {
   },
 
   victory() {
-    this.stats.time = this.stageT;
-    // 진주 은행 입금 (영구, 절대 안 잃음, 난이도 배율) + 해역 클리어 기록
-    this.stats.banked = Math.round(this.stats.pearls * this.D.pearlMul);
-    Meta.data.bank += this.stats.banked;
-    Meta.recordClear(STAGES[this.stageIdx].id, this.diff);
+    this.commitRun();
     this.state = 'victory';
     this.victoryT = 0;
     Input.anyPressed = false; // 클리어 순간의 잔여 입력으로 즉시 재시작 방지
@@ -403,6 +461,12 @@ const Game = {
 
     if (Input.consumeBomb()) this.useBomb();
 
+    // 페이즈별 체류 시간 기록
+    if (this.boss && !this.boss.dead && this.runLog) {
+      const ph = Math.min(4, this.boss.phase);
+      this.runLog.phaseTime[ph] += dt;
+    }
+
     this.player.update(dt, this);
     if (this.dolphin) this.dolphin.update(dt, this);
     this.spawner.update(this.stageT, dt);
@@ -493,7 +557,7 @@ const Game = {
     // 진주
     for (const p of this.pearls) p.update(dt, this.player);
     for (const p of this.pearls) {
-      if (this.player.bubble <= 0 &&
+      if (this.player.bubble <= 0 && p.noCollectT <= 0 &&
           Math.hypot(p.x - this.player.x, p.y - this.player.y) < CFG.pearlCollectR) {
         this.player.addPearl(this, p.value, p.big ? CFG.gaugeBig : CFG.gaugeNormal);
         p.collected = true;
@@ -704,6 +768,7 @@ const Game = {
     }
 
     if (this.state === 'victory') this.drawVictory();
+    ErrLog.draw(ctx);
     ctx.restore();
   },
 
@@ -1098,6 +1163,15 @@ const Game = {
     if (this.debug) {
       ctx.fillStyle = '#ff8fd8';
       ctx.fillText(`DEBUG${this.god ? ' · 무적' : ''} — 1 파워 · 2 진주 · 3 무적 · 4 보스직행 · 5 페이즈스킵`, CFG.W - 12, 34);
+      // 디버그 통계: 프레임·엔티티 수·경과
+      const rl = this.runLog || {};
+      const bossT = rl.bossStart != null ? (this.stageT - rl.bossStart).toFixed(0) : '-';
+      ctx.fillStyle = this.perf.fps < 50 ? '#ff8f8f' : 'rgba(255,143,216,0.75)';
+      ctx.fillText(
+        `${Math.round(this.perf.fps)}fps (min ${Math.round(this.perf.worst)}) · ` +
+        `적 ${this.enemies.length} 탄 ${this.ebullets.length} 진주 ${this.pearls.length} · ` +
+        `t ${this.stageT.toFixed(0)}s 보스 ${bossT}s · 피격 ${rl.hitsTaken || 0} 격침 ${this.stats.deaths}`,
+        CFG.W - 12, 50);
     }
     // 난이도 뱃지
     if (this.diff > 0) {
@@ -1258,7 +1332,10 @@ const Game = {
     ctx.fillText('집으로 가는 길', CFG.W / 2, CFG.H * 0.42);
     ctx.fillStyle = 'rgba(255,255,255,0.85)';
     ctx.font = '15px sans-serif';
-    ctx.fillText('MVP — 스테이지 1: 산호 초입', CFG.W / 2, CFG.H * 0.52);
+    ctx.fillText('별빛 길을 따라 집으로', CFG.W / 2, CFG.H * 0.52);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.font = '11px sans-serif';
+    ctx.fillText('Playable Alpha', CFG.W / 2, CFG.H * 0.57);
     ctx.fillStyle = 'rgba(255,255,255,0.6)';
     ctx.font = '14px sans-serif';
     ctx.fillText('키보드: 방향키/WASD 이동 · Shift 저속 · Space 봄', CFG.W / 2, CFG.H * 0.64);
@@ -1300,9 +1377,22 @@ let lastT = performance.now();
 function frame(now) {
   let dt = (now - lastT) / 1000;
   lastT = now;
+  const raw = dt;
   dt = Math.min(dt, 1 / 20); // 탭 전환 등 큰 프레임 방지
-  Game.update(dt);
-  Game.draw();
+  // 프레임 통계 (0.5초 평균 + 플레이 중 최저) — 모바일 프레임 측정용
+  if (raw > 0 && raw < 0.5) {
+    const p = Game.perf;
+    p.acc += raw; p.samples++;
+    if (p.acc >= 0.5) { p.fps = p.samples / p.acc; p.acc = 0; p.samples = 0;
+      if (Game.state === 'play' && Game.stageT > 2) p.worst = Math.min(p.worst, p.fps); }
+  }
+  try {
+    Game.update(dt);
+    Game.draw();
+  } catch (err) {
+    ErrLog.push(`${err.message}`);
+    console.error(err);
+  }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
