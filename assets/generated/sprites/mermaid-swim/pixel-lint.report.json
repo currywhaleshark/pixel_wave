@@ -1,0 +1,182 @@
+{
+  "kind": "pixel-wave-lint-report",
+  "version": 1,
+  "run": "mermaid-swim",
+  "game_input": "sprite-sheet-pixel.png",
+  "ok": true,
+  "warnings": [
+    "3 frames touch their declared safe margin"
+  ],
+  "failures": [],
+  "checks": {
+    "canvas_size": {
+      "ok": true,
+      "width": 108,
+      "height": 24
+    },
+    "binary_alpha": {
+      "ok": true,
+      "values": [
+        0,
+        255
+      ],
+      "semi_transparent_pixels": 0
+    },
+    "palette": {
+      "ok": true,
+      "used_colors": 16,
+      "locked_colors": 16,
+      "foreign_colors": []
+    },
+    "transparent_rgb_clear": {
+      "ok": true,
+      "pixels": 0
+    },
+    "frames_nonempty": {
+      "ok": true,
+      "empty_frames": 0
+    },
+    "isolated_pixels": {
+      "ok": true,
+      "count": 0,
+      "tiny_components_max_3px": 0,
+      "severity": "warning"
+    },
+    "safe_margin": {
+      "ok": false,
+      "touching_frames": 3,
+      "severity": "warning"
+    },
+    "frame_palette_drift": {
+      "ok": true,
+      "maximum": 0.071376,
+      "warning_threshold": 0.35,
+      "pairs": [
+        {
+          "state": "swim",
+          "from": 0,
+          "to": 1,
+          "histogram_drift": 0.071376
+        },
+        {
+          "state": "swim",
+          "from": 1,
+          "to": 2,
+          "histogram_drift": 0.071376
+        },
+        {
+          "state": "swim",
+          "from": 2,
+          "to": 3,
+          "histogram_drift": 0.045647
+        }
+      ],
+      "severity": "warning"
+    },
+    "extraction_pitch": {
+      "ok": true,
+      "strict": false,
+      "warnings": [],
+      "severity": "warning"
+    },
+    "silhouette_contract": {
+      "ok": true,
+      "bbox_aspect_violations": [],
+      "bbox_delta_violations": [],
+      "contract": {
+        "bbox_aspect_ratio": null,
+        "max_frame_bbox_delta": null
+      }
+    },
+    "curve_stair_steps": {
+      "status": "manual_review_required",
+      "reason": "curve cluster intent cannot be inferred reliably from topology alone"
+    }
+  },
+  "frames": [
+    {
+      "state": "swim",
+      "index": 0,
+      "width": 36,
+      "height": 24,
+      "opaque_pixels": 296,
+      "bbox": [
+        2,
+        0,
+        30,
+        23
+      ],
+      "bbox_width": 28,
+      "bbox_height": 23,
+      "bbox_aspect_ratio": 1.217391,
+      "colors": 15,
+      "components": 1,
+      "isolated_1px_components": 0,
+      "tiny_components_max_3px": 0,
+      "touches_safe_margin": true
+    },
+    {
+      "state": "swim",
+      "index": 1,
+      "width": 36,
+      "height": 24,
+      "opaque_pixels": 314,
+      "bbox": [
+        3,
+        0,
+        31,
+        19
+      ],
+      "bbox_width": 28,
+      "bbox_height": 19,
+      "bbox_aspect_ratio": 1.473684,
+      "colors": 16,
+      "components": 1,
+      "isolated_1px_components": 0,
+      "tiny_components_max_3px": 0,
+      "touches_safe_margin": true
+    },
+    {
+      "state": "swim",
+      "index": 2,
+      "width": 36,
+      "height": 24,
+      "opaque_pixels": 296,
+      "bbox": [
+        2,
+        0,
+        30,
+        23
+      ],
+      "bbox_width": 28,
+      "bbox_height": 23,
+      "bbox_aspect_ratio": 1.217391,
+      "colors": 15,
+      "components": 1,
+      "isolated_1px_components": 0,
+      "tiny_components_max_3px": 0,
+      "touches_safe_margin": true
+    },
+    {
+      "state": "swim",
+      "index": 3,
+      "width": 36,
+      "height": 24,
+      "opaque_pixels": 305,
+      "bbox": [
+        4,
+        1,
+        30,
+        21
+      ],
+      "bbox_width": 26,
+      "bbox_height": 20,
+      "bbox_aspect_ratio": 1.3,
+      "colors": 14,
+      "components": 1,
+      "isolated_1px_components": 0,
+      "tiny_components_max_3px": 0,
+      "touches_safe_margin": false
+    }
+  ]
+}

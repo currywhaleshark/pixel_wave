@@ -1,0 +1,68 @@
+{
+  "characterId": "stage1-coral-towers",
+  "engine": "component-row",
+  "game_input": "sprite-sheet-alpha.png",
+  "degraded_static_fallback": false,
+  "curation_applied": false,
+  "frame_variant": "pixel",
+  "sprite_sheet_alpha": "sprite-sheet-alpha.png",
+  "sprite_sheet_alpha_report": "sprite-sheet-alpha.report.json",
+  "base_image": "base-source.png",
+  "cell": {
+    "shape": "rect",
+    "width": 144,
+    "height": 128,
+    "safe_margin_x": 4,
+    "safe_margin_y": 4
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "manual"
+  },
+  "animation": {
+    "cellWidth": 144,
+    "cellHeight": 128,
+    "columns": 2,
+    "rows": {
+      "tower_reef": {
+        "row": 0,
+        "frames": 2,
+        "fps": 0,
+        "durations_ms": [
+          167,
+          167
+        ],
+        "loop": false,
+        "frame_variant": "pixel"
+      }
+    }
+  },
+  "frame_layout": {
+    "sheetWidth": 288,
+    "sheetHeight": 128,
+    "cellWidth": 144,
+    "cellHeight": 128,
+    "rows": {
+      "tower_reef": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 144,
+          "h": 128
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 144,
+          "h": 128
+        }
+      ]
+    }
+  }
+}

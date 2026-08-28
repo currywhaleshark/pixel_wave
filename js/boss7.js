@@ -78,6 +78,7 @@ class BossHwii {
   die() {
     this.dead = true;
     this.deathT = 0;
+    Sound.sfx('bossDeath');
     this.game.stormScale = 0;   // 폭풍이 걷힌다
     this.game.bolts = [];
     this.game.clearBulletsToPearls(true);

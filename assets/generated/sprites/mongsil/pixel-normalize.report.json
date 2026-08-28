@@ -1,0 +1,16 @@
+{
+  "kind": "pixel-wave-normalize-report",
+  "version": 1,
+  "run": "mongsil",
+  "source": "sprite-sheet-alpha.png",
+  "output": "sprite-sheet-pixel.png",
+  "width": 96,
+  "height": 56,
+  "alpha_threshold": 128,
+  "palette_colors": 14,
+  "opaque_pixels_before_cleanup": 2720,
+  "alpha_or_transparent_rgb_changed_pixels": 629,
+  "palette_remapped_pixels": 2651,
+  "removed_component_pixels": 0,
+  "sha256": "4700885d422cfcbb5c41656c395e30dc6a932984162fedae001af873ef3efcd2"
+}

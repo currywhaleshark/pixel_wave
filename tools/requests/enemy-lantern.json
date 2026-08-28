@@ -1,0 +1,27 @@
+{
+  "states": {
+    "float": {
+      "frames": 2,
+      "fps": 4,
+      "loop": true,
+      "action": "front-facing two-frame lantern-jelly float loop at identical scale: keep the sleepy eyes, upper bell center and amber lantern core locked; in frame 2 compress the bell by only one logical pixel, curl the three attached tentacles upward by one logical pixel and swing the attached lantern by one logical pixel; no whole-character translation, resizing, detached parts, glow, bubbles or effects"
+    }
+  },
+  "cell": {
+    "width": 18,
+    "height": 24,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 9
+  },
+  "pixel_lint": {
+    "fail_on_pitch_warnings": true,
+    "max_frame_bbox_delta": { "width": 1, "height": 2 }
+  }
+}

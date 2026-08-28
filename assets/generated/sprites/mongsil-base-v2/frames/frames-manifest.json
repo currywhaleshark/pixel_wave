@@ -1,0 +1,102 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "engine_revision": "866582aacc15",
+  "extract_args": {
+    "repalette": true,
+    "min_used_pixels": 160
+  },
+  "run_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\sprites\\mongsil-base-v2",
+  "cell": {
+    "shape": "rect",
+    "width": 48,
+    "height": 56,
+    "safe_margin_x": 3,
+    "safe_margin_y": 3
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "auto",
+    "score": 255.22,
+    "min_subject_distance": 230.77,
+    "background": {
+      "mode": "flat",
+      "hex": "#05EE07",
+      "rgb": [
+        5,
+        238,
+        7
+      ],
+      "opaque_border_fraction": 1.0,
+      "border_coverage": 1.0,
+      "enclosed_background_pixels": 49,
+      "enclosed_material_pixels": 0,
+      "subject_pixels": 26917
+    },
+    "candidates": [
+      {
+        "name": "magenta",
+        "hex": "#FF00FF",
+        "score": 131.55,
+        "min_subject_distance": 78.49,
+        "clears_erase_radius": false
+      },
+      {
+        "name": "green",
+        "hex": "#00FF00",
+        "score": 255.22,
+        "min_subject_distance": 230.77,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "cyan",
+        "hex": "#00FFFF",
+        "score": 224.48,
+        "min_subject_distance": 206.0,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "blue",
+        "hex": "#004DFF",
+        "score": 155.84,
+        "min_subject_distance": 122.5,
+        "clears_erase_radius": true
+      }
+    ],
+    "selection_reason": "highest 1st-percentile subject distance among the 3 candidate(s) clearing the 96 erase radius"
+  },
+  "rows": [
+    {
+      "state": "idle",
+      "frames": 1,
+      "method": "components",
+      "files": [
+        "frames/idle/frame-0.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 1279,
+          "bbox": [
+            4,
+            3,
+            44,
+            53
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true,
+      "engine_revision": "866582aacc15"
+    }
+  ],
+  "errors": [],
+  "warnings": []
+}

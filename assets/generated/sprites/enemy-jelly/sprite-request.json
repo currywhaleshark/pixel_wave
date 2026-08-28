@@ -36,11 +36,18 @@
   "motion_phase_guides": false,
   "layout": "taxonomy/v1",
   "fit": {
+    "resample": "kcentroid",
     "align_x": "alpha-centroid",
     "align_y": "center",
-    "pixel_perfect": true,
-    "logical_height": 20,
+    "pixel_perfect": false,
     "palette_size": 12
+  },
+  "pixel_lint": {
+    "fail_on_pitch_warnings": true,
+    "max_frame_bbox_delta": {
+      "width": 1,
+      "height": 2
+    }
   },
   "chroma": {
     "mode": "ycbcr",

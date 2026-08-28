@@ -23,7 +23,7 @@
     {
       "state": "blink",
       "frame": 0,
-      "nontransparent_pixels": 42,
+      "nontransparent_pixels": 60,
       "x": 0,
       "y": 0,
       "w": 10,

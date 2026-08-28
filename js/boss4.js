@@ -84,6 +84,7 @@ class BossChorong {
   die() {
     this.dead = true;
     this.deathT = 0;
+    Sound.sfx('bossDeath');
     this.game.targetDark = 0;       // 어둠이 걷힌다
     this.game.clearBulletsToPearls(true);
     for (let i = 0; i < 46; i++) {

@@ -1,0 +1,3 @@
+Built-in ImageGen mode.
+
+Redraw one front-facing sleepy lavender lantern jellyfish as deliberately coarse native-resolution pixel art for an 18x24 cell. Preserve a rounded bell, two straight sleepy eyes, two side tentacles, one central purple tail, and one attached amber lantern. Use at most 15x22 logical blocks, nine flat colors, hard stair-step clusters, binary edges, and a flat #00FF00 chroma-key background. No gradients, antialiasing, glow, particles, shadows, detached parts, or micro-detail.

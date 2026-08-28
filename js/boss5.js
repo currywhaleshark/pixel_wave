@@ -91,6 +91,7 @@ class BossBuu {
   die() {
     this.dead = true;
     this.deathT = 0;
+    Sound.sfx('bossDeath');
     this.hittable = false;
     this.game.clearBulletsToPearls(true);
     for (let i = 0; i < 48; i++) {

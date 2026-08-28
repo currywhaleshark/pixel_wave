@@ -1,0 +1,27 @@
+{
+  "states": {
+    "idle": {
+      "frames": 2,
+      "fps": 4,
+      "loop": true,
+      "action": "front-facing two-frame royal jellyfish float loop at strict scale lock: crown, sleepy crescent eyes, cheeks, upper bell center and internal amber lantern stay fixed; in frame 2 the lower bell compresses by one logical pixel while all five attached ribbon tentacles sway in alternating directions by one to two logical pixels; preserve identical crown-to-bell proportions and character bounding box; no zoom, translation, detached crown, external glow, bubbles or effects"
+    }
+  },
+  "cell": {
+    "width": 48,
+    "height": 56,
+    "safe_margin_x": 3,
+    "safe_margin_y": 3
+  },
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 14
+  },
+  "pixel_lint": {
+    "fail_on_pitch_warnings": true,
+    "max_frame_bbox_delta": { "width": 2, "height": 2 }
+  }
+}

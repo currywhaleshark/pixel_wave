@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-curation",
+  "states": {
+    "flap": {
+      "selected": [
+        0,
+        1
+      ],
+      "order": [
+        0,
+        1
+      ],
+      "transforms": {
+        "1": {
+          "rotate": 0,
+          "scale": 1,
+          "dx": 0.631578947368421,
+          "dy": -2.105263157894737,
+          "shx": 0,
+          "shy": 0,
+          "flipX": 0
+        }
+      },
+      "pixel_perfect": true,
+      "revision": [
+        "eaee0bf79239"
+      ]
+    }
+  },
+  "pixel_perfect": true,
+  "run_revision": "f9e124c78119a944"
+}

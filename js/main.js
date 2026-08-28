@@ -30,6 +30,12 @@ fitCanvas();
 
 Input.init(canvas);
 Meta.load();
+Sound.loadPrefs();
+
+// M: 음소거 토글 (어느 화면에서나)
+window.addEventListener('keydown', (e) => {
+  if (e.key.toLowerCase() === 'm') { Sound.toggleMute(); }
+});
 
 // ---- 오류 로그: 조용히 죽지 않게 화면에 띄운다 (루프가 멈추면 원인을 봐야 한다) ----
 const ErrLog = {
@@ -165,6 +171,7 @@ const Game = {
   // 페이즈 돌파 보상: 자동 흡수 진주 — 보스전 중 피탄으로 잃은 파워의 회복 루트.
   // 탄막 사이로 주우러 갈 필요 없이 터진 뒤 알아서 날아온다.
   phaseReward(x, y, n = 12) {
+    Sound.sfx('phase');
     for (let i = 0; i < n; i++) {
       const a = Math.random() * 6.28, s = 80 + Math.random() * 160;
       this.pearls.push(new Pearl(x, y, { vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 20, auto: true }));
@@ -211,6 +218,7 @@ const Game = {
   },
 
   onEnemyKilled(e) {
+    Sound.sfx(e.kind === 'big' ? 'killBig' : 'kill');
     const drop = PEARL_DROP[e.kind] ?? 1;
     for (let i = 0; i < drop; i++) this.pearls.push(new Pearl(e.x, e.y));
     this.addFx(e.x, e.y, '#ffd6e8', 8);
@@ -236,6 +244,7 @@ const Game = {
   },
 
   startBossWarning() {
+    Sound.sfx('warn');
     this.message('!! 뭔가 다가온다 !!', '#ff8f8f');
     this.shake = 0.6;
   },
@@ -249,6 +258,7 @@ const Game = {
   startRide(dur) {
     this.ride = { t: 0, dur, pearlT: 0, ringT: 2.5, trailPhase: Math.random() * 6.28 };
     this.clearBulletsToPearls(true); // 탑승 순간 화면 정리 = 진주 보너스
+    Sound.sfx('ride');
     this.message('거북 택시 도착!', '#7dffd8');
     this.message('"꽉 잡아요~ 밟습니다!"', '#a8ffcf');
   },
@@ -298,7 +308,22 @@ const Game = {
     for (const b of this.ebullets) this.pearls.push(new Pearl(b.x, b.y, { life: 8 }));
     this.ebullets = [];
     this.fx.push({ x: p.x, y: p.y, ring: true, life: 0.7, maxLife: 0.7 });
+    Sound.sfx('sonar');
     this.message('소나 펄스!', '#7dffd8');
+  },
+
+  // 상태에 맞는 BGM을 고른다 (매 프레임 비교 — 바뀔 때만 크로스페이드)
+  syncBgm() {
+    let want = null;
+    if (this.state === 'title') want = 'title';
+    else if (this.state === 'map') want = 'map';
+    else if (this.state === 'ending') want = 'ending';
+    else if (this.state === 'play') {
+      want = this.boss && !this.boss.dead
+        ? `boss${this.stageIdx + 1}`
+        : `stage${this.stageIdx + 1}`;
+    } else if (this.state === 'victory') want = Sound.currentKey; // 클리어 화면은 그대로 두고 페이드는 victory()에서
+    if (want !== undefined && want !== Sound.currentKey) Sound.playBgm(want);
   },
 
   // 런 정산: 입금 + 클리어 기록 + 저장을 한 곳에서 (분산되면 저장 누락이 생긴다)
@@ -343,6 +368,8 @@ const Game = {
 
   victory() {
     this.commitRun();
+    Sound.stopBgm(1.5);
+    Sound.sfx('clear');
     this.state = 'victory';
     this.victoryT = 0;
     Input.anyPressed = false; // 클리어 순간의 잔여 입력으로 즉시 재시작 방지
@@ -387,6 +414,7 @@ const Game = {
 
   // ================= UPDATE =================
   update(dt) {
+    this.syncBgm();
     if (this.state !== 'play') {
       if (this.state === 'map') { MapUI.update(dt, this); return; }
       if (this.state === 'ending') {
@@ -588,6 +616,7 @@ const Game = {
       if (this.player.bubble <= 0 && p.noCollectT <= 0 &&
           Math.hypot(p.x - this.player.x, p.y - this.player.y) < CFG.pearlCollectR) {
         this.player.addPearl(this, p.value, p.big ? CFG.gaugeBig : CFG.gaugeNormal);
+        Sound.sfx(p.big ? 'pearlBig' : 'pearl');
         p.collected = true;
       }
     }
@@ -845,8 +874,10 @@ const Game = {
     for (const s of this.shots) {
       if (!['homing', 'bomb', 'beam'].includes(s.kind) && Sprites.draw(ctx, 'shot.wave', s.x, s.y, {
         t: s.t,
-        alpha: 0.9 * alphaMul,
+        alpha: alphaMul,
         rot: Math.atan2(s.dirY, s.dirX),
+        outline: '#145a70',
+        outlineAlpha: 0.55,
       })) continue;
       ctx.save();
       ctx.translate(s.x, s.y);
@@ -1051,6 +1082,10 @@ const Game = {
   },
 
   drawBackground() {
+    // 완성된 스테이지 배경은 네이티브 픽셀 패치 렌더러가 담당한다.
+    // 아직 제작하지 않은 스테이지는 아래의 기존 코드 배경으로 안전하게 폴백한다.
+    if (typeof Backgrounds !== 'undefined' && Backgrounds.draw(ctx, this)) return;
+
     const pal = STAGE_BG[Math.min(this.stageIdx, STAGE_BG.length - 1)];
     const g = ctx.createLinearGradient(0, 0, 0, CFG.H);
     g.addColorStop(0, pal.top);

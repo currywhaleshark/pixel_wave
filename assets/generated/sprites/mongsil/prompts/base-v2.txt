@@ -1,0 +1,3 @@
+Built-in ImageGen mode. Selected output: exec-336a3e74-8481-4d75-9c3d-8f91397d9ca7.png.
+
+Using the prior Mongsil only as an identity reference, redraw one front-facing royal lavender lantern-jelly boss as deliberately coarse native-resolution pixel art for a 48x56 cell. Preserve the small gold crown and purple jewel, broad bell, sleepy eyes, pink cheeks, amber core, and exactly five broad attached tentacles. Only the center tentacle may end in one simple large star. Use at most about 38x52 logical cells, fourteen flat colors, hard clusters, binary edges, and solid #00FF00. Remove gradients, antialiasing, texture noise, sparkles, thin threads, glow, shadow, and extra objects.

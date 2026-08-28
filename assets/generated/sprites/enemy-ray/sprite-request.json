@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "enemy-ray",
+    "description": "compact left-facing manta ray with broad navy-periwinkle wings, one bright eye, dark indigo outline, and a short thin tail",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "rect",
+    "width": 32,
+    "height": 26,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "manual"
+  },
+  "states": {
+    "flap": {
+      "frames": 2,
+      "fps": 6,
+      "loop": true,
+      "action": "gentle two-frame wing-flap cycle facing left: frame 1 has both broad triangular wings raised, frame 2 has both wings pressed lower; compact center body, single eye, short tail, horizontal position, palette, and identity remain fixed; seamless alternating loop; no detached effects"
+    }
+  },
+  "style": "native-resolution hard-edged pixel art with large countable logical pixels, one-logical-pixel dark indigo outline, a compact broad silhouette, no antialiasing, no gradients, and a shared limited navy-periwinkle palette. Preserve the accepted manta base identity exactly; animate only the wing angle.",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": true,
+    "logical_height": 26,
+    "palette_size": 8
+  },
+  "chroma": {
+    "mode": "rgb",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

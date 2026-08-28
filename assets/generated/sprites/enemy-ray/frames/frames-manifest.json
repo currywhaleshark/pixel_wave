@@ -1,0 +1,194 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "engine_revision": "866582aacc15",
+  "extract_args": {
+    "min_used_pixels": 40
+  },
+  "run_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\sprites\\enemy-ray",
+  "cell": {
+    "shape": "rect",
+    "width": 32,
+    "height": 26,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "manual"
+  },
+  "rows": [
+    {
+      "state": "flap",
+      "frames": 2,
+      "method": "components",
+      "files": [
+        "frames/flap/frame-0.png",
+        "frames/flap/frame-1.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 267,
+          "bbox": [
+            4,
+            1,
+            30,
+            25
+          ],
+          "edge_pixels": 3,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 1,
+          "nontransparent_pixels": 245,
+          "bbox": [
+            3,
+            7,
+            31,
+            25
+          ],
+          "edge_pixels": 3,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true,
+      "engine_revision": "866582aacc15",
+      "plain_files": [
+        "frames/flap/frame-0.plain.png",
+        "frames/flap/frame-1.plain.png"
+      ],
+      "orig_files": [
+        "frames/flap/orig/frame-0.png",
+        "frames/flap/orig/frame-1.png"
+      ],
+      "input_grids": [
+        {
+          "x": [
+            4.0,
+            5.0,
+            5.9,
+            6.9,
+            7.8,
+            8.7,
+            9.6,
+            10.6,
+            11.6,
+            12.6,
+            13.6,
+            14.6,
+            15.6,
+            16.6,
+            17.6,
+            18.6,
+            19.6,
+            20.6,
+            21.6,
+            22.5,
+            23.5,
+            24.6,
+            25.4,
+            26.3,
+            27.5,
+            28.6,
+            30.0
+          ],
+          "y": [
+            2.0,
+            2.3,
+            3.0,
+            4.0,
+            5.0,
+            5.9,
+            7.0,
+            8.1,
+            9.2,
+            10.1,
+            11.1,
+            12.0,
+            13.0,
+            14.0,
+            15.0,
+            15.9,
+            16.9,
+            17.9,
+            18.9,
+            19.9,
+            20.9,
+            22.1,
+            23.1,
+            24.1,
+            25.1
+          ]
+        },
+        {
+          "x": [
+            3.0,
+            4.0,
+            4.9,
+            6.0,
+            7.0,
+            8.0,
+            9.0,
+            9.8,
+            10.8,
+            11.8,
+            12.8,
+            13.7,
+            14.7,
+            15.9,
+            17.0,
+            18.0,
+            18.9,
+            19.9,
+            20.9,
+            22.0,
+            23.0,
+            24.1,
+            25.0,
+            26.1,
+            27.0,
+            28.0,
+            29.0,
+            30.1,
+            31.0
+          ],
+          "y": [
+            9.0,
+            9.9,
+            10.8,
+            11.4,
+            12.4,
+            13.2,
+            14.1,
+            15.0,
+            15.9,
+            16.9,
+            17.8,
+            18.7,
+            19.6,
+            20.4,
+            21.2,
+            22.6,
+            23.4,
+            24.2,
+            25.1
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "warnings": [
+    "flap: pitch crosscheck: axis ratio y/x disagrees — run-length 1.125 vs grid 0.980 (14.8%); one axis may have collapsed to the other",
+    "flap: pitch disagreement — detect 24.78x24.28 (uniformity 14.6) vs runlen 20.24x22.76 (31.6); detect kept. large gap usually means the raw was drawn finer than the cell contract — reroll with a block-count hint",
+    "palette: pinned (8 colors, palette.lock.json)",
+    "pixel-perfect: pitch=[(24.78, 24.28), (22.5, 20.0)] scale=1x logical<=32x26 palette=8"
+  ]
+}

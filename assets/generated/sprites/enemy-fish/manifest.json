@@ -1,7 +1,7 @@
 {
   "characterId": "enemy-fish",
   "engine": "component-row",
-  "game_input": "sprite-sheet-alpha.png",
+  "game_input": "sprite-sheet-pixel.png",
   "degraded_static_fallback": false,
   "curation_applied": true,
   "frame_variant": "pixel",
@@ -64,5 +64,13 @@
         }
       ]
     }
+  },
+  "pixel_normalization": {
+    "version": 1,
+    "source": "sprite-sheet-alpha.png",
+    "palette": "palette.lock.json",
+    "report": "pixel-normalize.report.json",
+    "alpha_threshold": 128,
+    "remove_isolated_max": 0
   }
 }

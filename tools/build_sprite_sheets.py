@@ -25,11 +25,13 @@ class Placement:
 
 
 MAIN = (
-    Placement("mermaid-swim", "swim", 0, 0, 24, 16, 4),
-    Placement("mermaid-bubble", "bubble", 96, 0, 24, 24, 2),
+    Placement("mermaid-swim", "swim", 0, 0, 36, 24, 4),
+    Placement("mermaid-bubble", "bubble", 144, 0, 24, 24, 2),
     Placement("enemy-fish", "swim", 0, 40, 16, 10, 2),
     Placement("enemy-jelly", "float", 32, 40, 16, 20, 2),
-    Placement("enemy-turret", "idle", 104, 40, 16, 14, 1),
+    Placement("enemy-ray", "flap", 64, 36, 32, 26, 2),
+    Placement("enemy-turret", "idle", 136, 40, 16, 14, 1),
+    Placement("enemy-lantern", "float", 0, 64, 18, 24, 2),
     Placement("enemy-big", "swim", 0, 96, 32, 24, 2),
     Placement("pearl-small", "idle", 0, 152, 6, 6, 1),
     Placement("pearl-big", "idle", 8, 152, 10, 10, 1),
@@ -41,6 +43,7 @@ MAIN = (
 
 BOSSES = (
     Placement("pangpang", "idle", 0, 0, 48, 48, 2),
+    Placement("mongsil", "idle", 96, 0, 48, 56, 2),
 )
 
 
@@ -51,7 +54,15 @@ def load_frames(item: Placement) -> list[Image.Image]:
     if len(rects) != item.frames:
         raise ValueError(f"{item.run}:{item.state} expected {item.frames} frames, got {len(rects)}")
 
-    atlas = Image.open(run_dir / manifest["sprite_sheet_alpha"]).convert("RGBA")
+    game_input = manifest.get("game_input")
+    if not isinstance(game_input, str) or not game_input:
+        raise ValueError(f"{item.run}: manifest has no game_input")
+    atlas_path = run_dir / game_input
+    if not atlas_path.is_file():
+        raise FileNotFoundError(
+            f"{item.run}: game_input {game_input!r} does not exist; run pixel_normalize.py first"
+        )
+    atlas = Image.open(atlas_path).convert("RGBA")
     result: list[Image.Image] = []
     for index, rect in enumerate(rects):
         size = (rect["w"], rect["h"])
@@ -90,9 +101,9 @@ def build(path: Path, size: tuple[int, int], placements: tuple[Placement, ...]) 
 
 
 def main() -> None:
-    build(ROOT / "assets" / "sprites.png", (160, 168), MAIN)
+    build(ROOT / "assets" / "sprites.png", (224, 168), MAIN)
     build(ROOT / "assets" / "bosses.png", (256, 240), BOSSES)
-    print("packed assets/sprites.png (160x168) and assets/bosses.png (256x240)")
+    print("packed assets/sprites.png (224x168) and assets/bosses.png (256x240)")
 
 
 if __name__ == "__main__":

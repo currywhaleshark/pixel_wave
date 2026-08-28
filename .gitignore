@@ -8,3 +8,5 @@ tools/.sprite-gen-runtime/
 *.sg-rwlock
 assets/generated/attempts/
 assets/generated/sprites/*/correction-loop/
+assets/generated/sprites/*/curation.stale-*.json
+assets/generated/sprites/*/.pixel-preview/

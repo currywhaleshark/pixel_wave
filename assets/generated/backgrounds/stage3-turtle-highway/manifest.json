@@ -1,0 +1,281 @@
+{
+  "version": 1,
+  "kind": "pixel-wave-stage-background",
+  "stage": "stage3",
+  "name": "거북이 고속도로",
+  "logical_viewport": [
+    480,
+    270
+  ],
+  "palette": [
+    [
+      5,
+      38,
+      52
+    ],
+    [
+      6,
+      55,
+      67
+    ],
+    [
+      7,
+      72,
+      82
+    ],
+    [
+      8,
+      91,
+      96
+    ],
+    [
+      10,
+      111,
+      109
+    ],
+    [
+      13,
+      133,
+      122
+    ],
+    [
+      20,
+      154,
+      139
+    ],
+    [
+      39,
+      177,
+      158
+    ],
+    [
+      74,
+      198,
+      181
+    ],
+    [
+      119,
+      218,
+      201
+    ],
+    [
+      166,
+      233,
+      216
+    ],
+    [
+      70,
+      109,
+      76
+    ],
+    [
+      105,
+      139,
+      82
+    ],
+    [
+      151,
+      158,
+      83
+    ],
+    [
+      194,
+      181,
+      102
+    ],
+    [
+      231,
+      216,
+      145
+    ],
+    [
+      248,
+      233,
+      174
+    ],
+    [
+      29,
+      83,
+      105
+    ]
+  ],
+  "layers": {
+    "sea": {
+      "file": "../../../backgrounds/stage3-sea-strip.png",
+      "generated": "sea-strip.png",
+      "source": "sources/sea-long-source-v2.png",
+      "width": 1440,
+      "height": 270,
+      "parallax": 0.035,
+      "seamless": true,
+      "opaque": true,
+      "palette": [
+        "#6deee5",
+        "#48dbd7",
+        "#2ac6c9",
+        "#16b0b9",
+        "#0e97a6",
+        "#0a7f94",
+        "#086882",
+        "#07526f",
+        "#063f59",
+        "#052d46"
+      ],
+      "source_size": [
+        2172,
+        724
+      ],
+      "crop_box": [
+        0,
+        158,
+        2172,
+        565
+      ],
+      "runtime_scale": 1
+    },
+    "far": {
+      "file": "../../../backgrounds/stage3-far-strip.png",
+      "generated": "far-strip.png",
+      "source": "sources/far-long-source-v1.png",
+      "width": 1440,
+      "height": 56,
+      "parallax": 0.12,
+      "seamless": true,
+      "source_size": [
+        2172,
+        724
+      ],
+      "source_bbox": [
+        0,
+        486,
+        2172,
+        724
+      ],
+      "content_size": [
+        480,
+        53
+      ],
+      "height_range": [
+        18,
+        53
+      ],
+      "panel_width": 480,
+      "panel_count": 3,
+      "runtime_scale": 1,
+      "scale": 0.220994,
+      "aspect_preserved": true,
+      "seam_cap": {
+        "generated": "caps/far-seam-cap.png",
+        "positions": [
+          0,
+          480,
+          960
+        ],
+        "size": [
+          44,
+          56
+        ],
+        "runtime_scale": 1,
+        "source": "sources/far-long-source-v1.png"
+      }
+    },
+    "mid": {
+      "file": "../../../backgrounds/stage3-mid-strip.png",
+      "generated": "mid-strip.png",
+      "source": "sources/mid-long-source-v1.png",
+      "width": 1440,
+      "height": 72,
+      "parallax": 0.34,
+      "seamless": true,
+      "source_size": [
+        2172,
+        724
+      ],
+      "source_bbox": [
+        0,
+        373,
+        2172,
+        667
+      ],
+      "content_size": [
+        480,
+        65
+      ],
+      "height_range": [
+        13,
+        65
+      ],
+      "panel_width": 480,
+      "panel_count": 3,
+      "runtime_scale": 1,
+      "scale": 0.220994,
+      "aspect_preserved": true,
+      "seam_cap": {
+        "generated": "caps/mid-seam-cap.png",
+        "positions": [
+          0,
+          480,
+          960
+        ],
+        "size": [
+          60,
+          72
+        ],
+        "runtime_scale": 1,
+        "source": "sources/mid-long-source-v1.png"
+      }
+    },
+    "near": {
+      "file": "../../../backgrounds/stage3-near-strip.png",
+      "generated": "near-strip.png",
+      "source": "sources/near-long-source-v1.png",
+      "width": 1440,
+      "height": 128,
+      "parallax": 0.84,
+      "seamless": true,
+      "source_size": [
+        2172,
+        724
+      ],
+      "source_bbox": [
+        0,
+        280,
+        2172,
+        724
+      ],
+      "content_size": [
+        480,
+        98
+      ],
+      "height_range": [
+        16,
+        98
+      ],
+      "panel_width": 480,
+      "panel_count": 3,
+      "runtime_scale": 1,
+      "scale": 0.220994,
+      "aspect_preserved": true,
+      "seam_cap": {
+        "generated": "caps/near-seam-cap.png",
+        "positions": [
+          0,
+          480,
+          960
+        ],
+        "size": [
+          82,
+          128
+        ],
+        "runtime_scale": 1,
+        "source": "sources/near-long-source-v1.png"
+      }
+    }
+  },
+  "runtime_effects": [
+    "turquoise-current-shafts",
+    "speed-motes"
+  ],
+  "prompt_log": "generation-prompts.md",
+  "notes": "Three connected native-scale reef layers frame a vivid current-lane sea. Long clearings and one broad foreground landmark preserve speed and gameplay readability."
+}

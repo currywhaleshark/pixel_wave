@@ -1,0 +1,131 @@
+{
+  "kind": "pixel-wave-lint-report",
+  "version": 1,
+  "run": "enemy-ray",
+  "game_input": "sprite-sheet-pixel.png",
+  "ok": true,
+  "warnings": [
+    "1 extraction pitch warnings need review",
+    "1 frames touch their declared safe margin"
+  ],
+  "failures": [],
+  "checks": {
+    "canvas_size": {
+      "ok": true,
+      "width": 64,
+      "height": 26
+    },
+    "binary_alpha": {
+      "ok": true,
+      "values": [
+        0,
+        255
+      ],
+      "semi_transparent_pixels": 0
+    },
+    "palette": {
+      "ok": true,
+      "used_colors": 8,
+      "locked_colors": 8,
+      "foreign_colors": []
+    },
+    "transparent_rgb_clear": {
+      "ok": true,
+      "pixels": 0
+    },
+    "frames_nonempty": {
+      "ok": true,
+      "empty_frames": 0
+    },
+    "isolated_pixels": {
+      "ok": true,
+      "count": 0,
+      "tiny_components_max_3px": 0,
+      "severity": "warning"
+    },
+    "safe_margin": {
+      "ok": false,
+      "touching_frames": 1,
+      "severity": "warning"
+    },
+    "frame_palette_drift": {
+      "ok": true,
+      "maximum": 0.08333,
+      "warning_threshold": 0.35,
+      "pairs": [
+        {
+          "state": "flap",
+          "from": 0,
+          "to": 1,
+          "histogram_drift": 0.08333
+        }
+      ],
+      "severity": "warning"
+    },
+    "extraction_pitch": {
+      "ok": false,
+      "strict": false,
+      "warnings": [
+        "flap: pitch disagreement — detect 24.78x24.28 (uniformity 14.6) vs runlen 20.24x22.76 (31.6); detect kept. large gap usually means the raw was drawn finer than the cell contract — reroll with a block-count hint"
+      ],
+      "severity": "warning"
+    },
+    "silhouette_contract": {
+      "ok": true,
+      "bbox_aspect_violations": [],
+      "bbox_delta_violations": [],
+      "contract": {
+        "bbox_aspect_ratio": null,
+        "max_frame_bbox_delta": null
+      }
+    },
+    "curve_stair_steps": {
+      "status": "manual_review_required",
+      "reason": "curve cluster intent cannot be inferred reliably from topology alone"
+    }
+  },
+  "frames": [
+    {
+      "state": "flap",
+      "index": 0,
+      "width": 32,
+      "height": 26,
+      "opaque_pixels": 267,
+      "bbox": [
+        4,
+        1,
+        30,
+        25
+      ],
+      "bbox_width": 26,
+      "bbox_height": 24,
+      "bbox_aspect_ratio": 1.083333,
+      "colors": 7,
+      "components": 1,
+      "isolated_1px_components": 0,
+      "tiny_components_max_3px": 0,
+      "touches_safe_margin": false
+    },
+    {
+      "state": "flap",
+      "index": 1,
+      "width": 32,
+      "height": 26,
+      "opaque_pixels": 245,
+      "bbox": [
+        4,
+        5,
+        32,
+        23
+      ],
+      "bbox_width": 28,
+      "bbox_height": 18,
+      "bbox_aspect_ratio": 1.555556,
+      "colors": 8,
+      "components": 1,
+      "isolated_1px_components": 0,
+      "tiny_components_max_3px": 0,
+      "touches_safe_margin": true
+    }
+  ]
+}

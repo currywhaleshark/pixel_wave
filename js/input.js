@@ -16,6 +16,7 @@ const Input = {
 
     window.addEventListener('keydown', (e) => {
       if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+      Sound.unlock();   // 브라우저 자동재생 정책: 첫 입력에서 오디오 활성화
       this.keys[e.key.toLowerCase()] = true;
       this.mode = 'keys';
       this.anyPressed = true;
@@ -40,6 +41,7 @@ const Input = {
     });
     canvas.addEventListener('mousedown', (e) => {
       e.preventDefault();
+      Sound.unlock();
       this.anyPressed = true;
       const p = toGame(e.clientX, e.clientY);
       this.clicks.push(p);
@@ -49,6 +51,7 @@ const Input = {
 
     canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
+      Sound.unlock();
       this.anyPressed = true;
       const t = e.changedTouches[0];
       const p = toGame(t.clientX, t.clientY);

@@ -1,0 +1,16 @@
+{
+  "kind": "pixel-wave-normalize-report",
+  "version": 1,
+  "run": "enemy-lantern",
+  "source": "sprite-sheet-alpha.png",
+  "output": "sprite-sheet-pixel.png",
+  "width": 36,
+  "height": 24,
+  "alpha_threshold": 128,
+  "palette_colors": 9,
+  "opaque_pixels_before_cleanup": 482,
+  "alpha_or_transparent_rgb_changed_pixels": 178,
+  "palette_remapped_pixels": 482,
+  "removed_component_pixels": 0,
+  "sha256": "115e973fb812726448980aa585c636c091def6bd2325d7991a9f20f2ac772248"
+}

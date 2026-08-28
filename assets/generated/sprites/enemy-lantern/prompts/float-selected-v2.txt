@@ -1,0 +1,3 @@
+Built-in ImageGen mode. Selected output: exec-464b7cc9-29ca-4d26-bd41-26af618e1029.png.
+
+Create exactly two front-facing float poses from the approved native 18x24 anchor. Lock the sleepy eyes, bell center, palette, scale, three attached tentacles, and amber lantern. In frame two, compress the bell and shift the tentacles and lantern by only one logical pixel. Use no more than 15x22 coarse logical blocks and nine flat colors on solid #00FF00. No gradients, antialiasing, zoom, translation, detached effects, glow, or extra objects.

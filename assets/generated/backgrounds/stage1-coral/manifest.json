@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "kind": "pixel-wave-background",
+  "stage": "stage1",
+  "name": "산호 초입",
+  "concept": "concept.png",
+  "game_input": "../../../backgrounds/stage1-coral.png",
+  "logical_viewport": [
+    480,
+    270
+  ],
+  "atlas": {
+    "width": 256,
+    "height": 160
+  },
+  "palette": [
+    "#205f8a",
+    "#2b78a0",
+    "#154875",
+    "#23638a",
+    "#0b2851",
+    "#123965",
+    "#367d75",
+    "#63a98a",
+    "#e59a8e",
+    "#f2bea3",
+    "#aa8fd0",
+    "#c6a8dc",
+    "#b97682",
+    "#e6a88f",
+    "#f2d09f"
+  ],
+  "runtime_palette": [
+    "#61ccd4",
+    "#4ab8c8",
+    "#36a3bd",
+    "#267fa8",
+    "#206e9b",
+    "#185884",
+    "#52b8c4",
+    "#86cfc8",
+    "#a7ddd4"
+  ],
+  "patches": {
+    "far_shelf_a": {
+      "x": 0,
+      "y": 0,
+      "w": 96,
+      "h": 40
+    },
+    "far_shelf_b": {
+      "x": 96,
+      "y": 0,
+      "w": 80,
+      "h": 40
+    },
+    "mid_garden_a": {
+      "x": 0,
+      "y": 40,
+      "w": 72,
+      "h": 56
+    },
+    "mid_garden_b": {
+      "x": 72,
+      "y": 40,
+      "w": 64,
+      "h": 56
+    },
+    "top_vines": {
+      "x": 208,
+      "y": 40,
+      "w": 48,
+      "h": 48
+    },
+    "near_coral_a": {
+      "x": 0,
+      "y": 96,
+      "w": 80,
+      "h": 64
+    },
+    "near_coral_b": {
+      "x": 80,
+      "y": 96,
+      "w": 64,
+      "h": 64
+    },
+    "shell_landmark": {
+      "x": 144,
+      "y": 96,
+      "w": 80,
+      "h": 64
+    }
+  },
+  "layers": [
+    {
+      "id": "water",
+      "kind": "code",
+      "parallax": 0
+    },
+    {
+      "id": "far_floor",
+      "kind": "code-tile",
+      "parallax": 0.14,
+      "seamless": true
+    },
+    {
+      "id": "far",
+      "kind": "patch",
+      "parallax": 0.14
+    },
+    {
+      "id": "mid_floor",
+      "kind": "code-tile",
+      "parallax": 0.38,
+      "seamless": true
+    },
+    {
+      "id": "mid",
+      "kind": "patch",
+      "parallax": 0.38
+    },
+    {
+      "id": "near_floor",
+      "kind": "code-tile",
+      "parallax": 0.82,
+      "seamless": true
+    },
+    {
+      "id": "near",
+      "kind": "patch",
+      "parallax": 0.82
+    },
+    {
+      "id": "particles",
+      "kind": "code",
+      "parallax": 0.2
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "kind": "pixel-wave-lint-aggregate",
+  "version": 1,
+  "ok": true,
+  "runs": [
+    {
+      "run": "bullet-bubble",
+      "ok": true,
+      "warnings": 0,
+      "failures": 0
+    },
+    {
+      "run": "bullet-mine",
+      "ok": true,
+      "warnings": 0,
+      "failures": 0
+    },
+    {
+      "run": "bullet-spike",
+      "ok": true,
+      "warnings": 0,
+      "failures": 0
+    },
+    {
+      "run": "enemy-big",
+      "ok": true,
+      "warnings": 1,
+      "failures": 0
+    },
+    {
+      "run": "enemy-fish",
+      "ok": true,
+      "warnings": 0,
+      "failures": 0
+    },
+    {
+      "run": "enemy-jelly",
+      "ok": true,
+      "warnings": 0,
+      "failures": 0
+    },
+    {
+      "run": "enemy-ray",
+      "ok": true,
+      "warnings": 2,
+      "failures": 0
+    },
+    {
+      "run": "enemy-turret",
+      "ok": true,
+      "warnings": 1,
+      "failures": 0
+    },
+    {
+      "run": "mermaid-bubble",
+      "ok": true,
+      "warnings": 1,
+      "failures": 0
+    },
+    {
+      "run": "mermaid-swim",
+      "ok": true,
+      "warnings": 1,
+      "failures": 0
+    },
+    {
+      "run": "pangpang",
+      "ok": true,
+      "warnings": 1,
+      "failures": 0
+    },
+    {
+      "run": "pearl-big",
+      "ok": true,
+      "warnings": 0,
+      "failures": 0
+    },
+    {
+      "run": "pearl-small",
+      "ok": true,
+      "warnings": 0,
+      "failures": 0
+    },
+    {
+      "run": "shot-wave",
+      "ok": true,
+      "warnings": 0,
+      "failures": 0
+    }
+  ]
+}

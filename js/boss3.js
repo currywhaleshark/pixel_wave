@@ -83,6 +83,7 @@ class BossSsing {
   die() {
     this.dead = true;
     this.deathT = 0;
+    Sound.sfx('bossDeath');
     this.game.clearBulletsToPearls(true);
     for (let i = 0; i < 44; i++) {
       const a = Math.random() * 6.28, s = 60 + Math.random() * 240;

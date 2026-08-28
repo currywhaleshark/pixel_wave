@@ -1,0 +1,128 @@
+{
+  "kind": "pixel-wave-lint-report",
+  "version": 1,
+  "run": "mongsil",
+  "game_input": "sprite-sheet-pixel.png",
+  "ok": true,
+  "warnings": [
+    "1 frames touch their declared safe margin"
+  ],
+  "failures": [],
+  "checks": {
+    "canvas_size": {
+      "ok": true,
+      "width": 96,
+      "height": 56
+    },
+    "binary_alpha": {
+      "ok": true,
+      "values": [
+        0,
+        255
+      ],
+      "semi_transparent_pixels": 0
+    },
+    "palette": {
+      "ok": true,
+      "used_colors": 14,
+      "locked_colors": 14,
+      "foreign_colors": []
+    },
+    "transparent_rgb_clear": {
+      "ok": true,
+      "pixels": 0
+    },
+    "frames_nonempty": {
+      "ok": true,
+      "empty_frames": 0
+    },
+    "isolated_pixels": {
+      "ok": true,
+      "count": 0,
+      "tiny_components_max_3px": 0,
+      "severity": "warning"
+    },
+    "safe_margin": {
+      "ok": false,
+      "touching_frames": 1,
+      "severity": "warning"
+    },
+    "frame_palette_drift": {
+      "ok": true,
+      "maximum": 0.145854,
+      "warning_threshold": 0.35,
+      "pairs": [
+        {
+          "state": "idle",
+          "from": 0,
+          "to": 1,
+          "histogram_drift": 0.145854
+        }
+      ],
+      "severity": "warning"
+    },
+    "extraction_pitch": {
+      "ok": true,
+      "strict": false,
+      "warnings": [],
+      "severity": "warning"
+    },
+    "silhouette_contract": {
+      "ok": true,
+      "bbox_aspect_violations": [],
+      "bbox_delta_violations": [],
+      "contract": {
+        "bbox_aspect_ratio": null,
+        "max_frame_bbox_delta": null
+      }
+    },
+    "curve_stair_steps": {
+      "status": "manual_review_required",
+      "reason": "curve cluster intent cannot be inferred reliably from topology alone"
+    }
+  },
+  "frames": [
+    {
+      "state": "idle",
+      "index": 0,
+      "width": 48,
+      "height": 56,
+      "opaque_pixels": 1402,
+      "bbox": [
+        4,
+        3,
+        44,
+        53
+      ],
+      "bbox_width": 40,
+      "bbox_height": 50,
+      "bbox_aspect_ratio": 0.8,
+      "colors": 12,
+      "components": 1,
+      "isolated_1px_components": 0,
+      "tiny_components_max_3px": 0,
+      "touches_safe_margin": false
+    },
+    {
+      "state": "idle",
+      "index": 1,
+      "width": 48,
+      "height": 56,
+      "opaque_pixels": 1318,
+      "bbox": [
+        2,
+        3,
+        44,
+        50
+      ],
+      "bbox_width": 42,
+      "bbox_height": 47,
+      "bbox_aspect_ratio": 0.893617,
+      "colors": 13,
+      "components": 1,
+      "isolated_1px_components": 0,
+      "tiny_components_max_3px": 0,
+      "touches_safe_margin": true
+    }
+  ]
+}

@@ -79,6 +79,7 @@ class BossMongsil {
   die() {
     this.dead = true;
     this.deathT = 0;
+    Sound.sfx('bossDeath');
     this.game.clearBulletsToPearls(true);
     for (let i = 0; i < 40; i++) {
       const a = Math.random() * 6.28, s = 60 + Math.random() * 220;
@@ -228,6 +229,12 @@ class BossMongsil {
       ctx.strokeStyle = `rgba(255, 240, 150, ${this.telegraph})`;
       ctx.lineWidth = 3;
       ctx.beginPath(); ctx.arc(0, 0, R + 16, 0, 6.28); ctx.stroke();
+    }
+
+    // 본체만 스프라이트로 교체하고 광채·예고·페이즈 확대는 기존 보스 로직을 유지한다.
+    if (Sprites.draw(ctx, 'boss.mongsil', 0, 0, { t: this.anim, scale: s })) {
+      ctx.restore();
+      return;
     }
 
     // 촉수 (길고 하늘하늘)

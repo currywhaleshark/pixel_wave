@@ -8,7 +8,9 @@
 //   if (!Sprites.draw(ctx, 'enemy.fish', x, y, { t })) drawTemporaryShape();
 // ============================================================
 const Sprites = {
-  // opt: { t(초, 애니메이션), frame(고정 프레임), flipX, alpha, rot(라디안), scale }
+  outlineFrames: new Map(),
+
+  // opt: { t(초, 애니메이션), frame(고정 프레임), flipX, alpha, rot(라디안), scale, outline, outlineAlpha }
   draw(ctx, id, x, y, opt = {}) {
     if (!Assets.has(id)) return false;   // 아트 미완성 → 호출부가 도형 폴백
     const s = SPRITES[id];
@@ -37,9 +39,36 @@ const Sprites = {
     if (opt.rot) ctx.rotate(opt.rot);
     if (opt.scale && opt.scale !== 1) ctx.scale(opt.scale, opt.scale);
     if (opt.flipX) ctx.scale(-1, 1);
+    if (opt.outline) {
+      const outlined = this.getOutlineFrame(img, id, s, fi, opt.outline);
+      const spriteAlpha = ctx.globalAlpha;
+      ctx.globalAlpha *= opt.outlineAlpha ?? 1;
+      ctx.drawImage(outlined, ox - u, oy - u, w + 2 * u, h + 2 * u);
+      ctx.globalAlpha = spriteAlpha;
+    }
     ctx.drawImage(img, s.x + fi * s.w, s.y, s.w, s.h, ox, oy, w, h);
     ctx.restore();
     return true;
+  },
+
+  getOutlineFrame(img, id, s, fi, color) {
+    const key = `${id}:${fi}:${color}`;
+    if (this.outlineFrames.has(key)) return this.outlineFrames.get(key);
+    const canvas = document.createElement('canvas');
+    canvas.width = s.w + 2;
+    canvas.height = s.h + 2;
+    const frameCtx = canvas.getContext('2d');
+    frameCtx.imageSmoothingEnabled = false;
+    const crossOffsets = [[1, 0], [0, 1], [2, 1], [1, 2]];
+    for (const [dx, dy] of crossOffsets) {
+      frameCtx.drawImage(img, s.x + fi * s.w, s.y, s.w, s.h, dx, dy, s.w, s.h);
+    }
+    frameCtx.globalCompositeOperation = 'source-in';
+    frameCtx.fillStyle = color;
+    frameCtx.fillRect(0, 0, canvas.width, canvas.height);
+    frameCtx.globalCompositeOperation = 'source-over';
+    this.outlineFrames.set(key, canvas);
+    return canvas;
   },
 
   // 스프라이트 유무만 확인 (분기용)

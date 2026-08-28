@@ -1,0 +1,16 @@
+{
+  "kind": "pixel-wave-normalize-report",
+  "version": 1,
+  "run": "bullet-spike",
+  "source": "sprite-sheet-alpha.png",
+  "output": "sprite-sheet-pixel.png",
+  "width": 8,
+  "height": 8,
+  "alpha_threshold": 128,
+  "palette_colors": 4,
+  "opaque_pixels_before_cleanup": 27,
+  "alpha_or_transparent_rgb_changed_pixels": 0,
+  "palette_remapped_pixels": 17,
+  "removed_component_pixels": 0,
+  "sha256": "2885d8cfdd9dbcd06a634f1763838ab556f2654e1e431269129588ca13f154b4"
+}

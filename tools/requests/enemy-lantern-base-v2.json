@@ -1,0 +1,24 @@
+{
+  "states": {
+    "idle": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one canonical front-facing sleepy lantern-jelly idle pose with no motion or detached effects"
+    }
+  },
+  "cell": {
+    "width": 18,
+    "height": 24,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 9,
+    "pitch_hint": 40
+  }
+}

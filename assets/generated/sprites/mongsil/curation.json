@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-curation",
+  "states": {
+    "idle": {
+      "selected": [
+        0,
+        1
+      ],
+      "order": [
+        0,
+        1
+      ],
+      "transforms": {
+        "1": {
+          "rotate": 0,
+          "scale": 1,
+          "dx": -0.9473684210526316,
+          "dy": -1.2631578947368423,
+          "shx": 0,
+          "shy": 0,
+          "flipX": 0
+        }
+      },
+      "revision": [
+        "8c800769f446"
+      ]
+    }
+  },
+  "run_revision": "4cc8b0b72251659c"
+}

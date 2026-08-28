@@ -49,6 +49,7 @@ const Meta = {
       dolphinLv: { homing: 0, burst: 0, pierce: 0 },
       selected: null,                             // 출격 돌고래
       cleared: {},                                // 클리어한 해역
+      audio: null,                                // 볼륨·음소거 (Sound가 관리)
     };
   },
 

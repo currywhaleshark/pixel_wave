@@ -81,6 +81,7 @@ class BossUreu {
   die() {
     this.dead = true;
     this.deathT = 0;
+    Sound.sfx('bossDeath');
     this.beam = null;
     this.game.stormScale = 0;     // 폭풍이 잦아든다
     this.game.bolts = [];

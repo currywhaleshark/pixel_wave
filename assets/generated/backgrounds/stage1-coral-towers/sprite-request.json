@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "stage1-coral-towers",
+    "description": "Pixel Wave Stage 1 large connected foreground coral-rock formations",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "rect",
+    "width": 144,
+    "height": 128,
+    "safe_margin_x": 4,
+    "safe_margin_y": 4
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "manual"
+  },
+  "states": {
+    "tower_reef": {
+      "frames": 2,
+      "fps": 0,
+      "loop": false,
+      "action": "two distinct single-piece foreground reef formations, one complete connected rock mass per slot; frame 1 is a broad naturally terraced formation about 80 to 90 logical pixels tall, frame 2 is a much larger asymmetric landmark about 105 to 118 logical pixels tall; each formation must be one continuous geological silhouette from wide solid base to irregular crown, not stacked rocks and not separate patches; dark indigo rock with coral growth integrated into ledges; the entire underside is solid and wide enough to overlap the continuous seabed"
+    }
+  },
+  "style": "authentic native-resolution hard-edged pixel art matching the accepted Pixel Wave reef base exactly: the same countable logical pixel size as existing 96x64 reef patches, deliberate stair-step curves, broad connected color clusters, limited indigo-blue rock with restrained peach and lavender coral accents, binary edges, no antialiasing, no gradients, no detached debris",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "align_x": "bbox-center",
+    "align_y": "bottom",
+    "pixel_perfect": true,
+    "logical_height": 128,
+    "palette_size": 20,
+    "outline": false
+  },
+  "chroma": {
+    "mode": "rgb",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

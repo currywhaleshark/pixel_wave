@@ -79,6 +79,7 @@ class Boss {
   die() {
     this.dead = true;
     this.deathT = 0;
+    Sound.sfx('bossDeath');
     this.game.clearBulletsToPearls(true);  // 남은 탄 전부 진주로
     // 진주 폭죽
     for (let i = 0; i < 36; i++) {

@@ -1,0 +1,16 @@
+{
+  "kind": "pixel-wave-normalize-report",
+  "version": 1,
+  "run": "enemy-big",
+  "source": "sprite-sheet-alpha.png",
+  "output": "sprite-sheet-pixel.png",
+  "width": 32,
+  "height": 24,
+  "alpha_threshold": 128,
+  "palette_colors": 16,
+  "opaque_pixels_before_cleanup": 421,
+  "alpha_or_transparent_rgb_changed_pixels": 0,
+  "palette_remapped_pixels": 76,
+  "removed_component_pixels": 0,
+  "sha256": "72773fdfead0acd201aaa9bb175509f5985bdf08278faa8baf061266ef1f5b73"
+}

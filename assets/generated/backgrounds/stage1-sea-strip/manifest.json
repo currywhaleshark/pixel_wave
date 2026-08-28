@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "kind": "pixel-wave-sea-strip",
+  "stage": "stage1",
+  "logical_viewport": [
+    480,
+    270
+  ],
+  "source": "sources/sea-long-source-v1.png",
+  "source_size": [
+    2048,
+    768
+  ],
+  "crop_box": [
+    0,
+    0,
+    2048,
+    384
+  ],
+  "generated": "sea-strip.png",
+  "file": "../../../backgrounds/stage1-sea-strip.png",
+  "width": 1440,
+  "height": 270,
+  "panel_count": 3,
+  "runtime_scale": 1,
+  "parallax": 0.025,
+  "seamless": true,
+  "opaque": true,
+  "palette": [
+    "#61ccd4",
+    "#4ec2cf",
+    "#4ab8c8",
+    "#3eafc4",
+    "#36a3bd",
+    "#2e91b4",
+    "#267fa8",
+    "#206e9b",
+    "#1c6391",
+    "#185884"
+  ],
+  "normalization": "aspect-preserving crop, Lanczos concept resample, depth grade, edge bridge, nearest locked palette",
+  "generation_prompt": "generation-prompt.md"
+}

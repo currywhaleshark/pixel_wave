@@ -35,6 +35,8 @@ const MapUI = {
     close:{ x: 838, y: 52,  w: 34,  h: 26 },
   },
   dolphinSlot(i) { return { x: 118 + i * 82, y: 478, w: 74, h: 52 }; },
+  // 볼륨 컨트롤 (우상단) — 클릭하면 0 → 30 → 60 → 100% 순환
+  volBtn(i) { return { x: CFG.W - 176 + i * 88, y: 12, w: 80, h: 22 }; },
 
   showToast(msg, ok) { this.toast = { msg, ok }; this.toastT = 1.8; },
 
@@ -103,14 +105,15 @@ const MapUI = {
         else if (k === 'enter' || k === 'z' || k === ' ') {
           const row = rows[this.shopCursor];
           const r = Meta.buy(row.item);
+          Sound.sfx(r.ok ? 'buy' : 'deny');
           this.showToast(r.ok ? `${row.item.name} 구매!` : `${r.why}`, r.ok);
         }
       } else {
-        if (k === 'arrowleft' || k === 'a') this.sel = Math.max(0, this.sel - 1);
-        else if (k === 'arrowright' || k === 'd') this.sel = Math.min(this.unlockedCount() - 1, this.sel + 1);
+        if (k === 'arrowleft' || k === 'a') { this.sel = Math.max(0, this.sel - 1); Sound.sfx('uiMove'); }
+        else if (k === 'arrowright' || k === 'd') { this.sel = Math.min(this.unlockedCount() - 1, this.sel + 1); Sound.sfx('uiMove'); }
         else if (k === 'arrowup' || k === 'w') this.diffSel = Math.min(this.maxDiffFor(this.sel), this.diffSel + 1);
         else if (k === 'arrowdown') this.diffSel = Math.max(0, this.diffSel - 1);
-        else if (k === 'enter' || k === 'z') { game.launchStage(this.sel, this.diffSel); return; }
+        else if (k === 'enter' || k === 'z') { Sound.sfx('uiSelect'); game.launchStage(this.sel, this.diffSel); return; }
         else if (k === 's' || k === 'x') { this.shopOpen = true; this.shopCursor = 0; }
         else if (k === 'c') this.cycleDolphin();
       }
@@ -122,6 +125,7 @@ const MapUI = {
         for (const row of this.shopRows()) {
           if (this.inRect(p, row)) {
             const r = Meta.buy(row.item);
+            Sound.sfx(r.ok ? 'buy' : 'deny');
             this.showToast(r.ok ? `${row.item.name} 구매!` : `${r.why}`, r.ok);
           }
         }
@@ -137,6 +141,9 @@ const MapUI = {
           else this.showToast('세이브 섬 상점에서 해금하세요', false);
         }
       }
+      // 볼륨 컨트롤
+      if (this.inRect(p, this.volBtn(0))) { Sound.cycleVol('bgm'); continue; }
+      if (this.inRect(p, this.volBtn(1))) { Sound.cycleVol('sfx'); continue; }
       // 난이도 칩
       for (let d = 0; d < DIFFS.length; d++) {
         if (this.inRect(p, this.diffChip(d))) {
@@ -145,7 +152,7 @@ const MapUI = {
         }
       }
       if (this.inRect(p, this.BTN.shop)) { this.shopOpen = true; continue; }
-      if (this.inRect(p, this.BTN.go)) { game.launchStage(this.sel, this.diffSel); return; }
+      if (this.inRect(p, this.BTN.go)) { Sound.sfx('uiSelect'); game.launchStage(this.sel, this.diffSel); return; }
       // 해금된 노드 클릭 = 선택 (같은 노드 다시 클릭 = 출격)
       for (let i = 0; i < this.unlockedCount() && i < STAGES.length; i++) {
         const n = this.NODES[i];
@@ -174,6 +181,26 @@ const MapUI = {
     ctx.font = Fonts.f(12);
     ctx.fillStyle = 'rgba(255,255,255,0.55)';
     ctx.fillText('별빛 길을 따라 집으로', CFG.W / 2, 60);
+
+    // 볼륨 컨트롤 (BGM / SE) — 4단계 막대
+    [['BGM', 'bgm'], ['SE', 'sfx']].forEach(([label, key], i) => {
+      const r = this.volBtn(i);
+      const v = Sound.muted ? 0 : Sound.vol[key];
+      ctx.fillStyle = 'rgba(255,255,255,0.07)';
+      ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 6); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      ctx.font = Fonts.f(11); ctx.textAlign = 'left';
+      ctx.fillText(label, r.x + 7, r.y + 15);
+      for (let b = 0; b < 3; b++) {
+        const on = v > b * 0.3 + 0.01;
+        ctx.fillStyle = on ? '#7dffd8' : 'rgba(255,255,255,0.18)';
+        ctx.fillRect(r.x + 38 + b * 12, r.y + 14 - b * 3, 8, 4 + b * 3);
+      }
+    });
+    if (Sound.muted) {
+      ctx.fillStyle = '#ff9e9e'; ctx.font = Fonts.f(11); ctx.textAlign = 'right';
+      ctx.fillText('음소거 (M)', CFG.W - 12, 48);
+    }
 
     // 별빛 길 (진주 점선) — 클리어한 구간은 밝게
     const pts = [...this.NODES, this.HOME];

@@ -21,7 +21,7 @@
     {
       "state": "float",
       "frame": 0,
-      "nontransparent_pixels": 110,
+      "nontransparent_pixels": 174,
       "x": 0,
       "y": 0,
       "w": 16,
@@ -30,7 +30,7 @@
     {
       "state": "float",
       "frame": 1,
-      "nontransparent_pixels": 178,
+      "nontransparent_pixels": 162,
       "x": 16,
       "y": 0,
       "w": 16,

@@ -9,8 +9,8 @@
   },
   "cell": {
     "shape": "rect",
-    "width": 24,
-    "height": 16,
+    "width": 36,
+    "height": 24,
     "safe_margin_x": 2,
     "safe_margin_y": 1
   },
@@ -27,7 +27,7 @@
   "states": {
     "swim": {
       "frames": 4,
-      "fps": 8,
+      "fps": 5,
       "loop": true,
       "action": "gentle horizontal swimming cycle facing right: compact body stays centered, teal tail fin alternates up, neutral, down, neutral; pink bob shifts only one pixel; arms remain tucked; seamless loop; no detached effects"
     }
@@ -39,7 +39,7 @@
     "align_x": "alpha-centroid",
     "align_y": "center",
     "pixel_perfect": true,
-    "logical_height": 16,
+    "logical_height": 24,
     "palette_size": 16
   },
   "chroma": {

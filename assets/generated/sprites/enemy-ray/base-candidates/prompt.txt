@@ -1,0 +1,7 @@
+Create one canonical base sprite reference for a small enemy manta ray in the game Pixel Wave.
+
+Exactly one complete creature, centered, facing left, shown in a clear side/top three-quarter game-sprite view. It is a cute but readable broad manta ray with a flattened diamond silhouette, wide triangular wings, a compact central body, a short thin trailing tail, and one small bright eye near the left-facing head. Use dusty navy and periwinkle blue body colors, a dark indigo 1-logical-pixel outline, and at most two simple highlight/shadow bands. Keep the silhouette broad and horizontally readable; no legs, no fish fins, no shark body, no smile, no accessories.
+
+Match the attached Pixel Wave enemy references exactly in logical pixel density, hard-edged pixel clusters, outline weight, compact proportions, pastel underwater palette, limited shading, and low detail. This base must be suitable for a final 20x14 native sprite and a two-frame wing-flap animation. The entire creature must fit with generous space around it and nothing cropped.
+
+Use a perfectly flat pure green #00FF00 background across the whole image. Do not use green or green-adjacent colors on the creature. No transparency, scenery, water, bubbles, shadows, glow, motion marks, text, frame, grid, multiple poses, or extra objects. Output only the single base sprite reference image.

@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "mongsil-base-v2",
+    "description": "front-facing coarse-grid royal lavender lantern jellyfish with crown, sleepy face, amber core and exactly five broad attached tentacles",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "rect",
+    "width": 48,
+    "height": 56,
+    "safe_margin_x": 3,
+    "safe_margin_y": 3
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "auto",
+    "score": 255.22,
+    "min_subject_distance": 230.77,
+    "background": {
+      "mode": "flat",
+      "hex": "#05EE07",
+      "rgb": [
+        5,
+        238,
+        7
+      ],
+      "opaque_border_fraction": 1.0,
+      "border_coverage": 1.0,
+      "enclosed_background_pixels": 49,
+      "enclosed_material_pixels": 0,
+      "subject_pixels": 26917
+    },
+    "candidates": [
+      {
+        "name": "magenta",
+        "hex": "#FF00FF",
+        "score": 131.55,
+        "min_subject_distance": 78.49,
+        "clears_erase_radius": false
+      },
+      {
+        "name": "green",
+        "hex": "#00FF00",
+        "score": 255.22,
+        "min_subject_distance": 230.77,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "cyan",
+        "hex": "#00FFFF",
+        "score": 224.48,
+        "min_subject_distance": 206.0,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "blue",
+        "hex": "#004DFF",
+        "score": 155.84,
+        "min_subject_distance": 122.5,
+        "clears_erase_radius": true
+      }
+    ],
+    "selection_reason": "highest 1st-percentile subject distance among the 3 candidate(s) clearing the 96 erase radius"
+  },
+  "states": {
+    "idle": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one canonical front-facing royal lantern-jelly boss idle pose with exactly five broad attached tentacles"
+    }
+  },
+  "style": "native 48x56 coarse pixel art; maximum 14 flat colors; hard clusters; no gradients, antialiasing or micro-detail",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 14,
+    "pitch_hint": 20
+  },
+  "chroma": {
+    "mode": "rgb",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

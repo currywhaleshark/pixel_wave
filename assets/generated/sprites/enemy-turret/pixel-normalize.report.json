@@ -1,0 +1,16 @@
+{
+  "kind": "pixel-wave-normalize-report",
+  "version": 1,
+  "run": "enemy-turret",
+  "source": "sprite-sheet-alpha.png",
+  "output": "sprite-sheet-pixel.png",
+  "width": 16,
+  "height": 14,
+  "alpha_threshold": 128,
+  "palette_colors": 12,
+  "opaque_pixels_before_cleanup": 109,
+  "alpha_or_transparent_rgb_changed_pixels": 0,
+  "palette_remapped_pixels": 51,
+  "removed_component_pixels": 0,
+  "sha256": "f13cfc189db1a0c814852352e468940df76e9d9c2c3342bc50b01b7a9c5f02ca"
+}

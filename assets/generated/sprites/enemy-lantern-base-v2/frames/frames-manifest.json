@@ -1,0 +1,55 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "engine_revision": "866582aacc15",
+  "extract_args": {
+    "repalette": true,
+    "min_used_pixels": 40
+  },
+  "run_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\sprites\\enemy-lantern-base-v2",
+  "cell": {
+    "shape": "rect",
+    "width": 18,
+    "height": 24,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "manual"
+  },
+  "rows": [
+    {
+      "state": "idle",
+      "frames": 1,
+      "method": "components",
+      "files": [
+        "frames/idle/frame-0.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 214,
+          "bbox": [
+            3,
+            1,
+            16,
+            23
+          ],
+          "edge_pixels": 6,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true,
+      "engine_revision": "866582aacc15"
+    }
+  ],
+  "errors": [],
+  "warnings": []
+}

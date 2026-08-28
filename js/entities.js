@@ -28,6 +28,7 @@ class Player {
       while (this.level < 3 && this.gauge >= this.gaugeMax()) {
         this.gauge -= this.gaugeMax();
         this.level++;
+        Sound.sfx('powerup');
         game.message(`파워 업! Lv${this.level}`, '#7dffd8');
       }
       if (this.level === 3) this.gauge = 0;
@@ -85,6 +86,7 @@ class Player {
   }
 
   fire(game) {
+    Sound.sfx('shot');
     const mk = (angleDeg, amp, pierce, back) => {
       const a = angleDeg * Math.PI / 180;
       game.shots.push({
@@ -129,11 +131,13 @@ class Player {
             life: CFG.scatterLife, scattered: true, noCollectT: CFG.scatterNoCollect,
           }));
       }
+      Sound.sfx('playerHit');
       game.message('앗! 파워 다운...', '#ffb0c8');
     } else if (this.armor > 0) {
       // 진주 목걸이가 격침 1회 방어
       this.armor--;
       this.invuln = CFG.hitInvuln;
+      Sound.sfx('shield');
       game.message('진주 목걸이가 지켜줬다!', '#ffe9a8');
       game.addFx(this.x, this.y, '#ffe9a8', 16);
     } else {
@@ -142,6 +146,7 @@ class Player {
       game.stats.deaths++;
       const loss = Math.floor(game.stats.pearls * CFG.downPearlLossRate);
       game.stats.pearls -= loss;
+      Sound.sfx('playerDown');
       game.message('뽀글... 잠시 후 부활!', '#a8d8ff');
     }
     if (game.runLog) game.runLog.hitsTaken++;
@@ -422,7 +427,8 @@ class Enemy {
   }
 
   takeDamage(dmg, game) {
-    if (this.kind === 'wreck') return;                    // 지형은 불괴
+    if (this.kind === 'wreck') return;
+    Sound.sfx('hit');                    // 지형은 불괴
     if (this.kind === 'ghost' && !this.solid) return;     // 반투명 유령은 무적
     this.hp -= dmg;
     this.flash = 0.08;

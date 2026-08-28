@@ -1,0 +1,28 @@
+{
+  "states": {
+    "far_reef": {
+      "frames": 3,
+      "fps": 0,
+      "loop": false,
+      "action": "three distinct static far-background reef shelf patch variants, one complete connected patch per slot; broad low horizontal rock silhouette, sparse tiny coral marks, low detail and low contrast; every patch has a solid rocky underside and remains fully isolated from neighboring slots"
+    },
+    "mid_reef": {
+      "frames": 3,
+      "fps": 0,
+      "loop": false,
+      "action": "three distinct static midground coral reef patch variants, one complete connected patch per slot; layered blue rock base with readable peach branching coral and lavender tube coral; varied silhouettes but the same material palette, outline weight and pixel density; solid connected underside"
+    },
+    "near_reef": {
+      "frames": 3,
+      "fps": 0,
+      "loop": false,
+      "action": "three distinct static foreground reef patch variants, one complete connected patch per slot; darker indigo rock mass, larger peach and lavender coral silhouettes, strong stair-step clusters, restrained highlights, solid connected underside"
+    },
+    "shell_landmark": {
+      "frames": 2,
+      "fps": 0,
+      "loop": false,
+      "action": "two distinct static shell landmark patch variants, one complete connected patch per slot; a large warm cream and pink ridged seashell resting on a dark blue reef-rock base with a small coral accent; shell silhouette remains the focal shape and the whole patch is connected"
+    }
+  }
+}

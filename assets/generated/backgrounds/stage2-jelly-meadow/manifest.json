@@ -1,0 +1,291 @@
+{
+  "version": 1,
+  "kind": "pixel-wave-stage-background",
+  "stage": "stage2",
+  "name": "해파리 초원",
+  "logical_viewport": [
+    480,
+    270
+  ],
+  "palette": [
+    [
+      22,
+      9,
+      53
+    ],
+    [
+      26,
+      16,
+      59
+    ],
+    [
+      30,
+      15,
+      63
+    ],
+    [
+      30,
+      16,
+      64
+    ],
+    [
+      29,
+      13,
+      73
+    ],
+    [
+      33,
+      15,
+      70
+    ],
+    [
+      38,
+      13,
+      93
+    ],
+    [
+      42,
+      31,
+      83
+    ],
+    [
+      48,
+      13,
+      110
+    ],
+    [
+      53,
+      34,
+      109
+    ],
+    [
+      58,
+      15,
+      126
+    ],
+    [
+      60,
+      53,
+      105
+    ],
+    [
+      66,
+      37,
+      120
+    ],
+    [
+      77,
+      16,
+      149
+    ],
+    [
+      90,
+      32,
+      159
+    ],
+    [
+      117,
+      60,
+      175
+    ],
+    [
+      128,
+      37,
+      197
+    ],
+    [
+      117,
+      85,
+      167
+    ],
+    [
+      146,
+      119,
+      183
+    ],
+    [
+      182,
+      166,
+      197
+    ]
+  ],
+  "layers": {
+    "sea": {
+      "file": "../../../backgrounds/stage2-sea-strip.png",
+      "generated": "sea-strip.png",
+      "source": "sources/sea-long-source-v1.png",
+      "width": 1440,
+      "height": 270,
+      "parallax": 0.02,
+      "seamless": true,
+      "opaque": true,
+      "palette": [
+        "#8a79dc",
+        "#7565cb",
+        "#6256b7",
+        "#51469f",
+        "#433887",
+        "#352c72",
+        "#2a235f",
+        "#211a52",
+        "#191341",
+        "#120d36"
+      ],
+      "source_size": [
+        2172,
+        724
+      ],
+      "crop_box": [
+        0,
+        0,
+        2172,
+        407
+      ],
+      "runtime_scale": 1
+    },
+    "far": {
+      "file": "../../../backgrounds/stage2-far-strip.png",
+      "generated": "far-strip.png",
+      "source": "sources/far-long-source-v3.png",
+      "width": 1440,
+      "height": 48,
+      "parallax": 0.1,
+      "seamless": true,
+      "source_size": [
+        1983,
+        793
+      ],
+      "source_bbox": [
+        0,
+        577,
+        1980,
+        737
+      ],
+      "content_size": [
+        480,
+        39
+      ],
+      "height_range": [
+        6,
+        39
+      ],
+      "panel_width": 480,
+      "panel_count": 3,
+      "runtime_scale": 1,
+      "scale": 0.242424,
+      "aspect_preserved": true,
+      "seam_cap": {
+        "generated": "caps/far-seam-cap.png",
+        "positions": [
+          0,
+          480,
+          960
+        ],
+        "size": [
+          42,
+          48
+        ],
+        "runtime_scale": 1,
+        "source": "sources/far-long-source-v3.png"
+      }
+    },
+    "mid": {
+      "file": "../../../backgrounds/stage2-mid-strip.png",
+      "generated": "mid-strip.png",
+      "source": "sources/mid-long-source-v2.png",
+      "width": 1440,
+      "height": 72,
+      "parallax": 0.3,
+      "seamless": true,
+      "source_size": [
+        1983,
+        793
+      ],
+      "source_bbox": [
+        0,
+        500,
+        1983,
+        758
+      ],
+      "content_size": [
+        480,
+        62
+      ],
+      "height_range": [
+        11,
+        62
+      ],
+      "panel_width": 480,
+      "panel_count": 3,
+      "runtime_scale": 1,
+      "scale": 0.242057,
+      "aspect_preserved": true,
+      "seam_cap": {
+        "generated": "caps/mid-seam-cap.png",
+        "positions": [
+          0,
+          480,
+          960
+        ],
+        "size": [
+          58,
+          72
+        ],
+        "runtime_scale": 1,
+        "source": "sources/mid-long-source-v2.png"
+      }
+    },
+    "near": {
+      "file": "../../../backgrounds/stage2-near-strip.png",
+      "generated": "near-strip.png",
+      "source": "sources/near-long-source-v2.png",
+      "width": 1440,
+      "height": 128,
+      "parallax": 0.76,
+      "seamless": true,
+      "source_size": [
+        1983,
+        793
+      ],
+      "source_bbox": [
+        0,
+        282,
+        1983,
+        793
+      ],
+      "content_size": [
+        480,
+        124
+      ],
+      "height_range": [
+        24,
+        124
+      ],
+      "panel_width": 480,
+      "panel_count": 3,
+      "runtime_scale": 1,
+      "scale": 0.242057,
+      "aspect_preserved": true,
+      "seam_cap": {
+        "generated": "caps/near-seam-cap.png",
+        "positions": [
+          0,
+          480,
+          960
+        ],
+        "size": [
+          76,
+          128
+        ],
+        "runtime_scale": 1,
+        "source": "sources/near-long-source-v2.png"
+      }
+    }
+  },
+  "runtime_effects": [
+    "violet-light-shafts",
+    "lavender-motes"
+  ],
+  "prompt_log": "generation-prompts.md",
+  "notes": "Terrain sources are redrawn natively shallow. Far, mid and near preserve distinct height ranges; tall landmarks are separated by low clearings."
+}

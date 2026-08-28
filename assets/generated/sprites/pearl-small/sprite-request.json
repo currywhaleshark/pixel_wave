@@ -41,8 +41,15 @@
     "resample": "kcentroid",
     "align_x": "alpha-centroid",
     "align_y": "center",
-    "pixel_perfect": true,
+    "pixel_perfect": false,
     "palette_size": 4
+  },
+  "pixel_lint": {
+    "fail_on_pitch_warnings": true,
+    "bbox_aspect_ratio": {
+      "min": 0.9,
+      "max": 1.1
+    }
   },
   "chroma": {
     "mode": "ycbcr",

@@ -1,0 +1,282 @@
+{
+  "version": 2,
+  "kind": "pixel-wave-background-strips",
+  "stage": "stage1",
+  "name": "산호 초입",
+  "logical_viewport": [
+    480,
+    270
+  ],
+  "generation": "built-in ImageGen ultra-wide continuous reef sources",
+  "prompt_log": "generation-prompts.md",
+  "palette": [
+    [
+      35,
+      35,
+      102
+    ],
+    [
+      61,
+      74,
+      156
+    ],
+    [
+      236,
+      113,
+      124
+    ],
+    [
+      159,
+      103,
+      220
+    ],
+    [
+      73,
+      95,
+      177
+    ],
+    [
+      197,
+      72,
+      110
+    ],
+    [
+      173,
+      71,
+      182
+    ],
+    [
+      221,
+      97,
+      114
+    ],
+    [
+      85,
+      63,
+      146
+    ],
+    [
+      113,
+      64,
+      188
+    ],
+    [
+      78,
+      102,
+      183
+    ],
+    [
+      250,
+      140,
+      128
+    ],
+    [
+      252,
+      188,
+      158
+    ],
+    [
+      82,
+      105,
+      183
+    ],
+    [
+      210,
+      97,
+      110
+    ],
+    [
+      197,
+      113,
+      236
+    ],
+    [
+      207,
+      130,
+      239
+    ],
+    [
+      197,
+      98,
+      112
+    ],
+    [
+      152,
+      115,
+      130
+    ],
+    [
+      86,
+      108,
+      185
+    ]
+  ],
+  "layers": {
+    "far": {
+      "file": "../../../backgrounds/stage1-far-strip.png",
+      "generated": "far-strip.png",
+      "source": "sources/far-long-source-v2.png",
+      "width": 1440,
+      "height": 24,
+      "parallax": 0.14,
+      "seamless": true,
+      "source_size": [
+        1983,
+        793
+      ],
+      "source_bbox": [
+        0,
+        652,
+        1983,
+        744
+      ],
+      "content_size": [
+        480,
+        22
+      ],
+      "panel_width": 480,
+      "panel_count": 3,
+      "runtime_scale": 1,
+      "scale": 0.242057,
+      "aspect_preserved": true,
+      "seam_cap": {
+        "source": "../stage1-coral-patches/frames/far_reef/frame-2.png",
+        "state": "far_reef",
+        "frame": 2,
+        "positions": [
+          0,
+          480,
+          960
+        ],
+        "runtime_scale": 1
+      }
+    },
+    "mid": {
+      "file": "../../../backgrounds/stage1-mid-strip.png",
+      "generated": "mid-strip.png",
+      "source": "sources/mid-long-source-v2.png",
+      "width": 1440,
+      "height": 36,
+      "parallax": 0.38,
+      "seamless": true,
+      "source_size": [
+        1983,
+        793
+      ],
+      "source_bbox": [
+        0,
+        617,
+        1983,
+        758
+      ],
+      "content_size": [
+        480,
+        34
+      ],
+      "panel_width": 480,
+      "panel_count": 3,
+      "runtime_scale": 1,
+      "scale": 0.242057,
+      "aspect_preserved": true,
+      "seam_cap": {
+        "source": "../stage1-coral-patches/frames/mid_reef/frame-0.png",
+        "state": "mid_reef",
+        "frame": 0,
+        "positions": [
+          0,
+          480,
+          960
+        ],
+        "runtime_scale": 1
+      }
+    },
+    "near": {
+      "file": "../../../backgrounds/stage1-near-strip.png",
+      "generated": "near-strip.png",
+      "source": "sources/near-long-source-v2.png",
+      "width": 1440,
+      "height": 128,
+      "parallax": 0.82,
+      "seamless": true,
+      "source_size": [
+        1983,
+        793
+      ],
+      "source_bbox": [
+        0,
+        612,
+        1983,
+        759
+      ],
+      "content_size": [
+        480,
+        36
+      ],
+      "panel_width": 480,
+      "panel_count": 3,
+      "runtime_scale": 1,
+      "scale": 0.242057,
+      "aspect_preserved": true,
+      "seam_cap": {
+        "source": "../stage1-coral-patches/frames/far_reef/frame-1.png",
+        "state": "far_reef",
+        "frame": 1,
+        "positions": [
+          0,
+          480,
+          960
+        ],
+        "runtime_scale": 1
+      },
+      "decor_clumps": [
+        {
+          "state": "far_reef",
+          "frame": 2,
+          "x": 145,
+          "mirrored": false,
+          "runtime_scale": 1
+        },
+        {
+          "state": "far_reef",
+          "frame": 0,
+          "x": 625,
+          "mirrored": false,
+          "runtime_scale": 1
+        },
+        {
+          "state": "far_reef",
+          "frame": 2,
+          "x": 1305,
+          "mirrored": true,
+          "runtime_scale": 1
+        }
+      ],
+      "tower_clumps": [
+        {
+          "label": "2.5x",
+          "source": "../stage1-coral-towers/frames/tower_reef/frame-0.png",
+          "state": "tower_reef",
+          "frame": 0,
+          "center_x": 340,
+          "mirrored": false,
+          "runtime_scale": 1
+        },
+        {
+          "label": "3x",
+          "source": "../stage1-coral-towers/frames/tower_reef/frame-1.png",
+          "state": "tower_reef",
+          "frame": 1,
+          "center_x": 1085,
+          "mirrored": true,
+          "runtime_scale": 1
+        }
+      ]
+    }
+  },
+  "runtime_effects": [
+    "water-bands",
+    "light-shafts",
+    "motes"
+  ],
+  "notes": "Every generated panorama is normalized to one native 480px viewport panel. Three seamless variants form a 1440px strip, drawn at runtime scale 1. Large foreground landmarks are single-piece native extracted frames, never enlarged or stacked."
+}
