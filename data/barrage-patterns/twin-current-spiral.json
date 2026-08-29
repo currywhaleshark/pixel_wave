@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "id": "twin-current-spiral",
+  "name": "쌍류 나선",
+  "description": "속도와 회전 방향이 다른 두 나선이 겹친다. 일정한 흐름 사이의 이동 통로를 읽는 패턴.",
+  "duration": 12,
+  "loop": true,
+  "seed": 17,
+  "emitters": [
+    {
+      "id": "clockwise-bubbles",
+      "name": "시계방향 기포 나선",
+      "enabled": true,
+      "type": "spiral",
+      "start": 0.4,
+      "end": 11.8,
+      "interval": 0.14,
+      "source": "boss",
+      "x": -18,
+      "y": 0,
+      "bulletKind": "bubble",
+      "radius": 4,
+      "speed": 102,
+      "difficultyCount": 1,
+      "difficultySpeed": 0.04,
+      "arms": 3,
+      "angle": 180,
+      "angleStep": 0,
+      "rotationSpeed": 86
+    },
+    {
+      "id": "counter-ghostflames",
+      "name": "반시계 유령불 나선",
+      "enabled": true,
+      "type": "spiral",
+      "start": 0.47,
+      "end": 11.8,
+      "interval": 0.17,
+      "source": "boss",
+      "x": -18,
+      "y": 0,
+      "bulletKind": "ghostflame",
+      "radius": 4,
+      "speed": 124,
+      "difficultyCount": 0,
+      "difficultySpeed": 0.04,
+      "arms": 3,
+      "angle": 195,
+      "angleStep": 0,
+      "rotationSpeed": -71
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "id": "bait-and-harpoon",
+  "name": "미끼와 작살",
+  "description": "넓고 느린 기포탄으로 이동을 유도한 뒤 좁고 빠른 가시탄이 같은 방향을 찌른다. 성급한 회피를 벌하는 패턴.",
+  "duration": 12,
+  "loop": true,
+  "seed": 83,
+  "emitters": [
+    {
+      "id": "slow-bait-fan",
+      "name": "느린 미끼 부채",
+      "enabled": true,
+      "type": "fan",
+      "start": 0.55,
+      "end": 10.6,
+      "interval": 2.35,
+      "source": "boss",
+      "x": -20,
+      "y": 0,
+      "bulletKind": "bubble",
+      "radius": 6,
+      "speed": 76,
+      "difficultyCount": 2,
+      "difficultySpeed": 0.02,
+      "count": 5,
+      "spread": 42,
+      "aim": true
+    },
+    {
+      "id": "fast-harpoon-fan",
+      "name": "빠른 추격 작살",
+      "enabled": true,
+      "type": "fan",
+      "start": 1.05,
+      "end": 11.1,
+      "interval": 2.35,
+      "burstCount": 2,
+      "burstGap": 0.12,
+      "source": "boss",
+      "x": -20,
+      "y": 0,
+      "bulletKind": "spike",
+      "radius": 4,
+      "speed": 196,
+      "difficultyCount": 1,
+      "difficultySpeed": 0.05,
+      "count": 3,
+      "spread": 13,
+      "aim": true
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "id": "constellation-pulse",
+  "name": "심해 별자리 맥동",
+  "description": "느린 별 고리 뒤로 빠른 유령불 고리가 파고든다. 고리 사이에 머물다가 타이밍을 바꾸는 패턴.",
+  "duration": 12,
+  "loop": true,
+  "seed": 31,
+  "emitters": [
+    {
+      "id": "slow-star-double-ring",
+      "name": "느린 별 이중고리",
+      "enabled": true,
+      "type": "ring",
+      "start": 0.5,
+      "end": 11.2,
+      "interval": 2.1,
+      "burstCount": 2,
+      "burstGap": 0.22,
+      "source": "boss",
+      "x": -12,
+      "y": 0,
+      "bulletKind": "star",
+      "radius": 5,
+      "speed": 82,
+      "difficultyCount": 2,
+      "difficultySpeed": 0.04,
+      "count": 16,
+      "angle": 0,
+      "angleStep": 7
+    },
+    {
+      "id": "fast-ghost-ring",
+      "name": "빠른 유령불 고리",
+      "enabled": true,
+      "type": "ring",
+      "start": 1.25,
+      "end": 11.7,
+      "interval": 2.1,
+      "source": "boss",
+      "x": -12,
+      "y": 0,
+      "bulletKind": "ghostflame",
+      "radius": 4,
+      "speed": 158,
+      "difficultyCount": 1,
+      "difficultySpeed": 0.06,
+      "count": 11,
+      "angle": 10,
+      "angleStep": -13
+    }
+  ]
+}
