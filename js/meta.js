@@ -51,6 +51,7 @@ const Meta = {
       cleared: {},                                // 클리어한 해역
       audio: null,                                // 볼륨·음소거 (Sound가 관리)
       bombSel: 'sonar',                           // 선택한 봄 (bombs.js)
+      best: {},                                   // 해역별 최고 점수
     };
   },
 
@@ -73,6 +74,17 @@ const Meta = {
     const v = this.data.cleared[stageId];
     if (v === true) return 0;
     return typeof v === 'number' ? v : -1;
+  },
+  bestFor(stageId) { return this.data.best?.[stageId] || 0; },
+  // 최고 점수 갱신 시 true (클리어 시에만 기록 — 중도 포기는 점수 없음)
+  recordScore(stageId, score) {
+    if (!this.data.best) this.data.best = {};
+    if (score > (this.data.best[stageId] || 0)) {
+      this.data.best[stageId] = score;
+      this.save();
+      return true;
+    }
+    return false;
   },
   recordClear(stageId, diffIdx) {
     if (this.clearedLevel(stageId) < diffIdx) {

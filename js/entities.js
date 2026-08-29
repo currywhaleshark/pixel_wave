@@ -150,6 +150,7 @@ class Player {
       game.message('뽀글... 잠시 후 부활!', '#a8d8ff');
     }
     if (game.runLog) game.runLog.hitsTaken++;
+    game.mult = Math.max(1, Math.round(game.mult * 50) / 100);   // 배율 반토막
     game.addFx(this.x, this.y, '#ff9ec7', 14);
     return true;
   }

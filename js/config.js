@@ -9,11 +9,11 @@
 const DIFFS = [
   // bossInt: 이지도 ×0.85 — 보스 기본 템포 상향 ("보스가 쉽다" 피드백 반영)
   { id: 'easy',   name: '이지', color: '#7dffd8',
-    fireInt: 1,    ebSpd: 1,    ringN: 0, mineT: 1,    bossInt: 0.85, bossHp: 1,    bigHp: 1,   pearlMul: 1 },
+    fireInt: 1,    ebSpd: 1,    ringN: 0, mineT: 1,    bossInt: 0.85, bossHp: 1,    bigHp: 1,   pearlMul: 1, scoreMul: 1.0 },
   { id: 'normal', name: '노멀', color: '#ffd76e',
-    fireInt: 0.68, ebSpd: 1.1,  ringN: 2, mineT: 0.85, bossInt: 0.6,  bossHp: 1.25, bigHp: 1.3, pearlMul: 1.3 },
+    fireInt: 0.68, ebSpd: 1.1,  ringN: 2, mineT: 0.85, bossInt: 0.6,  bossHp: 1.25, bigHp: 1.3, pearlMul: 1.3, scoreMul: 1.5 },
   { id: 'hard',   name: '하드', color: '#ff8f8f',
-    fireInt: 0.48, ebSpd: 1.22, ringN: 4, mineT: 0.7,  bossInt: 0.47, bossHp: 1.55, bigHp: 1.6, pearlMul: 1.6 },
+    fireInt: 0.48, ebSpd: 1.22, ringN: 4, mineT: 0.7,  bossInt: 0.47, bossHp: 1.55, bigHp: 1.6, pearlMul: 1.6, scoreMul: 2.2 },
 ];
 // 사격 패턴은 배율 외에 난이도별로 "진화"한다 (Enemy.shoot / onEnemyKilled 참조):
 //  S1 조준 1발 → 2발 부채꼴 → 3발 / S2 링 → +조준 → +흩뿌리기 3발

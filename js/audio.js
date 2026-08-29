@@ -186,7 +186,7 @@ const Sound = {
   sfx(name) {
     if (!this.ctx || this.muted || this.vol.sfx <= 0) return;
     // 연사·다중 피격이 겹치므로 종류별 최소 간격을 둔다
-    const gap = { shot: 0.07, hit: 0.045, pearl: 0.035, kill: 0.05 }[name] ?? 0;
+    const gap = { shot: 0.07, hit: 0.045, pearl: 0.035, kill: 0.05, graze: 0.08 }[name] ?? 0;
     const now = this.ctx.currentTime;
     if (gap && now - (this.lastAt[name] || 0) < gap) return;
     this.lastAt[name] = now;
@@ -216,6 +216,7 @@ const Sound = {
       case 'bossDeath': this.noise(0.6, { freq: 1600, freqTo: 100, vol: 0.24, q: 0.5 });
                         this.arp([523, 659, 784, 1046, 1318, 1568], 0.09, { dur: 0.2, vol: 0.14, type: 'triangle' }); break;
       case 'clear':     this.arp([523, 659, 784, 1046, 784, 1046, 1318], 0.11, { dur: 0.24, vol: 0.16 }); break;
+      case 'graze':     this.blip(1980, 0.03, { vol: 0.035, type: 'triangle' }); break;
       case 'uiMove':    this.blip(740, 0.04, { vol: 0.08, type: 'triangle' }); break;
       case 'uiSelect':  this.blip(988, 0.07, { to: 1319, vol: 0.1 }); break;
       case 'buy':       this.arp([784, 1046, 1319], 0.05, { dur: 0.1, vol: 0.12, type: 'triangle' }); break;

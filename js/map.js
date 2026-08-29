@@ -207,6 +207,17 @@ const MapUI = {
     ctx.fillStyle = 'rgba(255,255,255,0.9)';
     ctx.font = Fonts.f(22, true);
     ctx.fillText('태평양 항해도', CFG.W / 2, 40);
+    // 총점: 해역별 최고 점수 합산
+    {
+      const total = STAGES.reduce((a, st) => a + Meta.bestFor(st.id), 0);
+      if (total > 0) {
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#ffe9a8'; ctx.font = Fonts.f(13, true);
+        ctx.fillText(`총점 ${total.toLocaleString()}`, 20, 30);
+        ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = Fonts.f(11);
+        ctx.fillText('해역별 최고 점수 합산', 20, 46);
+      }
+    }
     ctx.font = Fonts.f(12);
     ctx.fillStyle = 'rgba(255,255,255,0.55)';
     ctx.fillText('별빛 길을 따라 집으로', CFG.W / 2, 60);

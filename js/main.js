@@ -69,6 +69,8 @@ window.addEventListener('unhandledrejection', (e) => ErrLog.push(`unhandled: ${e
 
 const KIND_R = { fish: 10, jelly: 11, ray: 15, turret: 13, lantern: 13, big: 24, viper: 11, ghost: 10 };
 const PEARL_DROP = { fish: 2, jelly: 2, ray: 4, turret: 5, lantern: 4, big: 10, viper: 3, ghost: 3 };
+// 격파 기본 점수 (배율·난이도 적용 전)
+const SCORE_KILL = { fish: 50, jelly: 50, ghost: 60, ray: 80, viper: 80, lantern: 80, turret: 100, big: 500 };
 
 // 스테이지별 배경 팔레트 (해파리 초원 = 보랏빛 저녁, 고속도로 = 쨍한 청록)
 const STAGE_BG = [
@@ -102,6 +104,14 @@ const Game = {
   dark: 0, targetDark: 0, // 어둠 오버레이 (심해 스테이지)
   bombId: 'sonar',       // 선택된 봄 (bombs.js)
   replay: false,         // 이미 클리어한 해역 재도전 중인가
+  // ---- 스코어 ----
+  score: 0,              // 이번 런 점수
+  mult: 1,               // 배율 (그레이즈·격파로 상승, 피격 시 반토막)
+  grazeN: 0,             // 그레이즈 횟수
+  bestAtStart: 0,        // 출격 시점의 해역 최고 점수 (HUD 표시용 — 런 중 갱신돼도 안 바뀜)
+  bossScored: false,     // 보스 격파 점수 중복 방지
+  phaseHitBase: 0,       // 페이즈 시작 시점의 피격 수 (무결 파도 판정)
+  newBest: false,
   bombLanterns: [], bombDash: null, bombLure: null, bombGhost: 0, bombThunder: null,
   perf: { fps: 60, worst: 60, samples: 0, acc: 0 }, // 디버그 통계
   runLog: null,          // 런 기록 (잡몹 구간·보스전·페이즈별 시간)
@@ -137,6 +147,9 @@ const Game = {
     // 재플레이 = 이미 클리어한 해역. 보스 대사와 엔딩 재생 여부가 갈린다.
     // (commitRun이 기록을 갱신하므로 반드시 출격 시점에 확정해 둔다)
     this.replay = Meta.clearedLevel(stage.id) >= 0;
+    this.score = 0; this.mult = 1; this.grazeN = 0;
+    this.bestAtStart = Meta.bestFor(stage.id);
+    this.bossScored = false; this.newBest = false;
     this.dark = 0;
     this.targetDark = stage.dark ?? 0;  // 어둠은 서서히 내려온다
     this.storm = !!stage.storm;
@@ -173,6 +186,14 @@ const Game = {
     this.message(this.replay && again ? again : first, color);
   },
 
+  // 점수 획득. flat=true면 배율 미적용(클리어·페이즈 보너스 등 고정 보상).
+  // 난이도 배율은 항상 적용 — 하드는 같은 행동도 더 비싸다.
+  addScore(n, flat) {
+    const gain = Math.round(n * (flat ? 1 : this.mult) * (this.D?.scoreMul ?? 1));
+    this.score += gain;
+    return gain;
+  },
+
   message(text, color) {
     this.msgs.push({ text, color, life: 2.6, t: 0 });
   },
@@ -188,6 +209,14 @@ const Game = {
   // 탄막 사이로 주우러 갈 필요 없이 터진 뒤 알아서 날아온다.
   phaseReward(x, y, n = 12) {
     Sound.sfx('phase');
+    this.addScore(1000, true);
+    // 무결 파도: 이 페이즈를 노히트로 돌파
+    const hits = this.runLog?.hitsTaken || 0;
+    if (hits === this.phaseHitBase) {
+      this.addScore(2000, true);
+      this.message('무결 파도! +2000', '#ffe9a8');
+    }
+    this.phaseHitBase = hits;
     for (let i = 0; i < n; i++) {
       const a = Math.random() * 6.28, s = 80 + Math.random() * 160;
       this.pearls.push(new Pearl(x, y, { vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 20, auto: true }));
@@ -235,6 +264,8 @@ const Game = {
 
   onEnemyKilled(e) {
     Sound.sfx(e.kind === 'big' ? 'killBig' : 'kill');
+    this.addScore(SCORE_KILL[e.kind] ?? 50);
+    this.mult = Math.min(3, this.mult + 0.03);
     const drop = PEARL_DROP[e.kind] ?? 1;
     for (let i = 0; i < drop; i++) this.pearls.push(new Pearl(e.x, e.y));
     this.addFx(e.x, e.y, '#ffd6e8', 8);
@@ -254,6 +285,7 @@ const Game = {
       g.killed++;
       if (g.isFormation && g.killed === g.total) {
         this.pearls.push(new Pearl(e.x, e.y, { big: true }));
+        this.addScore(300, true);
         this.message('편대 전멸! 큰 진주!', '#ffe9a8');
       }
     }
@@ -307,6 +339,8 @@ const Game = {
     }
   },
   startBoss() {
+    this.phaseHitBase = this.runLog?.hitsTaken || 0;
+    this.bossScored = false;
     if (this.runLog) this.runLog.bossStart = this.stageT;
     this.boss = STAGES[this.stageIdx].boss(this);
     // 난이도 체력 배율 (패턴 강화는 각 보스 mercy()의 bossInt가 담당)
@@ -440,6 +474,15 @@ const Game = {
     Meta.recordClear(STAGES[this.stageIdx].id, this.diff);
     Meta.save();   // 재클리어(기록 갱신 없음) 시에도 은행 잔액은 반드시 저장
 
+    // 클리어 보너스 (배율 무관 고정) + 최고 기록
+    const rl0 = this.runLog || {};
+    this.stats.noMiss = (rl0.hitsTaken || 0) === 0;
+    this.stats.noBomb = (this.stats.bombs || 0) === 0;
+    if (this.stats.noMiss) this.addScore(5000, true);
+    if (this.stats.noBomb) this.addScore(3000, true);
+    this.stats.score = this.score;
+    this.newBest = Meta.recordScore(STAGES[this.stageIdx].id, this.score);
+
     // 런 리포트 — 밸런스 측정용. Game.lastRun 으로도 확인 가능
     const rl = this.runLog || { bossStart: this.stageT, phaseTime: [] };
     const f = (v) => +(v || 0).toFixed(1);
@@ -455,6 +498,8 @@ const Game = {
       bombs: this.stats.bombs,
       pearls: this.stats.pearls,
       banked: this.stats.banked,
+      score: this.score,
+      graze: this.grazeN,
       dolphin: this.dolphin ? `${this.dolphin.type}Lv${this.dolphin.lv}` : 'none',
       worstFps: Math.round(this.perf.worst),
     };
@@ -634,6 +679,15 @@ const Game = {
     if (this.dolphin) this.dolphin.update(dt, this);
     this.spawner.update(this.stageT, dt);
     if (this.boss) this.boss.update(dt);
+    if (this.boss && this.boss.dead && !this.bossScored) {
+      this.bossScored = true;
+      this.addScore(3000, true);
+      // 빠른 격파 보너스: 자비 타이머가 남을수록 크게
+      const tb = Math.max(0, Math.round((CFG.bossMercyTime - this.boss.t) * 30));
+      if (tb > 0) this.addScore(tb, true);
+      // 마지막 페이즈 무결
+      if ((this.runLog?.hitsTaken || 0) === this.phaseHitBase) this.addScore(2000, true);
+    }
 
     // 적
     for (const e of this.enemies) e.update(dt, this);
@@ -743,6 +797,7 @@ const Game = {
       if (this.player.bubble <= 0 && p.noCollectT <= 0 &&
           Math.hypot(p.x - this.player.x, p.y - this.player.y) < CFG.pearlCollectR) {
         this.player.addPearl(this, p.value, p.big ? CFG.gaugeBig : CFG.gaugeNormal);
+        if (!p.scattered) this.addScore(p.big ? 100 : 10);
         Sound.sfx(p.big ? 'pearlBig' : 'pearl');
         p.collected = true;
       }
@@ -810,8 +865,20 @@ const Game = {
         continue;
       }
       const r = CFG.playerHitR + b.r;
-      if ((b.x - pl.x) ** 2 + (b.y - pl.y) ** 2 < r * r) {
+      const d2 = (b.x - pl.x) ** 2 + (b.y - pl.y) ** 2;
+      if (d2 < r * r) {
         if (pl.hit(this)) { b.dead = true; break; }
+      } else if (!b.grazed && pl.invuln <= 0) {
+        // 그레이즈: 피격판정을 스칠 만큼 가까운 탄. 탄마다 1회.
+        const gr = r + 15;
+        if (d2 < gr * gr) {
+          b.grazed = true;
+          this.grazeN++;
+          this.addScore(10);
+          this.mult = Math.min(3, this.mult + 0.06);
+          this.addFx((b.x + pl.x) / 2, (b.y + pl.y) / 2, '#ffffff', 2);
+          Sound.sfx('graze');
+        }
       }
     }
     this.ebullets = this.ebullets.filter(b => !b.dead);
@@ -1542,11 +1609,29 @@ const Game = {
         `t ${this.stageT.toFixed(0)}s 보스 ${bossT}s · 피격 ${rl.hitsTaken || 0} 격침 ${this.stats.deaths}`,
         CFG.W - 12, 50);
     }
-    // 난이도 뱃지
-    if (this.diff > 0) {
-      ctx.fillStyle = this.D.color;
-      ctx.font = Fonts.f(12, true);
-      ctx.fillText(this.D.name, CFG.W - 12, this.debug ? 50 : 34);
+    // 스코어 (우상단): 현재 점수 · 배율 · 해역 최고
+    {
+      const sy = this.debug ? 66 : 34;
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#fff';
+      ctx.font = Fonts.f(15, true);
+      ctx.fillText(this.score.toLocaleString(), CFG.W - 12, sy);
+      if (this.mult > 1.001) {
+        ctx.fillStyle = this.mult >= 3 ? '#ffd76e' : '#7dffd8';
+        ctx.font = Fonts.f(12, true);
+        ctx.fillText(`×${this.mult.toFixed(2)}`, CFG.W - 12, sy + 16);
+      }
+      if (this.bestAtStart > 0) {
+        ctx.fillStyle = this.score > this.bestAtStart ? '#ffe9a8' : 'rgba(255,255,255,0.45)';
+        ctx.font = Fonts.f(11);
+        ctx.fillText(`최고 ${this.bestAtStart.toLocaleString()}`, CFG.W - 12, sy + (this.mult > 1.001 ? 32 : 16));
+      }
+      // 난이도 뱃지
+      if (this.diff > 0) {
+        ctx.fillStyle = this.D.color;
+        ctx.font = Fonts.f(12, true);
+        ctx.fillText(this.D.name, CFG.W - 12, sy + 48);
+      }
     }
 
     // 해류 표시 (폭풍 수면 — 방향·세기를 읽을 수 있게)
@@ -1734,6 +1819,25 @@ const Game = {
     ctx.font = Fonts.f(14);
     const bk = this.stats.banked ?? this.stats.pearls;
     ctx.fillText(`[${this.D.name}] 진주 ${bk}개 입금 완료 (×${this.D.pearlMul}) — 보유 ${Meta.data.bank}개`, CFG.W / 2, CFG.H * 0.60);
+    // 점수 결산
+    {
+      const tags = [];
+      if (this.stats.noMiss) tags.push('노미스 +5000');
+      if (this.stats.noBomb) tags.push('노봄 +3000');
+      if (this.grazeN > 0) tags.push(`그레이즈 ${this.grazeN}`);
+      ctx.fillStyle = '#fff';
+      ctx.font = Fonts.f(18, true);
+      ctx.fillText(`점수 ${this.score.toLocaleString()}`, CFG.W / 2, CFG.H * 0.475);
+      if (tags.length) {
+        ctx.fillStyle = '#ffe9a8'; ctx.font = Fonts.f(12);
+        ctx.fillText(tags.join(' · '), CFG.W / 2, CFG.H * 0.505);
+      }
+      if (this.newBest) {
+        ctx.fillStyle = Math.sin(performance.now() / 200) > 0 ? '#ffd76e' : '#ffe9a8';
+        ctx.font = Fonts.f(14, true);
+        ctx.fillText('★ 최고 기록 갱신! ★', CFG.W / 2, CFG.H * 0.65);
+      }
+    }
     ctx.fillStyle = '#ffe9a8';
     ctx.font = Fonts.f(16, true);
     if (Math.sin(performance.now() / 300) > -0.3) ctx.fillText('아무 키 / 클릭 — 항해도로', CFG.W / 2, CFG.H * 0.7);
