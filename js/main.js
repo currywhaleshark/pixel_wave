@@ -653,9 +653,10 @@ const Game = {
         }
         s.x += s.vx * dt; s.y += s.vy * dt;
       } else if (s.kind === 'bomb') {
+        // 기포탄은 명중해야 터진다 (충돌 처리에서 explode). 신관 자폭 없음 —
+        // 예전 0.65초 신관은 사거리를 182px로 묶어 대부분 허공에서 터졌다.
         s.x += s.vx * dt; s.y += s.vy * dt;
-        s.timer -= dt;
-        if (s.timer <= 0) { this.explode(s); s.dead = true; }
+        if (s.timer !== undefined) { s.timer -= dt; if (s.timer <= 0) { this.explode(s); s.dead = true; } }
       } else if (s.kind === 'beam') {
         s.x += s.vx * dt; s.y += s.vy * dt;
       } else {

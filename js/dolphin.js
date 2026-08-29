@@ -43,24 +43,23 @@ class Dolphin {
           });
         }
       } else if (this.type === 'burst') {
-        this.fireT = this.lv >= 2 ? 1.0 : 1.2;
+        // 기포탄은 **맞으면 터진다**. 예전엔 0.65초 신관이 있어 182px만 날고
+        // 공중에서 자폭했다 — 신관을 없애 명중할 때까지 날아간다.
+        this.fireT = this.lv >= 2 ? 0.7 : 0.85;
         game.shots.push({
           kind: 'bomb', x: this.x, y: this.y,
-          vx: 280, vy: -20, timer: 0.65,
+          vx: 340, vy: -14,
           dmg: this.lv >= 2 ? 3 : 2,
           radius: this.lv >= 2 ? 90 : 60,
           clearBullets: this.lv >= 3,
           r: 7, t: 0,
         });
-      } else { // pierce
-        this.fireT = this.lv >= 2 ? 0.6 : 0.75;
-        game.shots.push({
-          kind: 'beam', x: this.x + 10, y: this.y,
-          vx: 700, vy: 0, dmg: this.lv >= 2 ? 3 : 2,
-          pierce: 999, r: 4, t: 0,
-        });
       }
+      // pierce는 단발이 아니라 아래의 지속 빔 사이클을 쓴다
     }
+
+    // --- 관통: 지속 조사 빔 (일정 시간 켜졌다 잠시 꺼짐) ---
+    if (this.type === 'pierce') this.updateBeam(dt, game);
 
     // 관통 Lv3 고유기: 주기적 더블 파도
     if (this.type === 'pierce' && this.lv >= 3) {
@@ -91,7 +90,70 @@ class Dolphin {
     }
   }
 
+  // 지속 빔: 예열 → 조사 → 냉각 순환. 조사 중엔 일정 간격으로 피해를 준다.
+  // (단발 빔을 뿌리는 것보다 "겨눠서 태우는" 조작감이 관통 컨셉에 맞다)
+  beamSpec() {
+    return [
+      { warm: 0.25, on: 1.4, off: 1.2, tick: 0.15, dmg: 1, h: 5 },   // Lv1
+      { warm: 0.22, on: 1.8, off: 1.0, tick: 0.12, dmg: 1, h: 6 },   // Lv2
+      { warm: 0.2,  on: 2.2, off: 0.9, tick: 0.10, dmg: 1, h: 7 },   // Lv3
+    ][Math.max(0, Math.min(2, this.lv - 1))];
+  }
+
+  updateBeam(dt, game) {
+    const S = this.beamSpec();
+    if (this.beamPhase === undefined) { this.beamPhase = 'off'; this.beamT = 0.4; this.beamTick = 0; }
+    this.beamT -= dt;
+    if (this.beamT <= 0) {
+      if (this.beamPhase === 'off') { this.beamPhase = 'warm'; this.beamT = S.warm; }
+      else if (this.beamPhase === 'warm') { this.beamPhase = 'on'; this.beamT = S.on; this.beamTick = 0; }
+      else { this.beamPhase = 'off'; this.beamT = S.off; }
+    }
+    if (this.beamPhase !== 'on') return;
+
+    // 조사 중 피해 (틱 간격 — 매 프레임 때리면 화력이 폭주한다)
+    this.beamTick -= dt;
+    if (this.beamTick > 0) return;
+    this.beamTick = S.tick;
+    const y = this.y, half = S.h + 4;
+    for (const e of game.enemies) {
+      if (e.kind === 'wreck') continue;
+      if (e.kind === 'ghost' && !e.solid) continue;
+      const er = (typeof KIND_R !== 'undefined' ? (KIND_R[e.kind] ?? 10) : 10);
+      if (e.x >= this.x - 10 && Math.abs(e.y - y) < half + er) e.takeDamage(S.dmg, game);
+    }
+    const b = game.boss;
+    if (b && !b.dead && b.phase > 0 && b.hittable !== false) {
+      const br = 44 * (b.scale ?? 1);
+      if (b.x >= this.x - 10 && Math.abs(b.y - y) < half + br) b.takeDamage(S.dmg);
+    }
+  }
+
+  drawBeam(ctx) {
+    if (this.type !== 'pierce' || this.beamPhase === 'off' || this.beamPhase === undefined) return;
+    const S = this.beamSpec();
+    const warming = this.beamPhase === 'warm';
+    const x0 = this.x + 10, y = this.y;
+    const h = warming ? 2 : S.h * (1 + Math.sin(performance.now() / 40) * 0.12);
+    ctx.save();
+    // 바깥 광채
+    const g = ctx.createLinearGradient(0, y - h * 3, 0, y + h * 3);
+    g.addColorStop(0, 'rgba(207,216,232,0)');
+    g.addColorStop(0.5, `rgba(207,216,232,${warming ? 0.18 : 0.4})`);
+    g.addColorStop(1, 'rgba(207,216,232,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x0, y - h * 3, CFG.W - x0, h * 6);
+    // 코어
+    ctx.fillStyle = warming ? 'rgba(238,244,255,0.55)' : '#eef4ff';
+    ctx.fillRect(x0, y - h / 2, CFG.W - x0, h);
+    // 발사구 반짝
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(x0, y, warming ? 3 : 6, 0, 6.28); ctx.fill();
+    ctx.restore();
+  }
+
   draw(ctx, game) {
+    this.drawBeam(ctx);
     // 스프라이트 우선 (힌트 말풍선은 아래 공통 처리)
     if (Sprites.draw(ctx, `dolphin.${this.type}`, this.x, this.y, { t: this.t })) {
       this.drawHint(ctx, game);
