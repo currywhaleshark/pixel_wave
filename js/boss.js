@@ -32,6 +32,12 @@ class Boss {
     this.transitionT = 0;     // 페이즈 전환 연출
     this.dead = false;
     this.deathT = 0;
+    // 보통은 정식 P1 데이터, ?barrage=id 시험 모드에서는 에디터가 저장한 임의 패턴.
+    this.barrageId = game.barragePatternId || BOSS1_PATTERNS[1].id;
+    const pattern = typeof BarrageRuntime !== 'undefined' ? BarrageRuntime.get(this.barrageId) : null;
+    this.barrageRunner = pattern ? new BarrageRuntime.Runner(pattern, {
+      emit: bullet => game.ebullets.push(bullet),
+    }) : null;
   }
 
   hpRatio() { return Math.max(0, this.hp / this.maxHp); }
@@ -44,6 +50,7 @@ class Boss {
 
   takeDamage(dmg) {
     if (this.phase === 0 || this.transitionT > 0 || this.dead) return;
+    if (this.game.barragePatternId) return; // 탄막 시험 모드: 1페이즈를 계속 유지
     this.hp -= dmg;
     const r = this.hpRatio();
     if (this.phase === 1 && r <= 0.66) this.enterPhase(2);
@@ -129,17 +136,27 @@ class Boss {
     if (this.telegraph > 0) this.telegraph -= dt;
 
     if (this.phase === 1) {
-      // P1: 조준 가시탄 3발 부채꼴, 2초 간격
-      this.fireT -= dt;
-      // 돌고래 동행 시에만 발사 예고 (공통 "힌트!" 기능)
-      if (g.dolphin && this.fireT <= 0.5 && this.fireT > 0 && this.telegraph <= 0) this.telegraph = 0.5;
-      if (this.fireT <= 0) {
-        this.fireT = 2.0 * m;
-        g.bossAimed(this.x - 20 * this.scale, this.y, 150, 3, 0.24);
+      // P1: 에디터와 같은 실행기가 JSON 패턴을 재생한다.
+      if (this.barrageRunner) {
+        const realTimeToNext = this.barrageRunner.timeToNext() * m;
+        if (g.dolphin && realTimeToNext <= 0.5 && realTimeToNext > 0 && this.telegraph <= 0) this.telegraph = 0.5;
+        this.barrageRunner.update(dt / Math.max(0.05, m), {
+          source: { x: this.x, y: this.y },
+          target: g.player,
+          difficulty: g.diff,
+        });
+        this.fireT = this.barrageRunner.timeToNext() * m; // 다음 페이즈 첫 발사 템포도 종전처럼 이어받는다.
+      } else {
+        // 생성 데이터가 빠졌을 때 게임이 무탄막으로 망가지지 않는 안전 폴백.
+        this.fireT -= dt;
+        if (this.fireT <= 0) {
+          this.fireT = 2.0 * m;
+          g.bossAimed(this.x - 20 * this.scale, this.y, 150, 3, 0.24);
+        }
       }
       // 진주 셔틀 열대어
-      this.minionT -= dt;
-      if (this.minionT <= 0) {
+      if (!g.barragePatternId) this.minionT -= dt;
+      if (!g.barragePatternId && this.minionT <= 0) {
         this.minionT = 7;
         const y = (0.2 + Math.random() * 0.6) * CFG.H;
         for (let i = 0; i < 3; i++) {

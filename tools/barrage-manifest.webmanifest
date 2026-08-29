@@ -1,0 +1,19 @@
+{
+  "name": "픽셀 파도 — 보스 탄막 공방",
+  "short_name": "탄막 공방",
+  "description": "모바일에서 보스 탄막을 만들고 미리 본 뒤 JSON으로 내보내는 도구",
+  "start_url": "./barrage-editor.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#07172d",
+  "theme_color": "#07172d",
+  "icons": [
+    {
+      "src": "barrage-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

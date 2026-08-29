@@ -83,6 +83,7 @@ const STAGE_BG = [
 
 const Game = {
   debug: new URLSearchParams(location.search).has('debug'), // ?debug — 전 해역 해금 + 치트키
+  barragePatternId: new URLSearchParams(location.search).get('barrage'), // 탄막 공방 실전 시험
   god: false,            // 디버그 무적 토글
   diff: 0,               // 난이도 인덱스 (DIFFS)
   D: DIFFS[0],
@@ -1490,6 +1491,19 @@ const Game = {
     ctx.restore();
   },
 };
+
+// 탄막 공방의 "게임에서 시험": 저장한 패턴을 팡팡 P1에 끼워 곧바로 시작한다.
+// 실제 충돌·이동·난이도 배율을 모두 거치되 보스 HP와 잡몹은 고정해 패턴만 본다.
+if (Game.debug && Game.barragePatternId) {
+  const params = new URLSearchParams(location.search);
+  const labDiff = Math.max(0, Math.min(2, Number(params.get('diff')) || 0));
+  Game.launchStage(0, labDiff);
+  Game.spawner.idx = Game.spawner.timeline.length;
+  Game.spawner.pending = [];
+  Game.stageT = Game.spawner.timeline.at(-1)?.t ?? 0;
+  Game.boss = STAGES[0].boss(Game);
+  Game.message(`[탄막 시험] ${Game.barragePatternId}`, '#ff8fd8');
+}
 
 // ---- 메인 루프 ----
 let lastT = performance.now();

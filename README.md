@@ -12,6 +12,10 @@ python server.py
 
 브라우저에서 `http://localhost:8321` 접속. (빌드 과정 없음 — 순수 HTML5 Canvas + JS)
 
+보스 탄막을 만들고 즉시 시험하려면 `http://localhost:8321/tools/barrage-editor.html`을 연다.
+발사기를 겹쳐 미리 본 뒤 **저장**하면 `data/barrage-patterns/`의 JSON과 게임용 레지스트리가 함께 갱신된다.
+같은 주소를 휴대폰으로 열면 기기 자동저장·JSON 공유를 사용하는 모바일 화면으로 바뀐다. 정적 호스팅에서도 서버 없이 제작·미리보기·내보내기가 가능하다.
+
 | 입력 | 이동 | 봄 |
 |---|---|---|
 | 키보드 | 방향키/WASD, Shift 저속 | Space |
@@ -44,9 +48,12 @@ js/meta.js          영구 저장 · 상점 카탈로그
 js/entities.js      플레이어 · 잡몹 · 진주
 js/dolphin.js       옵션 돌고래 3종
 js/waves.js         잡몹 문법(5축) + 스테이지 타임라인
+js/barrage.js        데이터 기반 탄막 실행기 (게임·탄막 공방 공용)
 js/boss*.js         보스 1~7
 js/map.js           항해도 · 상점 UI
 js/main.js          게임 루프 · 충돌 · 렌더
+data/barrage-patterns/ 보스 탄막 JSON
+tools/barrage-editor.html 보스 탄막 제작·미리보기·저장 도구
 assets/             스프라이트 시트 (없으면 도형 폴백)
 assets/fonts/       갈무리 픽셀 폰트 (OFL-1.1)
 assets/bgm/         BGM (없으면 무음)
@@ -56,6 +63,8 @@ docs/AUDIO_SPEC.md  오디오 규격 (BGM 파일 목록 · 효과음)
 ```
 
 웨이브는 전부 데이터입니다 — `waves.js`의 타임라인 한 줄이 웨이브 하나(`{ t, kind, M, D, F, S, n, ... }`). 잡몹 문법 5축(이동·진입·편대·사격·스펙)의 조합으로 만들어집니다. 자세한 설계는 [docs/GDD.md](docs/GDD.md) 참고.
+
+보스 탄막 데이터의 필드와 다른 보스에 연결하는 방법은 [docs/BARRAGE_EDITOR.md](docs/BARRAGE_EDITOR.md)에 정리되어 있다.
 
 ## 상태
 

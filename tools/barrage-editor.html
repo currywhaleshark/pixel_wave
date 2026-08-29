@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#07172d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="탄막 공방">
+  <title>픽셀 파도 — 보스 탄막 공방</title>
+  <link rel="manifest" href="barrage-manifest.webmanifest">
+  <link rel="icon" href="barrage-icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="barrage-icon.svg">
+  <link rel="stylesheet" href="barrage-editor.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">✦</span>
+      <div><strong>보스 탄막 공방</strong><small>PIXEL WAVE PATTERN LAB</small></div>
+    </div>
+    <div class="top-actions">
+      <span id="saveStatus" class="save-status">준비됨</span>
+      <button id="newPattern" class="button subtle">새 패턴</button>
+      <button id="importJson" class="button subtle">JSON 가져오기</button>
+      <button id="exportJson" class="button subtle">JSON 내보내기</button>
+      <button id="testInGame" class="button accent">게임에서 시험</button>
+      <button id="savePattern" class="button primary">저장</button>
+      <input id="fileInput" type="file" accept="application/json,.json" hidden>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="panel library-panel">
+      <section>
+        <div class="section-title"><h2>패턴</h2><button id="refreshLibrary" class="icon-button" title="목록 새로고침">↻</button></div>
+        <select id="patternLibrary" class="full"></select>
+        <p class="device-note">변경한 초안과 저장한 패턴은 이 기기에 보관됩니다.</p>
+        <label>이름<input id="patternName" data-pattern-key="name" type="text" maxlength="100"></label>
+        <label>ID<input id="patternId" data-pattern-key="id" type="text" pattern="[a-z0-9-]+"></label>
+        <div class="field-row">
+          <label>길이(초)<input id="patternDuration" data-pattern-key="duration" type="number" min="0.25" max="120" step="0.25"></label>
+          <label>시드<input id="patternSeed" data-pattern-key="seed" type="number" min="0" step="1"></label>
+        </div>
+        <label class="check"><input id="patternLoop" data-pattern-key="loop" type="checkbox"> 반복 재생</label>
+        <label>메모<textarea id="patternDescription" data-pattern-key="description" rows="3" maxlength="500"></textarea></label>
+      </section>
+
+      <section class="emitters-section">
+        <div class="section-title"><h2>발사기</h2><span id="emitterCount" class="badge">0</span></div>
+        <div id="emitterList" class="emitter-list"></div>
+        <div class="add-row">
+          <select id="emitterPreset">
+            <option value="fan">조준 부채꼴</option>
+            <option value="ring">원형 링</option>
+            <option value="spiral">회전 나선</option>
+            <option value="rain">탄 비</option>
+            <option value="wall">틈새 벽</option>
+          </select>
+          <button id="addEmitter" class="button primary">+ 추가</button>
+        </div>
+      </section>
+    </aside>
+
+    <section class="stage-column">
+      <div class="preview-card">
+        <canvas id="preview" width="960" height="540" aria-label="탄막 미리보기"></canvas>
+        <div class="canvas-help">인어와 보스를 드래그할 수 있습니다</div>
+        <div id="hitFlash" class="hit-flash">HIT</div>
+      </div>
+      <div class="transport panel">
+        <button id="restart" class="transport-button" title="처음부터">↺</button>
+        <button id="playPause" class="transport-button play" title="재생/일시정지">Ⅱ</button>
+        <span id="timeLabel" class="time-label">00.00 / 12.00</span>
+        <input id="timeScrub" type="range" min="0" max="12" value="0" step="0.01">
+        <select id="previewSpeed" title="재생 배속">
+          <option value="0.5">×0.5</option>
+          <option value="1" selected>×1</option>
+          <option value="2">×2</option>
+        </select>
+        <select id="previewDifficulty" title="난이도">
+          <option value="0">이지</option>
+          <option value="1">노멀</option>
+          <option value="2">하드</option>
+        </select>
+      </div>
+      <div class="timeline panel">
+        <div class="timeline-head">
+          <h2>타임라인</h2>
+          <div id="previewStats" class="stats"></div>
+        </div>
+        <div id="timelineRuler" class="timeline-ruler"></div>
+        <div id="timelineTracks" class="timeline-tracks"></div>
+      </div>
+    </section>
+
+    <aside class="panel inspector-panel">
+      <div class="section-title"><h2>발사기 설정</h2><span id="selectedType" class="badge">-</span></div>
+      <div id="emptyInspector" class="empty-state">왼쪽에서 발사기를 고르거나 새로 추가하세요.</div>
+      <form id="inspector" hidden></form>
+      <div id="inspectorActions" class="inspector-actions" hidden>
+        <button id="duplicateEmitter" class="button subtle" type="button">복제</button>
+        <button id="deleteEmitter" class="button danger" type="button">삭제</button>
+      </div>
+      <div id="validation" class="validation"></div>
+    </aside>
+  </main>
+
+  <script src="../js/barragePatterns.generated.js?v=1"></script>
+  <script src="../js/barrage.js?v=1"></script>
+  <script src="barrage-editor.js?v=1"></script>
+</body>
+</html>
