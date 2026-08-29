@@ -31,6 +31,9 @@ fitCanvas();
 Input.init(canvas);
 Meta.load();
 Sound.loadPrefs();
+// 자동재생 선시도: 브라우저가 허용하면(재방문 등) 타이틀곡이 로드 직후부터 나온다.
+// 차단되면 조용히 실패하고, 첫 입력의 unlock이 이어받는다.
+Sound.unlock();
 
 // M: 음소거 토글 (어느 화면에서나)
 window.addEventListener('keydown', (e) => {
@@ -136,6 +139,7 @@ const Game = {
     const bsel = Meta.data.bombSel || 'sonar';
     this.bombId = bombUnlocked(bsel) ? bsel : 'sonar';
     this.paused = false; this.pauseView = 'menu';
+    Input.pauseQueued = false; Input.bombQueued = false;   // 다른 화면에서 쌓인 잔여 입력 제거
     this.bombLanterns = []; this.bombDash = null; this.bombLure = null;
     this.bombGhost = 0; this.bombThunder = null;
     const sel = Meta.data.selected;

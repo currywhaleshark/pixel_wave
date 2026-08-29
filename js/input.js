@@ -46,8 +46,10 @@ const Input = {
       this.anyPressed = true;
       const p = toGame(e.clientX, e.clientY);
       this.clicks.push(p);
-      if (this.inPauseButton(p)) { this.pauseQueued = true; return; }
-      if (this.inBombButton(p)) { this.bombQueued = true; return; }
+      // 일시정지·봄 버튼은 플레이 중에만 — 다른 화면에선 UI 클릭과 겹친다
+      const inPlay = typeof Game !== 'undefined' && Game.state === 'play';
+      if (inPlay && this.inPauseButton(p)) { this.pauseQueued = true; return; }
+      if (inPlay && this.inBombButton(p)) { this.bombQueued = true; return; }
       if (this.mode === 'pointer') this.bombQueued = true; // 클릭 = 봄
     });
 
@@ -58,8 +60,9 @@ const Input = {
       const t = e.changedTouches[0];
       const p = toGame(t.clientX, t.clientY);
       this.clicks.push(p);
-      if (this.inPauseButton(p)) { this.pauseQueued = true; return; }
-      if (this.inBombButton(p)) { this.bombQueued = true; return; } // 버튼 터치는 이동에 안 씀
+      const inPlayT = typeof Game !== 'undefined' && Game.state === 'play';
+      if (inPlayT && this.inPauseButton(p)) { this.pauseQueued = true; return; }
+      if (inPlayT && this.inBombButton(p)) { this.bombQueued = true; return; } // 버튼 터치는 이동에 안 씀
       this.pointer.x = p.x; this.pointer.y = p.y + CFG.touchOffsetY;
       this.pointer.active = true; this.pointer.isTouch = true;
       this.mode = 'pointer';

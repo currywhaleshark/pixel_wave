@@ -38,10 +38,11 @@ const Sound = {
     if (this.ctx.state === 'suspended') this.ctx.resume();
     // 잠금 해제 시점에 재생 예약된 BGM이 있으면 그때 시작
     if (this.pendingBgm) {
-      const k = this.pendingBgm;
+      // 예약 곡을 그대로 틀지 않는다 — 첫 입력이 화면 전환을 겸하는 경우
+      // (타이틀→항해도) 옛 화면의 곡이 한 순간 재생되는 블립이 생긴다.
+      // 키만 비워 두면 다음 프레임의 syncBgm이 현재 화면의 곡을 고른다.
       this.pendingBgm = null;
-      this.currentKey = null;   // 예약 시 미리 기록해 둔 키를 지워야 재생이 조기 반환되지 않는다
-      this.playBgm(k);
+      this.currentKey = null;
     }
   },
 
@@ -123,7 +124,9 @@ const Sound = {
       rec.gain.gain.linearRampToValueAtTime(1, t + fade);
       rec.el.currentTime = 0;
       const p = rec.el.play();
-      if (p && p.catch) p.catch(() => { rec.dead = true; });
+      // 자동재생 차단(NotAllowed)은 파일 문제가 아니다 — dead로 찍으면
+      // 그 곡이 영영 침묵한다. 파일 오류는 el의 error 이벤트가 잡는다.
+      if (p && p.catch) p.catch(() => {});
     } catch { rec.dead = true; }
   },
 
