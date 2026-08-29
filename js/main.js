@@ -1719,7 +1719,9 @@ const Game = {
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.font = Fonts.f(11);
     ctx.textAlign = 'right';
-    ctx.fillText(Input.mode === 'keys' ? '키보드: 이동 ←↑↓→ · 저속 Shift · 봄 Space' : '포인터: 따라 유영 · 봄 클릭/버튼', CFG.W - 56, 18);
+    ctx.fillText(Input.mode === 'keys' ? '키보드: 이동 ←↑↓→ · 저속 Shift · 봄 Space'
+      : Input.mode === 'touch' ? '터치: 드래그로 조종 · 봄 버튼'
+        : '마우스: 커서를 따라 유영 · 클릭 봄', CFG.W - 56, 18);
     if (this.debug) {
       ctx.fillStyle = '#ff8fd8';
       ctx.fillText(`DEBUG${this.god ? ' · 무적' : ''} — 1 파워 · 2 진주 · 3 무적 · 4 보스직행 · 5 페이즈스킵 · 6 픽셀${CFG.pixelMode ? 'ON' : 'OFF'}`, CFG.W - 56, 34);

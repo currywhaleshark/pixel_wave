@@ -34,7 +34,7 @@ const CFG = {
   playerSlowSpeed: 120,   // Shift 저속
   playerHitR: 6,          // 피격판정 (외형보다 훨씬 작게)
   playerDrawR: 16,
-  touchOffsetY: -70,      // 터치: 손가락 위로 캐릭터 오프셋
+  touchSens: 1.15,        // 터치 상대 드래그 감도 (손가락 이동량 × 배율)
   fireInterval: 0.14,     // 자동발사 간격 (통상샷이 만능이 되지 않게 — 역할은 돌고래에게)
   shotSpeed: 480,
   shotDmg: 1,
