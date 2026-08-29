@@ -33,6 +33,8 @@ class BossHwii {
     this.boltT = 4.0;
     this.stormBulletT = 0;
     this.transitionT = 0;
+    this.eyeLookX = 0;
+    this.eyeLookY = 0;
     this.dead = false;
     this.deathT = 0;
   }
@@ -97,6 +99,17 @@ class BossHwii {
   update(dt) {
     this.t += dt; this.anim += dt;
     const g = this.game;
+    const gazeTarget = g.player;
+    if (gazeTarget) {
+      const eyeDx = gazeTarget.x - this.x;
+      const eyeDy = gazeTarget.y - this.y;
+      const eyeDistance = Math.hypot(eyeDx, eyeDy) || 1;
+      const targetLookX = this.dead ? 0 : eyeDx / eyeDistance * 6;
+      const targetLookY = this.dead ? 2 : eyeDy / eyeDistance * 4.5;
+      const follow = Math.min(1, dt * 9);
+      this.eyeLookX += (targetLookX - this.eyeLookX) * follow;
+      this.eyeLookY += (targetLookY - this.eyeLookY) * follow;
+    }
     this.spiralAngle += 1.1 * dt;
 
     if (this.dead) {
@@ -215,41 +228,70 @@ class BossHwii {
       ctx.beginPath(); ctx.arc(0, 0, 80 * s, 0, 6.28); ctx.stroke();
     }
 
-    // 소용돌이 팔 (회전하는 나선 구름)
+    // 소용돌이 팔: 한 개의 갈고리형 구름 팔을 120도 간격으로 재사용한다.
+    // 팔마다 흐름 위상을 어긋나게 해 세 덩어리가 동시에 딱딱 뒤집히지 않게 한다.
+    const hasArmSprite = Sprites.has('boss.hwiiArm');
     for (let arm = 0; arm < 3; arm++) {
       ctx.save();
       ctx.rotate(this.spiralAngle + arm * (Math.PI * 2 / 3));
-      ctx.strokeStyle = `rgba(184, 216, 240, ${0.5 - arm * 0.08})`;
-      ctx.lineWidth = 16 * s;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      for (let i = 0; i <= 14; i++) {
-        const a = i * 0.22;
-        const r = (18 + i * 6.5) * s;
-        const px = Math.cos(a) * r, py = Math.sin(a) * r;
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      if (hasArmSprite) {
+        const armFrame = Math.floor(this.anim * 4 + arm) % 2;
+        Sprites.draw(ctx, 'boss.hwiiArm', 0, 0, { frame: armFrame, scale: s });
+      } else {
+        // 자산 로딩 전에는 기존 선형 팔로 폴백한다.
+        ctx.strokeStyle = `rgba(184, 216, 240, ${0.5 - arm * 0.08})`;
+        ctx.lineWidth = 16 * s;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        for (let i = 0; i <= 14; i++) {
+          const a = i * 0.22;
+          const r = (18 + i * 6.5) * s;
+          const px = Math.cos(a) * r, py = Math.sin(a) * r;
+          i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        }
+        ctx.stroke();
       }
-      ctx.stroke();
       ctx.restore();
     }
 
-    // 중심핵 (태풍의 눈)
-    const core = ctx.createRadialGradient(0, 0, 4, 0, 0, 40 * s);
-    core.addColorStop(0, '#eef6ff');
-    core.addColorStop(0.6, '#9dbede');
-    core.addColorStop(1, 'rgba(157,190,222,0)');
-    ctx.fillStyle = core;
-    ctx.beginPath(); ctx.arc(0, 0, 40 * s, 0, 6.28); ctx.fill();
+    const hasEyelidOverlay = Sprites.has('boss.hwii');
+    if (hasEyelidOverlay) {
+      // 눈알은 아래 레이어에서 플레이어를 계속 추적한다.
+      const lookX = this.eyeLookX * s;
+      const lookY = this.eyeLookY * s;
+      ctx.fillStyle = '#f7f3df';
+      ctx.beginPath(); ctx.ellipse(0, 0, 25 * s, 18 * s, 0, 0, 6.28); ctx.fill();
+      ctx.fillStyle = '#789bc7';
+      ctx.beginPath(); ctx.ellipse(lookX, lookY, 10 * s, 13 * s, 0, 0, 6.28); ctx.fill();
+      ctx.fillStyle = '#17345d';
+      ctx.beginPath(); ctx.ellipse(lookX, lookY, 5.5 * s, 10 * s, 0, 0, 6.28); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(lookX - 2.5 * s, lookY - 3.5 * s, 2.2 * s, 0, 6.28); ctx.fill();
 
-    // 눈 (하나뿐인, 외로운)
-    ctx.fillStyle = '#fff';
-    ctx.beginPath(); ctx.ellipse(0, 0, 16 * s, 19 * s, 0, 0, 6.28); ctx.fill();
-    ctx.fillStyle = '#3a5a7a';
-    const lookX = this.dead ? 0 : Math.cos(this.anim * 0.6) * 4;
-    const lookY = this.dead ? 2 : Math.sin(this.anim * 0.8) * 3;
-    ctx.beginPath(); ctx.arc(lookX, lookY, 7.5 * s, 0, 6.28); ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.beginPath(); ctx.arc(lookX - 2, lookY - 2.5, 2.5 * s, 0, 6.28); ctx.fill();
+      // 열린 프레임은 오래 유지하고, 3.6초마다 눈꺼풀 세 컷만 한 번 재생한다.
+      const blinkT = this.anim % 3.6;
+      let blinkFrame = 0;
+      if (blinkT >= 3.18 && blinkT < 3.26) blinkFrame = 1;
+      else if (blinkT >= 3.26 && blinkT < 3.36) blinkFrame = 2;
+      else if (blinkT >= 3.36 && blinkT < 3.44) blinkFrame = 3;
+      Sprites.draw(ctx, 'boss.hwii', 0, 0, { frame: blinkFrame, scale: s });
+    } else {
+      // 자산 미로딩 폴백: 기존 코드 중심핵과 눈.
+      const core = ctx.createRadialGradient(0, 0, 4, 0, 0, 40 * s);
+      core.addColorStop(0, '#eef6ff');
+      core.addColorStop(0.6, '#9dbede');
+      core.addColorStop(1, 'rgba(157,190,222,0)');
+      ctx.fillStyle = core;
+      ctx.beginPath(); ctx.arc(0, 0, 40 * s, 0, 6.28); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.ellipse(0, 0, 16 * s, 19 * s, 0, 0, 6.28); ctx.fill();
+      const lookX = this.eyeLookX * s;
+      const lookY = this.eyeLookY * s;
+      ctx.fillStyle = '#3a5a7a';
+      ctx.beginPath(); ctx.arc(lookX, lookY, 7.5 * s, 0, 6.28); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(lookX - 2 * s, lookY - 2.5 * s, 2.5 * s, 0, 6.28); ctx.fill();
+    }
     // 눈물 한 방울 (P3부터)
     if (this.phase >= 3 || this.dead) {
       ctx.fillStyle = 'rgba(180,220,255,0.85)';

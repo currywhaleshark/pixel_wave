@@ -1,0 +1,16 @@
+{
+  "kind": "pixel-wave-normalize-report",
+  "version": 1,
+  "run": "hwii",
+  "source": "sprite-sheet-alpha.png",
+  "output": "sprite-sheet-pixel.png",
+  "width": 256,
+  "height": 64,
+  "alpha_threshold": 128,
+  "palette_colors": 16,
+  "opaque_pixels_before_cleanup": 9439,
+  "alpha_or_transparent_rgb_changed_pixels": 649,
+  "palette_remapped_pixels": 9422,
+  "removed_component_pixels": 0,
+  "sha256": "b510690d61ae6c9b5b4b97fb5daa7108d17ed91f4ae372b5610554ea58a6544d"
+}

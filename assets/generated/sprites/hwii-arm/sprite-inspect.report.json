@@ -1,0 +1,47 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "kind": "sprite-gen-inspect-report",
+  "run_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\sprites\\hwii-arm",
+  "states": [
+    "flow"
+  ],
+  "thresholds": {
+    "histogram_min": 0.0,
+    "dhash_min": 0.55,
+    "motion_min": 0.01
+  },
+  "rows": [
+    {
+      "state": "flow",
+      "source": "frames",
+      "expected_frames": 2,
+      "found_frames": 2,
+      "natural_pose_count": 2,
+      "frame_files": [
+        "frames/flow/frame-0.png",
+        "frames/flow/frame-1.png"
+      ],
+      "metrics": {
+        "histogram_intersection": {
+          "min": 0.9614355950551156,
+          "mean": 0.9614355950551156
+        },
+        "dhash_similarity": {
+          "min": 0.671875,
+          "mean": 0.671875
+        },
+        "motion_presence": 0.13788033279718137,
+        "centroid_sigma": {
+          "x": 0.291492408166782,
+          "y": 0.18622228570690247
+        }
+      },
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    }
+  ],
+  "errors": [],
+  "warnings": []
+}

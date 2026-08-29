@@ -34,6 +34,20 @@ const Backgrounds = {
       far: [0.09, 252, 0.22], mid: [0.28, 280, 0.36], near: [0.76, 286, 1],
       fx: { shaft: '#356f76', mote: '#5d8b82', bubble: '#8fb1a2', cutout: '#102f37' },
     },
+    5: {
+      prefix: 'background.stage6',
+      seaSpeed: 0.028,
+      far: [0.10, 250, 0.24], mid: [0.30, 270, 0.38], near: [0.78, 270, 1],
+      surface: true,
+      fx: { shaft: '#9eb9d0', mote: '#829fb9', bubble: '#c2d4e2', cutout: '#304a68' },
+    },
+    6: {
+      prefix: 'background.stage7',
+      seaSpeed: 0.020,
+      far: [0.08, 255, 0.25], mid: [0.26, 278, 0.38], near: [0.74, 302, 1],
+      surface: true,
+      fx: { shaft: '#c2c6df', mote: '#9bb9cb', bubble: '#dddceb', cutout: '#405b7d' },
+    },
   },
 
   draw(ctx, game) {
@@ -50,8 +64,25 @@ const Backgrounds = {
     this.drawMotes(ctx, game, u, stage.fx);
     this.drawStrip(ctx, Assets.image(ids.mid), game.scroll, ...stage.mid, u);
     this.drawStrip(ctx, Assets.image(ids.near), game.scroll, ...stage.near, u);
+    if (stage.surface) this.drawStormSurface(ctx, game);
     ctx.restore();
     return true;
+  },
+
+  drawStormSurface(ctx, game) {
+    const t = performance.now() / 1000;
+    for (let layer = 0; layer < 2; layer++) {
+      const base = 26 + layer * 16;
+      const amp = (14 - layer * 5) * game.stormScale;
+      ctx.fillStyle = layer === 0 ? 'rgba(220,235,255,0.25)' : 'rgba(160,190,230,0.3)';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      for (let x = 0; x <= CFG.W; x += 24) {
+        ctx.lineTo(x, base + Math.sin(x * 0.02 + t * (2.2 - layer * 0.6) + layer * 2) * amp);
+      }
+      ctx.lineTo(CFG.W, 0);
+      ctx.fill();
+    }
   },
 
   drawWater(ctx, u) {

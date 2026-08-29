@@ -1,0 +1,62 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "curation_applied": true,
+  "frame_variant": "pixel",
+  "min_used_pixels": 20,
+  "errors": [],
+  "atlas": "sprite-sheet-alpha.png",
+  "manifest": "manifest.json",
+  "cell": {
+    "shape": "rect",
+    "width": 18,
+    "height": 10,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "states": [
+    "swim"
+  ],
+  "cells": [
+    {
+      "state": "swim",
+      "frame": 0,
+      "nontransparent_pixels": 87,
+      "x": 0,
+      "y": 0,
+      "w": 18,
+      "h": 10
+    },
+    {
+      "state": "swim",
+      "frame": 1,
+      "nontransparent_pixels": 86,
+      "x": 18,
+      "y": 0,
+      "w": 18,
+      "h": 10
+    }
+  ],
+  "frame_layout": {
+    "sheetWidth": 36,
+    "sheetHeight": 10,
+    "cellWidth": 18,
+    "cellHeight": 10,
+    "rows": {
+      "swim": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 18,
+          "h": 10
+        },
+        {
+          "x": 18,
+          "y": 0,
+          "w": 18,
+          "h": 10
+        }
+      ]
+    }
+  }
+}

@@ -144,6 +144,45 @@ class BackgroundPipelineTest(unittest.TestCase):
             self.assertEqual(layer["seam_cap"]["positions"], [0, 480, 960])
             self.assertTrue((run / layer["seam_cap"]["generated"]).is_file())
 
+    def test_stage6_storm_surface_is_connected_bright_and_height_varied(self) -> None:
+        run = ROOT / "assets" / "generated" / "backgrounds" / "stage6-storm-surface"
+        self.assertEqual(lint_stage2(run), [])
+        manifest = json.loads((run / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(list(manifest["layers"]), ["sea", "far", "mid", "near"])
+        self.assertEqual(
+            [manifest["layers"][name]["height"] for name in ("sea", "far", "mid", "near")],
+            [270, 80, 128, 144],
+        )
+        self.assertGreaterEqual(manifest["layers"]["near"]["height_range"][1], 100)
+        self.assertLessEqual(manifest["layers"]["near"]["height_range"][0], 35)
+        self.assertIn("underwater-lightning", manifest["runtime_effects"])
+        for name in ("far", "mid", "near"):
+            layer = manifest["layers"][name]
+            self.assertTrue(layer["aspect_preserved"])
+            self.assertEqual(layer["runtime_scale"], 1)
+            self.assertEqual(layer["seam_cap"]["positions"], [0, 480, 960])
+            self.assertTrue((run / layer["seam_cap"]["generated"]).is_file())
+
+    def test_stage7_palace_approach_is_connected_native_and_height_varied(self) -> None:
+        run = ROOT / "assets" / "generated" / "backgrounds" / "stage7-palace-approach"
+        self.assertEqual(lint_stage2(run), [])
+        manifest = json.loads((run / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(list(manifest["layers"]), ["sea", "far", "mid", "near"])
+        self.assertEqual(
+            [manifest["layers"][name]["height"] for name in ("sea", "far", "mid", "near")],
+            [270, 144, 176, 208],
+        )
+        self.assertGreaterEqual(manifest["layers"]["near"]["height_range"][1], 150)
+        self.assertLessEqual(manifest["layers"]["near"]["height_range"][0], 60)
+        self.assertIn("weak-storm-surface", manifest["runtime_effects"])
+        self.assertIn("moon-gate", manifest["terrain_silhouettes"])
+        for name in ("far", "mid", "near"):
+            layer = manifest["layers"][name]
+            self.assertTrue(layer["aspect_preserved"])
+            self.assertEqual(layer["runtime_scale"], 1)
+            self.assertEqual(layer["seam_cap"]["positions"], [0, 480, 960])
+            self.assertTrue((run / layer["seam_cap"]["generated"]).is_file())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "hwii",
+    "description": "",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "square",
+    "width": 64,
+    "height": 64,
+    "safe_margin_x": 3,
+    "safe_margin_y": 3,
+    "size": 64,
+    "safe_margin": 3
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "auto",
+    "score": 222.99,
+    "min_subject_distance": 218.03,
+    "background": {
+      "mode": "flat",
+      "hex": "#08F90D",
+      "rgb": [
+        8,
+        249,
+        13
+      ],
+      "opaque_border_fraction": 1.0,
+      "border_coverage": 1.0,
+      "enclosed_background_pixels": 3711,
+      "enclosed_material_pixels": 0,
+      "subject_pixels": 33940
+    },
+    "candidates": [
+      {
+        "name": "magenta",
+        "hex": "#FF00FF",
+        "score": 198.17,
+        "min_subject_distance": 179.97,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "green",
+        "hex": "#00FF00",
+        "score": 222.99,
+        "min_subject_distance": 218.03,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "cyan",
+        "hex": "#00FFFF",
+        "score": 161.36,
+        "min_subject_distance": 155.69,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "blue",
+        "hex": "#004DFF",
+        "score": 115.12,
+        "min_subject_distance": 106.59,
+        "clears_erase_radius": true
+      }
+    ],
+    "selection_reason": "highest 1st-percentile subject distance among the 4 candidate(s) clearing the 96 erase radius"
+  },
+  "states": {
+    "idle": {
+      "frames": 4,
+      "fps": 8,
+      "loop": true,
+      "action": "four-frame eyelid blink overlay at strict identity, position and scale lock: the attached base is an empty eye socket, not a green eye; preserve the complete circular cloud ring and keep the eye opening filled only with the exact flat chroma-key background color so it becomes transparent after extraction; frame 1 is fully open, frame 2 lowers the upper cloud eyelid halfway while the lower rim lifts slightly, frame 3 closes the eyelids completely with no visible eye cavity, and frame 4 returns to the same half-open transition before looping to frame 1; only the attached cloud eyelid rims move, the outer cloud silhouette may pulse by at most one logical pixel; never draw a sclera, iris, pupil, catchlight, eyeball, tear or any colored material inside the opening; preserve the same connected cloud lobes, outline thickness, total size and center anchor in every frame; no whole-body rotation, translation, second eye, mouth, detached wisps, lightning, glow, projectiles, water or scenery"
+    }
+  },
+  "style": "native 64x64 hard-edged pixel art overlay with coherent countable clusters, one-pixel dark indigo outline and a shared limited deep-navy-slate-blue-steel-blue-pearl-gray-ivory-muted-lavender palette; cute lonely arcade typhoon cloud and eyelids with a chroma-empty central opening",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 16
+  },
+  "chroma": {
+    "mode": "rgb",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

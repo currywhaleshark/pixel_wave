@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "dolphin-homing",
+    "description": "",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "rect",
+    "width": 18,
+    "height": 10,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "auto",
+    "score": 255.93,
+    "min_subject_distance": 248.78,
+    "background": {
+      "mode": "flat",
+      "hex": "#04F80C",
+      "rgb": [
+        4,
+        248,
+        12
+      ],
+      "opaque_border_fraction": 1.0,
+      "border_coverage": 1.0,
+      "enclosed_background_pixels": 0,
+      "enclosed_material_pixels": 0,
+      "subject_pixels": 2938
+    },
+    "candidates": [
+      {
+        "name": "magenta",
+        "hex": "#FF00FF",
+        "score": 240.02,
+        "min_subject_distance": 237.25,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "green",
+        "hex": "#00FF00",
+        "score": 255.93,
+        "min_subject_distance": 248.78,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "cyan",
+        "hex": "#00FFFF",
+        "score": 111.2,
+        "min_subject_distance": 95.68,
+        "clears_erase_radius": false
+      },
+      {
+        "name": "blue",
+        "hex": "#004DFF",
+        "score": 83.22,
+        "min_subject_distance": 64.85,
+        "clears_erase_radius": false
+      }
+    ],
+    "selection_reason": "highest 1st-percentile subject distance among the 2 candidate(s) clearing the 96 erase radius"
+  },
+  "states": {
+    "swim": {
+      "frames": 2,
+      "fps": 6,
+      "loop": true,
+      "action": "right-facing two-frame swimming loop at strict identity, scale and center lock: preserve the rounded sonar forehead, short beak, compact body, high curved dorsal fin, eye, belly and palette; frame 1 bends the attached forked tail one logical pixel upward and lowers the visible pectoral fin, frame 2 bends the same tail one logical pixel downward and raises the pectoral fin; keep head and torso completely stable with no translation, rotation or bobbing; no sonar ring, projectile, bubble, glow, water, shadow, text, UI, detached fin or loose pixel"
+    }
+  },
+  "style": "native 18x10 hard-edged pixel art with large countable clusters, one-pixel deep navy outline and a limited blue-pale-cyan-white palette; friendly readable arcade companion",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 8
+  },
+  "chroma": {
+    "mode": "rgb",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

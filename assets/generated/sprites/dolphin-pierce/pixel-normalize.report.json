@@ -1,0 +1,16 @@
+{
+  "kind": "pixel-wave-normalize-report",
+  "version": 1,
+  "run": "dolphin-pierce",
+  "source": "sprite-sheet-alpha.png",
+  "output": "sprite-sheet-pixel.png",
+  "width": 36,
+  "height": 10,
+  "alpha_threshold": 128,
+  "palette_colors": 8,
+  "opaque_pixels_before_cleanup": 161,
+  "alpha_or_transparent_rgb_changed_pixels": 45,
+  "palette_remapped_pixels": 96,
+  "removed_component_pixels": 0,
+  "sha256": "edac584756454791c762046609210ab95e7c966f08cd1903c52b7c08841c760f"
+}

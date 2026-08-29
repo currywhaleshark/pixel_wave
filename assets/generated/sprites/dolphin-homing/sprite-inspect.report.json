@@ -1,0 +1,47 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "kind": "sprite-gen-inspect-report",
+  "run_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\sprites\\dolphin-homing",
+  "states": [
+    "swim"
+  ],
+  "thresholds": {
+    "histogram_min": 0.0,
+    "dhash_min": 0.55,
+    "motion_min": 0.01
+  },
+  "rows": [
+    {
+      "state": "swim",
+      "source": "frames",
+      "expected_frames": 2,
+      "found_frames": 2,
+      "natural_pose_count": 2,
+      "frame_files": [
+        "frames/swim/frame-0.png",
+        "frames/swim/frame-1.png"
+      ],
+      "metrics": {
+        "histogram_intersection": {
+          "min": 0.9285310734463276,
+          "mean": 0.9285310734463276
+        },
+        "dhash_similarity": {
+          "min": 0.875,
+          "mean": 0.875
+        },
+        "motion_presence": 0.09396446078431372,
+        "centroid_sigma": {
+          "x": 0.38497640950970347,
+          "y": 0.10911785748684277
+        }
+      },
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    }
+  ],
+  "errors": [],
+  "warnings": []
+}

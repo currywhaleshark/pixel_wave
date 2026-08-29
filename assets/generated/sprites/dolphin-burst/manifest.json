@@ -1,0 +1,123 @@
+{
+  "characterId": "dolphin-burst",
+  "engine": "component-row",
+  "game_input": "sprite-sheet-pixel.png",
+  "degraded_static_fallback": false,
+  "curation_applied": true,
+  "frame_variant": "pixel",
+  "sprite_sheet_alpha": "sprite-sheet-alpha.png",
+  "sprite_sheet_alpha_report": "sprite-sheet-alpha.report.json",
+  "base_image": "base-source.png",
+  "cell": {
+    "shape": "rect",
+    "width": 18,
+    "height": 10,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "auto",
+    "score": 258.17,
+    "min_subject_distance": 248.62,
+    "background": {
+      "mode": "flat",
+      "hex": "#03F80A",
+      "rgb": [
+        3,
+        248,
+        10
+      ],
+      "opaque_border_fraction": 1.0,
+      "border_coverage": 1.0,
+      "enclosed_background_pixels": 0,
+      "enclosed_material_pixels": 0,
+      "subject_pixels": 6950
+    },
+    "candidates": [
+      {
+        "name": "magenta",
+        "hex": "#FF00FF",
+        "score": 107.53,
+        "min_subject_distance": 98.82,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "green",
+        "hex": "#00FF00",
+        "score": 258.17,
+        "min_subject_distance": 248.62,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "cyan",
+        "hex": "#00FFFF",
+        "score": 256.92,
+        "min_subject_distance": 242.02,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "blue",
+        "hex": "#004DFF",
+        "score": 187.26,
+        "min_subject_distance": 178.66,
+        "clears_erase_radius": true
+      }
+    ],
+    "selection_reason": "highest 1st-percentile subject distance among the 4 candidate(s) clearing the 96 erase radius"
+  },
+  "animation": {
+    "cellWidth": 18,
+    "cellHeight": 10,
+    "columns": 2,
+    "rows": {
+      "swim": {
+        "row": 0,
+        "frames": 2,
+        "fps": 6,
+        "durations_ms": [
+          167,
+          167
+        ],
+        "loop": true,
+        "frame_variant": "pixel"
+      }
+    }
+  },
+  "frame_layout": {
+    "sheetWidth": 36,
+    "sheetHeight": 10,
+    "cellWidth": 18,
+    "cellHeight": 10,
+    "rows": {
+      "swim": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 18,
+          "h": 10
+        },
+        {
+          "x": 18,
+          "y": 0,
+          "w": 18,
+          "h": 10
+        }
+      ]
+    }
+  },
+  "pixel_normalization": {
+    "version": 1,
+    "source": "sprite-sheet-alpha.png",
+    "palette": "palette.lock.json",
+    "report": "pixel-normalize.report.json",
+    "alpha_threshold": 128,
+    "remove_isolated_max": 0
+  }
+}

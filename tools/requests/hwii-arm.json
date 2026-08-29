@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "hwii-arm",
+    "description": "one modular hooked storm-cloud arm for Hwii, mounted behind the central eye core and reused as three rotating radial arms",
+    "base_image": "base-source.png"
+  },
+  "cell": { "shape": "rect", "width": 72, "height": 40, "safe_margin_x": 3, "safe_margin_y": 3 },
+  "chroma_key": { "name": "green", "hex": "#00FF00", "rgb": [0, 255, 0], "selection": "manual" },
+  "states": {
+    "flow": {
+      "frames": 2,
+      "fps": 4,
+      "loop": true,
+      "action": "two-frame continuous storm-cloud arm flow at strict root and scale lock: preserve one complete connected horizontal arm with the broad mounting root fixed at the far-left center, the same total reach, outline thickness, lobe count and palette in both frames; frame 1 matches the attached elegant S-curve and inward hooked tip, frame 2 sends one gentle wave through the whole arm by lifting the middle arc one logical pixel and curling the distal third two logical pixels while the left root stays exactly fixed; the whole arm must visibly participate in the wave, not only the tip; no translation, rotation, shortening, detached puffs, extra arm, eye, face, body core, lightning, particles, glow, shadow, water, scenery, text, UI or guide boxes"
+    }
+  },
+  "style": "native 72x40 hard-edged pixel art with coherent countable clusters, one-pixel dark indigo outline and a shared limited deep-navy-slate-blue-steel-blue-pearl-gray-ivory-muted-lavender palette; supernatural elegant hooked storm-cloud limb matching Hwii's circular cloud core",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": { "resample": "kcentroid", "align_x": "bbox-center", "align_y": "center", "pixel_perfect": false, "palette_size": 16 },
+  "chroma": { "mode": "rgb", "unmix_reach": 4, "spill_max_fraction": 0.005 },
+  "pixel_lint": { "fail_on_pitch_warnings": true, "max_frame_bbox_delta": { "width": 2, "height": 3 } }
+}

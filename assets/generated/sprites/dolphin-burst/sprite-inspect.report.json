@@ -1,0 +1,47 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "kind": "sprite-gen-inspect-report",
+  "run_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\sprites\\dolphin-burst",
+  "states": [
+    "swim"
+  ],
+  "thresholds": {
+    "histogram_min": 0.0,
+    "dhash_min": 0.55,
+    "motion_min": 0.01
+  },
+  "rows": [
+    {
+      "state": "swim",
+      "source": "frames",
+      "expected_frames": 2,
+      "found_frames": 2,
+      "natural_pose_count": 2,
+      "frame_files": [
+        "frames/swim/frame-0.png",
+        "frames/swim/frame-1.png"
+      ],
+      "metrics": {
+        "histogram_intersection": {
+          "min": 0.9310344827586207,
+          "mean": 0.9310344827586207
+        },
+        "dhash_similarity": {
+          "min": 0.84375,
+          "mean": 0.84375
+        },
+        "motion_presence": 0.08895191865808824,
+        "centroid_sigma": {
+          "x": 0.016186455880753847,
+          "y": 0.2148380088801689
+        }
+      },
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    }
+  ],
+  "errors": [],
+  "warnings": []
+}

@@ -8,8 +8,11 @@
 // 시트 규격은 docs/ART_SPEC.md 참고. 프레임은 가로로 이어 붙인다(x + i*w).
 // ============================================================
 const SHEETS = {
-  main: 'assets/sprites.png?v=7',   // 잡몹·플레이어·돌고래·탄·진주
+  main: 'assets/sprites.png?v=8',   // 잡몹·플레이어·돌고래·탄·진주
   boss: 'assets/bosses.png?v=7',    // 보스 7종
+  bossUreu: 'assets/boss-ureu.png?v=2',
+  bossHwii: 'assets/boss-hwii.png?v=1',
+  bossHwiiArm: 'assets/boss-hwii-arm.png?v=1',
   'stage5.buuHull': 'assets/backgrounds/stage5-buu-hull.png?v=1',
   'background.stage1.sea': 'assets/backgrounds/stage1-sea-strip.png?v=1',
   'background.stage1.far': 'assets/backgrounds/stage1-far-strip.png?v=8',
@@ -31,6 +34,14 @@ const SHEETS = {
   'background.stage5.far': 'assets/backgrounds/stage5-far-strip.png?v=1',
   'background.stage5.mid': 'assets/backgrounds/stage5-mid-strip.png?v=1',
   'background.stage5.near': 'assets/backgrounds/stage5-near-strip.png?v=1',
+  'background.stage6.sea': 'assets/backgrounds/stage6-sea-strip.png?v=1',
+  'background.stage6.far': 'assets/backgrounds/stage6-far-strip.png?v=1',
+  'background.stage6.mid': 'assets/backgrounds/stage6-mid-strip.png?v=1',
+  'background.stage6.near': 'assets/backgrounds/stage6-near-strip.png?v=1',
+  'background.stage7.sea': 'assets/backgrounds/stage7-sea-strip.png?v=1',
+  'background.stage7.far': 'assets/backgrounds/stage7-far-strip.png?v=1',
+  'background.stage7.mid': 'assets/backgrounds/stage7-mid-strip.png?v=1',
+  'background.stage7.near': 'assets/backgrounds/stage7-near-strip.png?v=1',
 };
 
 // id: { sheet, x, y, w, h, frames, fps, ax, ay }
@@ -47,9 +58,9 @@ const SPRITES = {
   'mermaid.bubble': { sheet: 'main', x: 144, y: 0,  w: 24, h: 24, frames: 2, fps: 4,  ax: 12, ay: 12, on: true },
 
   // ---- 돌고래 (옵션) ----
-  'dolphin.homing': { sheet: 'main', x: 0,   y: 24, w: 18, h: 10, frames: 2, fps: 6,  ax: 9,  ay: 5,  on: false },
-  'dolphin.burst':  { sheet: 'main', x: 36,  y: 24, w: 18, h: 10, frames: 2, fps: 6,  ax: 9,  ay: 5,  on: false },
-  'dolphin.pierce': { sheet: 'main', x: 72,  y: 24, w: 18, h: 10, frames: 2, fps: 6,  ax: 9,  ay: 5,  on: false },
+  'dolphin.homing': { sheet: 'main', x: 0,   y: 24, w: 18, h: 10, frames: 2, fps: 6,  ax: 9,  ay: 5,  on: true },
+  'dolphin.burst':  { sheet: 'main', x: 36,  y: 24, w: 18, h: 10, frames: 2, fps: 6,  ax: 9,  ay: 5,  on: true },
+  'dolphin.pierce': { sheet: 'main', x: 72,  y: 24, w: 18, h: 10, frames: 2, fps: 6,  ax: 9,  ay: 5,  on: true },
 
   // ---- 잡몹 (kind 이름과 1:1) ----
   'enemy.fish':     { sheet: 'main', x: 0,   y: 40, w: 16, h: 10, frames: 2, fps: 8,  ax: 8,  ay: 5,  on: true },
@@ -80,8 +91,12 @@ const SPRITES = {
   // 부우의 좌표 기준은 머리 중심이 아니라 목 끝의 중심선이다. 몸통 궤적과 바로 이어진다.
   'boss.buu':       { sheet: 'boss', x: 0,   y: 128, w: 40, h: 32, frames: 2, fps: 6, ax: 20, ay: 21, on: true },
   'boss.buuHull':   { sheet: 'stage5.buuHull', x: 0, y: 0, w: 64, h: 250, frames: 1, fps: 0, ax: 32, ay: 125, on: true },
-  'boss.ureu':      { sheet: 'boss', x: 80,  y: 128, w: 40, h: 40, frames: 2, fps: 6, ax: 20, ay: 20, on: false },
-  'boss.hwii':      { sheet: 'boss', x: 0,   y: 176, w: 64, h: 64, frames: 4, fps: 8, ax: 32, ay: 32, on: false },
+  // 우르릉은 머리 중심을 앵커로 삼는 세로형 전신 스프라이트다. 피탄 판정은 기존 머리 원형 그대로다.
+  'boss.ureu':      { sheet: 'bossUreu', x: 0, y: 0, w: 48, h: 128, frames: 4, fps: 4, ax: 20, ay: 23, on: true },
+  // 눈알은 코드로 아래에 그리고, 이 시트는 구름과 눈꺼풀만 위에 덮는다.
+  'boss.hwii':      { sheet: 'bossHwii', x: 0, y: 0, w: 64, h: 64, frames: 4, fps: 0, ax: 32, ay: 32, on: true },
+  // 왼쪽 뿌리가 중심핵 아래에 묻히도록 앵커를 잡은 모듈형 나선 구름 팔.
+  'boss.hwiiArm':   { sheet: 'bossHwiiArm', x: 0, y: 0, w: 72, h: 40, frames: 2, fps: 4, ax: 6, ay: 20, on: true },
 };
 
 const Assets = {

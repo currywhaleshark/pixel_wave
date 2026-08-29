@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "dolphin-burst",
+    "description": "right-facing cheerful chubby pink burst dolphin with a broad rounded tail",
+    "base_image": "base-source.png"
+  },
+  "cell": { "shape": "rect", "width": 18, "height": 10, "safe_margin_x": 1, "safe_margin_y": 1 },
+  "chroma_key": { "name": "green", "hex": "#00FF00", "rgb": [0, 255, 0], "selection": "manual" },
+  "states": {
+    "swim": {
+      "frames": 2,
+      "fps": 6,
+      "loop": true,
+      "action": "right-facing two-frame swimming loop at strict identity, scale and center lock: preserve the rounded snout, chubby body, compact dorsal fin, eye, cream belly and pink palette; frame 1 bends the attached broad forked tail one logical pixel upward and lowers the visible pectoral fin, frame 2 bends the same tail one logical pixel downward and raises the pectoral fin; keep head and torso completely stable with no translation, rotation or bobbing; no bomb, bubble, explosion, projectile, bow, glow, water, shadow, text, UI, detached fin or loose pixel"
+    }
+  },
+  "style": "native 18x10 hard-edged pixel art with large countable clusters, one-pixel deep plum-navy outline and a limited hot-pink-soft-pink-cream palette; cheerful rounded arcade companion",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": { "resample": "kcentroid", "align_x": "alpha-centroid", "align_y": "center", "pixel_perfect": false, "palette_size": 8 },
+  "chroma": { "mode": "rgb", "unmix_reach": 4, "spill_max_fraction": 0.005 },
+  "pixel_lint": { "fail_on_pitch_warnings": true, "max_frame_bbox_delta": { "width": 1, "height": 1 } }
+}

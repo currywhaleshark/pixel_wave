@@ -27,6 +27,9 @@ class Placement:
 MAIN = (
     Placement("mermaid-swim", "swim", 0, 0, 36, 24, 4),
     Placement("mermaid-bubble", "bubble", 144, 0, 24, 24, 2),
+    Placement("dolphin-homing", "swim", 0, 24, 18, 10, 2),
+    Placement("dolphin-burst", "swim", 36, 24, 18, 10, 2),
+    Placement("dolphin-pierce", "swim", 72, 24, 18, 10, 2),
     Placement("enemy-fish", "swim", 0, 40, 16, 10, 2),
     Placement("enemy-jelly", "float", 32, 40, 16, 20, 2),
     Placement("enemy-ray", "flap", 64, 36, 32, 26, 2),
@@ -56,6 +59,18 @@ BOSSES = (
 
 BUU_HULL = (
     Placement("buu-hull", "idle", 0, 0, 64, 250, 1),
+)
+
+UREU = (
+    Placement("ureu", "idle", 0, 0, 48, 128, 4),
+)
+
+HWII = (
+    Placement("hwii", "idle", 0, 0, 64, 64, 4),
+)
+
+HWII_ARM = (
+    Placement("hwii-arm", "flow", 0, 0, 72, 40, 2),
 )
 
 
@@ -116,7 +131,10 @@ def main() -> None:
     build(ROOT / "assets" / "sprites.png", (224, 168), MAIN)
     build(ROOT / "assets" / "bosses.png", (256, 240), BOSSES)
     build(ROOT / "assets" / "backgrounds" / "stage5-buu-hull.png", (64, 250), BUU_HULL)
-    print("packed sprites.png, bosses.png and stage5-buu-hull.png")
+    build(ROOT / "assets" / "boss-ureu.png", (192, 128), UREU)
+    build(ROOT / "assets" / "boss-hwii.png", (256, 64), HWII)
+    build(ROOT / "assets" / "boss-hwii-arm.png", (144, 40), HWII_ARM)
+    print("packed sprites.png, bosses.png, stage5-buu-hull.png, boss-ureu.png, boss-hwii.png and boss-hwii-arm.png")
 
 
 if __name__ == "__main__":

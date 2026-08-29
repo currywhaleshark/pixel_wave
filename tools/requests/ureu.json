@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "ureu",
+    "description": "complete left-facing boastful thunder eel king with attached lightning crown and one continuous long vertically hanging S-curved body",
+    "base_image": "base-source.png"
+  },
+  "cell": { "shape": "rect", "width": 48, "height": 128, "safe_margin_x": 2, "safe_margin_y": 2 },
+  "chroma_key": { "name": "magenta", "hex": "#FF00FF", "rgb": [255, 0, 255], "selection": "manual" },
+  "states": {
+    "idle": {
+      "frames": 4,
+      "fps": 8,
+      "loop": true,
+      "action": "four-frame complete thunder eel boss idle loop with one broad travelling body wave at strict scale lock: show the entire creature from crown and left-facing head through one continuous long body to the pointed tail; keep the crown, snout, proud eye, head center and only the very top neck fixed in the exact same position; frame 1 starts a broad S bend immediately below the neck, frame 2 carries that bend through the upper-middle torso, frame 3 forms the clearly opposite S curve through the middle and lower torso, and frame 4 carries the bend into the lower body and tail so it loops smoothly back to frame 1; the torso centerline must visibly shift in every frame, roughly four to six logical pixels in the upper-middle body, eight to ten in the lower body and up to twelve at the tail tip; preserve identical body length, thickness taper, continuous pale belly stripe and continuous gold lightning markings; no separated pieces, no hard seam at the neck, no translation, resizing, detached lightning, sparks, glow, water or effects"
+    }
+  },
+  "style": "native 48x128 hard-edged pixel art with large countable logical pixels, one-pixel dark indigo outline and shared limited slate-navy-steel-blue-warm-yellow-ivory palette; complete long electric eel silhouette with a thick upper torso that tapers gradually to the tail; cute arrogant arcade thunder eel king, not a dragon",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": { "resample": "kcentroid", "align_x": "bbox-center", "align_y": "center", "pixel_perfect": false, "palette_size": 14 },
+  "chroma": { "mode": "rgb", "unmix_reach": 4, "spill_max_fraction": 0.005 },
+  "pixel_lint": { "fail_on_pitch_warnings": true, "max_frame_bbox_delta": { "width": 2, "height": 2 } }
+}

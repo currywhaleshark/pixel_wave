@@ -282,6 +282,27 @@ class BossUreu {
       ctx.beginPath(); ctx.arc(0, 0, R + 55, 0, 6.28); ctx.stroke();
     }
 
+    const drawStaticSparks = () => {
+      if (this.mode !== 'chargeTel' && this.phase !== 3) return;
+      ctx.strokeStyle = `rgba(255,243,176,${0.5 + Math.sin(this.anim * 18) * 0.4})`;
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 3; i++) {
+        const a = this.anim * 7 + i * 2.1;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * R * 1.2, Math.sin(a) * R * 1.2);
+        ctx.lineTo(Math.cos(a) * (R * 1.2 + 12), Math.sin(a) * (R * 1.2 + 12) + 5);
+        ctx.stroke();
+      }
+    };
+
+    // 완성 전신이 있으면 코드 몸통·머리·왕관을 중복해서 그리지 않는다.
+    // x/y와 충돌 반경은 그대로이므로 피탄 판정은 기존 머리 크기를 유지한다.
+    if (Sprites.draw(ctx, 'boss.ureu', 0, 0, { t: this.anim, scale: s })) {
+      drawStaticSparks();
+      ctx.restore();
+      return;
+    }
+
     // 몸통: 세로로 굽이치는 장어 (머리 아래로 이어짐)
     ctx.strokeStyle = '#3d4d6b';
     ctx.lineWidth = 26 * s;
@@ -306,17 +327,7 @@ class BossUreu {
     }
     ctx.stroke();
     // 정전기 스파크
-    if (this.mode === 'chargeTel' || this.phase === 3) {
-      ctx.strokeStyle = `rgba(255,243,176,${0.5 + Math.sin(this.anim * 18) * 0.4})`;
-      ctx.lineWidth = 2;
-      for (let i = 0; i < 3; i++) {
-        const a = this.anim * 7 + i * 2.1;
-        ctx.beginPath();
-        ctx.moveTo(Math.cos(a) * R * 1.2, Math.sin(a) * R * 1.2);
-        ctx.lineTo(Math.cos(a) * (R * 1.2 + 12), Math.sin(a) * (R * 1.2 + 12) + 5);
-        ctx.stroke();
-      }
-    }
+    drawStaticSparks();
     // 머리
     const head = ctx.createRadialGradient(-R * 0.3, -R * 0.3, R * 0.2, 0, 0, R * 1.15);
     head.addColorStop(0, '#5a6d94');

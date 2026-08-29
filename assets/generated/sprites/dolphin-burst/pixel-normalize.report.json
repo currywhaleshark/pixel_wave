@@ -1,0 +1,16 @@
+{
+  "kind": "pixel-wave-normalize-report",
+  "version": 1,
+  "run": "dolphin-burst",
+  "source": "sprite-sheet-alpha.png",
+  "output": "sprite-sheet-pixel.png",
+  "width": 36,
+  "height": 10,
+  "alpha_threshold": 128,
+  "palette_colors": 8,
+  "opaque_pixels_before_cleanup": 173,
+  "alpha_or_transparent_rgb_changed_pixels": 45,
+  "palette_remapped_pixels": 101,
+  "removed_component_pixels": 0,
+  "sha256": "d9c1b23f7217cccb3aac8a1dfb5e97d6f41927d21d8ffb6150380532c7a04596"
+}

@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "hwii-arm",
+    "description": "",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "rect",
+    "width": 72,
+    "height": 40,
+    "safe_margin_x": 3,
+    "safe_margin_y": 3
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "auto",
+    "score": 223.71,
+    "min_subject_distance": 216.93,
+    "background": {
+      "mode": "flat",
+      "hex": "#03F60B",
+      "rgb": [
+        3,
+        246,
+        11
+      ],
+      "opaque_border_fraction": 1.0,
+      "border_coverage": 1.0,
+      "enclosed_background_pixels": 0,
+      "enclosed_material_pixels": 0,
+      "subject_pixels": 11045
+    },
+    "candidates": [
+      {
+        "name": "magenta",
+        "hex": "#FF00FF",
+        "score": 179.12,
+        "min_subject_distance": 157.36,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "green",
+        "hex": "#00FF00",
+        "score": 223.71,
+        "min_subject_distance": 216.93,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "cyan",
+        "hex": "#00FFFF",
+        "score": 159.25,
+        "min_subject_distance": 154.41,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "blue",
+        "hex": "#004DFF",
+        "score": 106.53,
+        "min_subject_distance": 101.57,
+        "clears_erase_radius": true
+      }
+    ],
+    "selection_reason": "highest 1st-percentile subject distance among the 4 candidate(s) clearing the 96 erase radius"
+  },
+  "states": {
+    "flow": {
+      "frames": 2,
+      "fps": 4,
+      "loop": true,
+      "action": "two-frame continuous storm-cloud arm flow at strict root and scale lock: preserve one complete connected horizontal arm with the broad mounting root fixed at the far-left center, the same total reach, outline thickness, lobe count and palette in both frames; frame 1 matches the attached elegant S-curve and inward hooked tip, frame 2 sends one gentle wave through the whole arm by lifting the middle arc one logical pixel and curling the distal third two logical pixels while the left root stays exactly fixed; the whole arm must visibly participate in the wave, not only the tip; no translation, rotation, shortening, detached puffs, extra arm, eye, face, body core, lightning, particles, glow, shadow, water, scenery, text, UI or guide boxes"
+    }
+  },
+  "style": "native 72x40 hard-edged pixel art with coherent countable clusters, one-pixel dark indigo outline and a shared limited deep-navy-slate-blue-steel-blue-pearl-gray-ivory-muted-lavender palette; supernatural elegant hooked storm-cloud limb matching Hwii's circular cloud core",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "bbox-center",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 16
+  },
+  "chroma": {
+    "mode": "rgb",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

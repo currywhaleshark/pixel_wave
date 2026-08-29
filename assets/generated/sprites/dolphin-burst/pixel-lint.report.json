@@ -1,0 +1,128 @@
+{
+  "kind": "pixel-wave-lint-report",
+  "version": 1,
+  "run": "dolphin-burst",
+  "game_input": "sprite-sheet-pixel.png",
+  "ok": true,
+  "warnings": [
+    "2 frames touch their declared safe margin"
+  ],
+  "failures": [],
+  "checks": {
+    "canvas_size": {
+      "ok": true,
+      "width": 36,
+      "height": 10
+    },
+    "binary_alpha": {
+      "ok": true,
+      "values": [
+        0,
+        255
+      ],
+      "semi_transparent_pixels": 0
+    },
+    "palette": {
+      "ok": true,
+      "used_colors": 8,
+      "locked_colors": 8,
+      "foreign_colors": []
+    },
+    "transparent_rgb_clear": {
+      "ok": true,
+      "pixels": 0
+    },
+    "frames_nonempty": {
+      "ok": true,
+      "empty_frames": 0
+    },
+    "isolated_pixels": {
+      "ok": true,
+      "count": 0,
+      "tiny_components_max_3px": 0,
+      "severity": "warning"
+    },
+    "safe_margin": {
+      "ok": false,
+      "touching_frames": 2,
+      "severity": "warning"
+    },
+    "frame_palette_drift": {
+      "ok": true,
+      "maximum": 0.051323,
+      "warning_threshold": 0.35,
+      "pairs": [
+        {
+          "state": "swim",
+          "from": 0,
+          "to": 1,
+          "histogram_drift": 0.051323
+        }
+      ],
+      "severity": "warning"
+    },
+    "extraction_pitch": {
+      "ok": true,
+      "strict": false,
+      "warnings": [],
+      "severity": "warning"
+    },
+    "silhouette_contract": {
+      "ok": true,
+      "bbox_aspect_violations": [],
+      "bbox_delta_violations": [],
+      "contract": {
+        "bbox_aspect_ratio": null,
+        "max_frame_bbox_delta": null
+      }
+    },
+    "curve_stair_steps": {
+      "status": "manual_review_required",
+      "reason": "curve cluster intent cannot be inferred reliably from topology alone"
+    }
+  },
+  "frames": [
+    {
+      "state": "swim",
+      "index": 0,
+      "width": 18,
+      "height": 10,
+      "opaque_pixels": 87,
+      "bbox": [
+        2,
+        0,
+        16,
+        10
+      ],
+      "bbox_width": 14,
+      "bbox_height": 10,
+      "bbox_aspect_ratio": 1.4,
+      "colors": 8,
+      "components": 1,
+      "isolated_1px_components": 0,
+      "tiny_components_max_3px": 0,
+      "touches_safe_margin": true
+    },
+    {
+      "state": "swim",
+      "index": 1,
+      "width": 18,
+      "height": 10,
+      "opaque_pixels": 86,
+      "bbox": [
+        1,
+        0,
+        16,
+        10
+      ],
+      "bbox_width": 15,
+      "bbox_height": 10,
+      "bbox_aspect_ratio": 1.5,
+      "colors": 8,
+      "components": 1,
+      "isolated_1px_components": 0,
+      "tiny_components_max_3px": 0,
+      "touches_safe_margin": true
+    }
+  ]
+}
