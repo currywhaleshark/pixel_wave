@@ -14,7 +14,9 @@ const Sound = {
   masterGain: null, bgmGain: null, sfxGain: null,
   tracks: {},        // key → { el, node, gain, dead }
   currentKey: null,
-  vol: { master: 1, bgm: 0.6, sfx: 0.7 },
+  // Suno 곡은 마스터링이 크고(피크 0dB 근처) 합성 SE는 조용해서,
+  // 기본값을 BGM 낮게 / SE 높게 잡아야 밸런스가 맞는다 (실청취로 조정)
+  vol: { master: 1, bgm: 0.3, sfx: 1.0 },
   muted: false,
   voices: 0,         // 동시 발음 수 (폭주 방지)
   lastAt: {},        // 효과음별 마지막 재생 시각 (스로틀)
@@ -57,10 +59,14 @@ const Sound = {
   },
   loadPrefs() {
     const a = Meta.data.audio;
-    if (a) {
+    // 마이그레이션: sfx 0.7은 UI 단계(0/0.3/0.6/1.0)에 없는 값 = 옛 기본값이
+    // 저장된 것 → 새 기본 밸런스(BGM 0.3 / SE 1.0)로 교체
+    if (a && a.sfx !== 0.7) {
       this.vol.master = a.master ?? 1;
-      this.vol.bgm = a.bgm ?? 0.6;
-      this.vol.sfx = a.sfx ?? 0.7;
+      this.vol.bgm = a.bgm ?? 0.3;
+      this.vol.sfx = a.sfx ?? 1.0;
+      this.muted = !!a.muted;
+    } else if (a) {
       this.muted = !!a.muted;
     }
     this.applyVol();
