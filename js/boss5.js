@@ -18,8 +18,9 @@ class BossBuu {
     this.hp = CFG.boss5Hp;
     this.maxHp = CFG.boss5Hp;
     // 전용 선체 이미지 안의 실제 구멍 중심. 구멍마다 선체 굴곡이 달라 x도 따로 둔다.
-    this.holes = [129, 242, 365, 462];
-    this.holeXs = [901, 896, 901, 903];
+    // 선체 스프라이트의 실제 구멍 중심 (픽셀 실측 — 어두운 구멍 내부의 무게중심)
+    this.holes = [136, 223, 310, 402];
+    this.holeXs = [898, 893, 896, 900];
     this.outX = CFG.W * 0.84;     // 완전히 나왔을 때 머리 위치
     this.emerge = 0;              // 0=구멍 속, 1=완전히 나옴 (미끄러져 나오는 연출)
     this.x = CFG.W + 200;      // 숨어 있을 땐 화면 밖 (표적 안 됨)

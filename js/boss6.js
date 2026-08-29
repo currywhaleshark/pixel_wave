@@ -170,7 +170,7 @@ class BossUreu {
       // P1: 상하 이동 + 조준 스파크 + 축전 빔
       if (this.mode === 'hover') {
         this.x += (CFG.W * 0.82 - this.x) * Math.min(1, dt * 2);
-        this.y = CFG.H * 0.5 + Math.sin(this.anim * 0.75) * 150;
+        { const ty = CFG.H * 0.5 + Math.sin(this.anim * 0.75) * 150; this.y += (ty - this.y) * Math.min(1, dt * 3); }
         this.aimT -= dt;
         if (this.aimT <= 0) {
           this.aimT = 2.3 * m;
@@ -181,7 +181,7 @@ class BossUreu {
     } else if (this.phase === 2) {
       // P2: 낙뢰 소환 (플레이어 쪽으로 3연속 스윕) + 링 스파크
       this.x += (CFG.W * 0.82 - this.x) * Math.min(1, dt * 2);
-      this.y = CFG.H * 0.5 + Math.sin(this.anim * 0.9) * 160;
+      { const ty = CFG.H * 0.5 + Math.sin(this.anim * 0.9) * 160; this.y += (ty - this.y) * Math.min(1, dt * 3); }
       this.boltT -= dt;
       if (g.dolphin && this.boltT <= 0.5 && this.boltT > 0 && this.telegraph <= 0) this.telegraph = 0.5;
       if (this.boltT <= 0) {
@@ -205,7 +205,7 @@ class BossUreu {
       // 진 대파도(P4): 빔이 이중 — 자기 줄 + 플레이어 줄(예고 시점 스냅샷)
       if (this.mode === 'hover') {
         this.x += (CFG.W * 0.84 - this.x) * Math.min(1, dt * 2);
-        this.y = CFG.H * 0.5 + Math.sin(this.anim * 0.7) * 130;
+        { const ty = CFG.H * 0.5 + Math.sin(this.anim * 0.7) * 130; this.y += (ty - this.y) * Math.min(1, dt * 3); }
       }
       this.sprayT -= dt;
       if (this.sprayT <= 0) {

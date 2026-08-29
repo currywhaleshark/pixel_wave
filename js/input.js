@@ -46,6 +46,7 @@ const Input = {
       this.anyPressed = true;
       const p = toGame(e.clientX, e.clientY);
       this.clicks.push(p);
+      if (this.inPauseButton(p)) { this.pauseQueued = true; return; }
       if (this.inBombButton(p)) { this.bombQueued = true; return; }
       if (this.mode === 'pointer') this.bombQueued = true; // 클릭 = 봄
     });
@@ -57,6 +58,7 @@ const Input = {
       const t = e.changedTouches[0];
       const p = toGame(t.clientX, t.clientY);
       this.clicks.push(p);
+      if (this.inPauseButton(p)) { this.pauseQueued = true; return; }
       if (this.inBombButton(p)) { this.bombQueued = true; return; } // 버튼 터치는 이동에 안 씀
       this.pointer.x = p.x; this.pointer.y = p.y + CFG.touchOffsetY;
       this.pointer.active = true; this.pointer.isTouch = true;
@@ -80,6 +82,17 @@ const Input = {
   inBombButton(p) {
     const b = this.bombBtn;
     return (p.x - b.x) ** 2 + (p.y - b.y) ** 2 <= b.r ** 2;
+  },
+  // 일시정지 버튼 (우상단) — 터치엔 ESC가 없으니 화면 버튼이 필요
+  pauseBtn: { x: CFG.W - 46, y: 8, w: 38, h: 28 },
+  inPauseButton(p) {
+    const b = this.pauseBtn;
+    return p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h;
+  },
+  consumePause() {
+    const q = this.pauseQueued;
+    this.pauseQueued = false;
+    return q;
   },
 
   // 이동 벡터 (키보드 모드) — 정규화, slow 여부 포함

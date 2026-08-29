@@ -169,7 +169,7 @@ class BossChorong {
       // P1: 어둠 낚시 — 떠다니며 조준탄, 초롱 깜빡이면 물기 돌진
       if (this.mode === 'drift') {
         this.x += (CFG.W * 0.8 - this.x) * Math.min(1, dt * 2);
-        this.y = CFG.H * 0.5 + Math.sin(this.anim * 0.7) * 120;
+        { const ty = CFG.H * 0.5 + Math.sin(this.anim * 0.7) * 120; this.y += (ty - this.y) * Math.min(1, dt * 3); }
         this.aimT -= dt;
         if (this.aimT <= 0) {
           this.aimT = 2.3 * m;
@@ -180,7 +180,7 @@ class BossChorong {
     } else if (this.phase === 2) {
       // P2: 불 켜기 — 몸 드러내고 링 + 등불 해파리 소환 (플레이어의 광원이 되어줌)
       this.x += (CFG.W * 0.8 - this.x) * Math.min(1, dt * 2);
-      this.y = CFG.H * 0.5 + Math.sin(this.anim * 0.8) * 140;
+      { const ty = CFG.H * 0.5 + Math.sin(this.anim * 0.8) * 140; this.y += (ty - this.y) * Math.min(1, dt * 3); }
       this.ringT -= dt;
       if (g.dolphin && this.ringT <= 0.5 && this.ringT > 0 && this.telegraph <= 0) this.telegraph = 0.5;
       if (this.ringT <= 0) {
@@ -220,7 +220,7 @@ class BossChorong {
       }
       if (this.mode === 'drift') {
         this.x += (CFG.W * 0.82 - this.x) * Math.min(1, dt * 2);
-        this.y = CFG.H * 0.5 + Math.sin(this.anim * 0.6) * 100;
+        { const ty = CFG.H * 0.5 + Math.sin(this.anim * 0.6) * 100; this.y += (ty - this.y) * Math.min(1, dt * 3); }
       }
       this.starT -= dt;
       if (this.starT <= 0) {
@@ -326,22 +326,20 @@ class BossChorong {
     // 폴백 몸체에서만 기존 줄기를 그리고, 스프라이트일 때는 같은 전구 위치의 점멸만 덧댄다.
     ctx.save();
     const blinkFast = this.mode === 'blink' && Math.floor(this.modeT * 14) % 2 === 0;
+    // 초롱불은 스프라이트 여부와 무관하게 코드 광원 (ART_SPEC: 이펙트는 코드 몫)
     if (!spriteBodyDrawn) {
       ctx.strokeStyle = '#31406b'; ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(this.x - 20 * s, this.y - 34 * s);
       ctx.quadraticCurveTo(this.x - 50 * s, this.y - 62 * s, this.lureX, this.lureY + 8);
       ctx.stroke();
-      const lure = ctx.createRadialGradient(this.lureX, this.lureY, 0, this.lureX, this.lureY, 18);
-      lure.addColorStop(0, blinkFast ? '#ffffff' : '#d8fff8');
-      lure.addColorStop(0.5, blinkFast ? '#ffd0d0' : '#8ef0e2');
-      lure.addColorStop(1, 'rgba(126,232,224,0)');
-      ctx.fillStyle = lure;
-      ctx.beginPath(); ctx.arc(this.lureX, this.lureY, 18, 0, 6.28); ctx.fill();
-    } else if (blinkFast) {
-      ctx.fillStyle = '#ffd0d0';
-      ctx.beginPath(); ctx.arc(this.lureX, this.lureY, 4, 0, 6.28); ctx.fill();
     }
+    const lure = ctx.createRadialGradient(this.lureX, this.lureY, 0, this.lureX, this.lureY, 22);
+    lure.addColorStop(0, blinkFast ? '#ffffff' : '#d8fff8');
+    lure.addColorStop(0.5, blinkFast ? '#ffd0d0' : '#8ef0e2');
+    lure.addColorStop(1, 'rgba(126,232,224,0)');
+    ctx.fillStyle = lure;
+    ctx.beginPath(); ctx.arc(this.lureX, this.lureY, 22, 0, 6.28); ctx.fill();
     ctx.restore();
   }
 

@@ -122,7 +122,7 @@ class BossMongsil {
 
     // 수직 유영 (해파리는 세로로 넓게 떠다닌다)
     const amp = this.phase === 3 ? 60 : this.phase === 2 ? 170 : 140;
-    this.y = CFG.H * 0.5 + Math.sin(this.anim * 0.55) * amp;
+    { const ty = CFG.H * 0.5 + Math.sin(this.anim * 0.55) * amp; this.y += (ty - this.y) * Math.min(1, dt * 3); }
 
     const m = this.mercy();
     if (this.telegraph > 0) this.telegraph -= dt;

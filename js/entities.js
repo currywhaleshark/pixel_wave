@@ -462,9 +462,30 @@ class Enemy {
       ctx.restore();
       return;
     }
+    // 발광체는 스프라이트로 바뀌어도 광원 연출을 유지한다 (글로우는 게임 아트)
+    if (this.kind === 'lantern' && Assets.has('enemy.lantern')) {
+      const flick = 0.75 + Math.sin(this.t * 5.2) * 0.15;
+      const g = ctx.createRadialGradient(this.x, this.y - 4, 2, this.x, this.y - 4, 30);
+      g.addColorStop(0, `rgba(255, 214, 110, ${0.5 * flick * alpha})`);
+      g.addColorStop(0.6, `rgba(255, 214, 110, ${0.16 * flick * alpha})`);
+      g.addColorStop(1, 'rgba(255, 214, 110, 0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(this.x, this.y - 4, 30, 0, 6.28); ctx.fill();
+    }
     if (Sprites.draw(ctx, `enemy.${this.kind}`, this.x, this.y, {
       t: this.t, alpha, flipX: this.dirX > 0,
-    })) return;
+    })) {
+      // 독니고기: 형광 눈 — 어둠에서 눈만 보이는 정체성 유지
+      if (this.kind === 'viper') {
+        const ex = this.x + (this.dirX > 0 ? 7 : -7);
+        const g = ctx.createRadialGradient(ex, this.y - 2, 0, ex, this.y - 2, 7);
+        g.addColorStop(0, `rgba(174, 247, 238, ${0.9 * alpha})`);
+        g.addColorStop(1, 'rgba(174, 247, 238, 0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(ex, this.y - 2, 7, 0, 6.28); ctx.fill();
+      }
+      return;
+    }
 
     ctx.save();
     ctx.translate(this.x, this.y);

@@ -112,6 +112,7 @@ const Game = {
   bossScored: false,     // 보스 격파 점수 중복 방지
   phaseHitBase: 0,       // 페이즈 시작 시점의 피격 수 (무결 파도 판정)
   newBest: false,
+  paused: false, pauseSel: 0, pauseView: 'menu',   // 일시정지 메뉴
   bombLanterns: [], bombDash: null, bombLure: null, bombGhost: 0, bombThunder: null,
   perf: { fps: 60, worst: 60, samples: 0, acc: 0 }, // 디버그 통계
   runLog: null,          // 런 기록 (잡몹 구간·보스전·페이즈별 시간)
@@ -134,6 +135,7 @@ const Game = {
     this.batteryMax = Meta.batteryMax();
     const bsel = Meta.data.bombSel || 'sonar';
     this.bombId = bombUnlocked(bsel) ? bsel : 'sonar';
+    this.paused = false; this.pauseView = 'menu';
     this.bombLanterns = []; this.bombDash = null; this.bombLure = null;
     this.bombGhost = 0; this.bombThunder = null;
     const sel = Meta.data.selected;
@@ -173,6 +175,59 @@ const Game = {
   },
 
   // 후퇴 (Esc): 모은 진주는 챙겨서 항해도로 — 파밍런 지원 (클리어 기록은 없음)
+  togglePause() {
+    if (this.state !== 'play') return;
+    this.paused = !this.paused;
+    this.pauseSel = 0;
+    this.pauseView = 'menu';
+    Input.bombQueued = false;   // 정지 중 쌓인 봄 입력이 재개 직후 터지지 않게
+    Input.consumeClicks(); Input.consumeKeyPresses();
+    Sound.sfx(this.paused ? 'uiSelect' : 'uiMove');
+  },
+
+  // 일시정지 메뉴 항목 배치 (drawPause와 공유)
+  pauseItems() {
+    return this.pauseView === 'menu'
+      ? ['계속하기', '항해도로 돌아가기', '설정']
+      : ['BGM 볼륨', '효과음 볼륨', (Sound.muted ? '음소거 해제' : '음소거'), '뒤로'];
+  },
+  pauseItemRect(i) {
+    return { x: CFG.W / 2 - 150, y: 218 + i * 56, w: 300, h: 44 };
+  },
+
+  updatePause() {
+    const items = this.pauseItems();
+    const act = (i) => {
+      if (this.pauseView === 'menu') {
+        if (i === 0) this.togglePause();
+        else if (i === 1) { this.paused = false; this.retreat(); }
+        else { this.pauseView = 'settings'; this.pauseSel = 0; Sound.sfx('uiSelect'); }
+      } else {
+        if (i === 0) Sound.cycleVol('bgm');
+        else if (i === 1) Sound.cycleVol('sfx');
+        else if (i === 2) Sound.toggleMute();
+        else { this.pauseView = 'menu'; this.pauseSel = 0; Sound.sfx('uiMove'); }
+      }
+    };
+    for (const k of Input.consumeKeyPresses()) {
+      if (k === 'arrowup' || k === 'w') { this.pauseSel = (this.pauseSel + items.length - 1) % items.length; Sound.sfx('uiMove'); }
+      else if (k === 'arrowdown' || k === 's') { this.pauseSel = (this.pauseSel + 1) % items.length; Sound.sfx('uiMove'); }
+      else if (k === 'enter' || k === 'z' || k === ' ') act(this.pauseSel);
+      else if (k === 'escape' || k === 'x') {
+        if (this.pauseView === 'settings') { this.pauseView = 'menu'; this.pauseSel = 0; }
+        // 'escape'는 위 togglePause 경로에서도 처리되므로 여기선 설정→메뉴만
+      }
+    }
+    for (const p of Input.consumeClicks()) {
+      for (let i = 0; i < items.length; i++) {
+        if (this.inRect(p, this.pauseItemRect(i))) { this.pauseSel = i; act(i); break; }
+      }
+    }
+    Input.consumeBomb(); Input.consumeAny();
+  },
+
+  inRect(p, r) { return p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h; },
+
   retreat() {
     this.stats.banked = Math.round(this.stats.pearls * this.D.pearlMul);
     Meta.data.bank += this.stats.banked;
@@ -594,7 +649,13 @@ const Game = {
     }
 
     // Esc = 후퇴 (진주는 챙겨감)
-    if (Input.keys['escape']) { Input.keys['escape'] = false; this.retreat(); return; }
+    if (Input.keys['escape']) {
+      Input.keys['escape'] = false;
+      if (this.paused && this.pauseView === 'settings') { this.pauseView = 'menu'; this.pauseSel = 0; }
+      else this.togglePause();
+    }
+    if (Input.consumePause()) this.togglePause();
+    if (this.paused) { this.updatePause(); return; }
     // 플레이 중 메뉴 입력 큐 처리 (디버그 치트키 포함, 봄은 bombQueued로 처리)
     Input.consumeClicks();
     for (const k of Input.consumeKeyPresses()) {
@@ -1064,8 +1125,43 @@ const Game = {
       my += 32;
     }
 
+    if (this.paused) this.drawPause();
     if (this.state === 'victory') this.drawVictory();
     ErrLog.draw(ctx);
+  },
+
+  drawPause() {
+    ctx.save();
+    ctx.fillStyle = 'rgba(4, 12, 40, 0.66)';
+    ctx.fillRect(0, 0, CFG.W, CFG.H);
+    PXUI.panel(ctx, CFG.W / 2 - 190, 128, 380, 330, { border: '#cfe0ff', fill: '#0b1c4e' });
+    ctx.textAlign = 'center';
+    PXUI.text(ctx, this.pauseView === 'menu' ? '일시정지' : '설정', CFG.W / 2, 174, 22, '#fff');
+
+    const items = this.pauseItems();
+    const now = performance.now() / 1000;
+    items.forEach((label, i) => {
+      const r = this.pauseItemRect(i);
+      const on = i === this.pauseSel;
+      PXUI.chip(ctx, r, {
+        border: on ? '#7dffd8' : 'rgba(210,225,255,0.3)',
+        fill: on ? 'rgba(18, 48, 62, 0.95)' : 'rgba(6, 14, 40, 0.9)',
+      });
+      ctx.fillStyle = on ? '#7dffd8' : 'rgba(255,255,255,0.8)';
+      ctx.font = Fonts.f(14, on);
+      ctx.textAlign = 'center';
+      ctx.fillText(label, r.x + r.w / 2, r.y + 28);
+      // 설정: 볼륨 칸 표시
+      if (this.pauseView === 'settings' && i < 2) {
+        const v = Sound.muted ? 0 : Sound.vol[i === 0 ? 'bgm' : 'sfx'];
+        PXUI.cells(ctx, r.x + r.w - 56, r.y + 17, 3, Math.round(v / 0.34), { cw: 12, ch: 10, gap: 3 });
+      }
+      if (on) PXUI.frame(ctx, r.x - 5, r.y - 5, r.w + 10, r.h + 10,
+        `rgba(255,255,255,${0.7 + Math.sin(now * 6) * 0.3})`);
+    });
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = Fonts.f(11); ctx.textAlign = 'center';
+    ctx.fillText('↑↓ 이동 · Enter 선택 · Esc 계속하기', CFG.W / 2, 442);
+    ctx.restore();
   },
 
   // 플레이어/돌고래 샷 렌더 (alphaMul: 어둠 위 재드로용)
@@ -1212,6 +1308,16 @@ const Game = {
       const spriteId = b.kind === 'bubble' ? 'bullet.bubble'
         : b.kind === 'mine' ? 'bullet.mine'
           : (b.kind === 'spike' || b.kind === 'drop') ? 'bullet.spike' : null;
+      if (b.kind === 'mine' && Assets.has('bullet.mine')) {
+        // 기뢰: 맥동 글로우 — 폭발이 가까울수록 빠르게
+        const urgency = b.timer !== undefined && b.timer < 1.2;
+        const pulse = 0.6 + Math.sin(performance.now() / (urgency ? 70 : 190)) * 0.3;
+        const g = ctx.createRadialGradient(b.x, b.y, 2, b.x, b.y, 20);
+        g.addColorStop(0, `rgba(255, 214, 110, ${0.5 * pulse * alphaMul})`);
+        g.addColorStop(1, 'rgba(255, 214, 110, 0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(b.x, b.y, 20, 0, 6.28); ctx.fill();
+      }
       if (spriteId && Sprites.draw(ctx, spriteId, b.x, b.y, {
         t: b.kind === 'mine' ? Math.max(0, b.timer ?? 0) : 0,
         alpha: alphaMul,
@@ -1587,14 +1693,22 @@ const Game = {
       ctx.fillText('목걸이', 38, 100);
     }
 
+    // 일시정지 버튼 (우상단) — ESC와 동일, 터치용
+    {
+      const pb = Input.pauseBtn;
+      PXUI.chip(ctx, pb, { border: 'rgba(210,225,255,0.45)', fill: 'rgba(6,14,40,0.75)' });
+      ctx.fillStyle = 'rgba(230,240,255,0.85)';
+      ctx.fillRect(pb.x + 12, pb.y + 8, 4, 12);
+      ctx.fillRect(pb.x + 22, pb.y + 8, 4, 12);
+    }
     // 입력 모드 안내
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.font = Fonts.f(11);
     ctx.textAlign = 'right';
-    ctx.fillText(Input.mode === 'keys' ? '키보드: 이동 ←↑↓→ · 저속 Shift · 봄 Space' : '포인터: 따라 유영 · 봄 클릭/버튼', CFG.W - 12, 18);
+    ctx.fillText(Input.mode === 'keys' ? '키보드: 이동 ←↑↓→ · 저속 Shift · 봄 Space' : '포인터: 따라 유영 · 봄 클릭/버튼', CFG.W - 56, 18);
     if (this.debug) {
       ctx.fillStyle = '#ff8fd8';
-      ctx.fillText(`DEBUG${this.god ? ' · 무적' : ''} — 1 파워 · 2 진주 · 3 무적 · 4 보스직행 · 5 페이즈스킵 · 6 픽셀${CFG.pixelMode ? 'ON' : 'OFF'}`, CFG.W - 12, 34);
+      ctx.fillText(`DEBUG${this.god ? ' · 무적' : ''} — 1 파워 · 2 진주 · 3 무적 · 4 보스직행 · 5 페이즈스킵 · 6 픽셀${CFG.pixelMode ? 'ON' : 'OFF'}`, CFG.W - 56, 34);
       // 디버그 통계: 프레임·엔티티 수·경과
       const rl = this.runLog || {};
       const bossT = rl.bossStart != null ? (this.stageT - rl.bossStart).toFixed(0) : '-';
@@ -1603,7 +1717,7 @@ const Game = {
         `${Math.round(this.perf.fps)}fps (min ${Math.round(this.perf.worst)}) · ` +
         `적 ${this.enemies.length} 탄 ${this.ebullets.length} 진주 ${this.pearls.length} · ` +
         `t ${this.stageT.toFixed(0)}s 보스 ${bossT}s · 피격 ${rl.hitsTaken || 0} 격침 ${this.stats.deaths}`,
-        CFG.W - 12, 50);
+        CFG.W - 56, 50);
     }
     // 스코어 (우상단): 현재 점수 · 배율 · 해역 최고
     {
@@ -1611,22 +1725,22 @@ const Game = {
       ctx.textAlign = 'right';
       ctx.fillStyle = '#fff';
       ctx.font = Fonts.f(15, true);
-      ctx.fillText(this.score.toLocaleString(), CFG.W - 12, sy);
+      ctx.fillText(this.score.toLocaleString(), CFG.W - 56, sy);
       if (this.mult > 1.001) {
         ctx.fillStyle = this.mult >= 3 ? '#ffd76e' : '#7dffd8';
         ctx.font = Fonts.f(12, true);
-        ctx.fillText(`×${this.mult.toFixed(2)}`, CFG.W - 12, sy + 16);
+        ctx.fillText(`×${this.mult.toFixed(2)}`, CFG.W - 56, sy + 16);
       }
       if (this.bestAtStart > 0) {
         ctx.fillStyle = this.score > this.bestAtStart ? '#ffe9a8' : 'rgba(255,255,255,0.45)';
         ctx.font = Fonts.f(11);
-        ctx.fillText(`최고 ${this.bestAtStart.toLocaleString()}`, CFG.W - 12, sy + (this.mult > 1.001 ? 32 : 16));
+        ctx.fillText(`최고 ${this.bestAtStart.toLocaleString()}`, CFG.W - 56, sy + (this.mult > 1.001 ? 32 : 16));
       }
       // 난이도 뱃지
       if (this.diff > 0) {
         ctx.fillStyle = this.D.color;
         ctx.font = Fonts.f(12, true);
-        ctx.fillText(this.D.name, CFG.W - 12, sy + 48);
+        ctx.fillText(this.D.name, CFG.W - 56, sy + 48);
       }
     }
 
@@ -1648,18 +1762,19 @@ const Game = {
       ctx.fillText('해류', cx, cy + 16);
     }
 
-    // 봄 버튼 (우하단)
+    // 봄 버튼 (우하단) — 선택된 봄의 색과 이름
     const b = Input.bombBtn;
+    const bd = BOMB_DEFS[this.bombId] || BOMB_DEFS.sonar;
     ctx.globalAlpha = 0.8;
-    ctx.fillStyle = this.battery > 0 ? 'rgba(125,255,216,0.25)' : 'rgba(120,120,120,0.2)';
+    ctx.fillStyle = this.battery > 0 ? 'rgba(125,255,216,0.18)' : 'rgba(120,120,120,0.2)';
     ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 6.28); ctx.fill();
-    ctx.strokeStyle = this.battery > 0 ? '#7dffd8' : '#777';
+    ctx.strokeStyle = this.battery > 0 ? bd.color : '#777';
     ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 6.28); ctx.stroke();
-    ctx.fillStyle = this.battery > 0 ? '#dffff4' : '#999';
+    ctx.fillStyle = this.battery > 0 ? bd.color : '#999';
     ctx.font = Fonts.f(14, true);
     ctx.textAlign = 'center';
-    ctx.fillText('소나', b.x, b.y + 5);
+    ctx.fillText(bd.short || '봄', b.x, b.y + 5);
     ctx.restore();
   },
 

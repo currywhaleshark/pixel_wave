@@ -139,7 +139,7 @@ class BossHwii {
 
     if (this.phase === 1) {
       // P1: 소용돌이 — 나선탄 + 부드러운 흡인 (빨려들지 않게 헤엄쳐라)
-      this.y = CFG.H * 0.5 + Math.sin(this.anim * 0.5) * 90;
+      { const ty = CFG.H * 0.5 + Math.sin(this.anim * 0.5) * 90; this.y += (ty - this.y) * Math.min(1, dt * 3); }
       this.spiralT -= dt;
       if (this.spiralT <= 0) {
         this.spiralT = 0.2 * m;
@@ -159,7 +159,7 @@ class BossHwii {
       g.curX = dx / d * 58; g.curY = dy / d * 58;
     } else if (this.phase === 2) {
       // P2: 돌풍 밀당 — 좌우 강풍이 번갈아 (해류 화살표가 예고) + 낙뢰 + 링
-      this.y = CFG.H * 0.5 + Math.sin(this.anim * 0.7) * 120;
+      { const ty = CFG.H * 0.5 + Math.sin(this.anim * 0.7) * 120; this.y += (ty - this.y) * Math.min(1, dt * 3); }
       this.gustT -= dt;
       if (this.gustT <= 0) {
         this.gustT = 3.8 * m;

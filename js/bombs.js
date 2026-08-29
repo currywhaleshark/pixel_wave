@@ -12,7 +12,7 @@
 const BOMB_DEFS = {
   // ---- 기본 (항상 보유) ----
   sonar: {
-    name: '소나 펄스', color: '#7dffd8', unlock: null,
+    short: '소나', name: '소나 펄스', color: '#7dffd8', unlock: null,
     desc: '내 주변의 적탄을 진주로 바꾼다',
     use(g) {
       const p = g.player;
@@ -26,7 +26,7 @@ const BOMB_DEFS = {
 
   // ---- 1. 팡팡: 부풀었다 터지는 가시 ----
   spike: {
-    name: '가시 폭발', color: '#ffd76e', unlock: 'stage1',
+    short: '가시', name: '가시 폭발', color: '#ffd76e', unlock: 'stage1',
     desc: '중간 범위 탄 소거 + 사방으로 관통 가시',
     use(g) {
       const p = g.player;
@@ -48,7 +48,7 @@ const BOMB_DEFS = {
 
   // ---- 2. 몽실: 시간차로 켜지는 등불 ----
   lantern: {
-    name: '등불 정원', color: '#c9a3ff', unlock: 'stage2',
+    short: '등불', name: '등불 정원', color: '#c9a3ff', unlock: 'stage2',
     desc: '등불 3개를 놓아 시간차로 터뜨린다 — 소거 + 범위 피해',
     use(g) {
       const p = g.player;
@@ -69,7 +69,7 @@ const BOMB_DEFS = {
 
   // ---- 3. 씽씽: 특급 배송 대시 ----
   dash: {
-    name: '특급 배송', color: '#8fa3e8', unlock: 'stage3',
+    short: '배송', name: '특급 배송', color: '#8fa3e8', unlock: 'stage3',
     desc: '무적으로 돌진 — 지나간 길의 탄을 쓸고 적을 들이받는다',
     use(g) {
       const p = g.player;
@@ -84,7 +84,7 @@ const BOMB_DEFS = {
 
   // ---- 4. 초롱: 빛으로 끌어당겨 삼킨다 ----
   lure: {
-    name: '초롱 유인', color: '#7ee8e0', unlock: 'stage4',
+    short: '유인', name: '초롱 유인', color: '#7ee8e0', unlock: 'stage4',
     desc: '넓게 적탄을 빨아들여 진주로 삼킨다 (어둠도 잠시 걷힌다)',
     use(g) {
       const p = g.player;
@@ -97,7 +97,7 @@ const BOMB_DEFS = {
 
   // ---- 5. 부우: 유령화 ----
   ghost: {
-    name: '유령화', color: '#9fe8b8', unlock: 'stage5',
+    short: '유령', name: '유령화', color: '#9fe8b8', unlock: 'stage5',
     desc: '탄은 지우지 않지만 3초간 완전 무적 (탄막을 그냥 통과)',
     use(g) {
       const p = g.player;
@@ -110,7 +110,7 @@ const BOMB_DEFS = {
 
   // ---- 6. 우르릉: 전방 낙뢰 ----
   thunder: {
-    name: '낙뢰', color: '#ffe9a8', unlock: 'stage6',
+    short: '낙뢰', name: '낙뢰', color: '#ffe9a8', unlock: 'stage6',
     desc: '작은 범위 탄 소거 + 전방으로 강력한 번개',
     use(g) {
       const p = g.player;
@@ -132,7 +132,7 @@ const BOMB_DEFS = {
 
   // ---- 7. 휘이: 태풍의 눈 ----
   storm: {
-    name: '태풍의 눈', color: '#b8d8f0', unlock: 'stage7',
+    short: '태풍', name: '태풍의 눈', color: '#b8d8f0', unlock: 'stage7',
     desc: '전 화면의 적탄을 진주로 바꾸고 전부 회수한다',
     use(g) {
       const p = g.player;

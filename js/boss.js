@@ -130,7 +130,7 @@ class Boss {
     if (this.transitionT > 0) { this.transitionT -= dt; return; }
 
     // 둥실둥실
-    this.y = CFG.H * 0.5 + Math.sin(this.anim * 1.1) * 26;
+    { const ty = CFG.H * 0.5 + Math.sin(this.anim * 1.1) * 26; this.y += (ty - this.y) * Math.min(1, dt * 3); }
 
     const m = this.mercy();
     if (this.telegraph > 0) this.telegraph -= dt;

@@ -164,7 +164,7 @@ class BossSsing {
     } else if (this.phase === 2) {
       // P2: 호버 + 차선 스트림(끊긴 콘보이) + 가오리 편대 소환
       this.x += (CFG.W * 0.82 - this.x) * Math.min(1, dt * 3);
-      this.y = CFG.H * 0.5 + Math.sin(this.anim * 0.9) * 150;
+      { const ty = CFG.H * 0.5 + Math.sin(this.anim * 0.9) * 150; this.y += (ty - this.y) * Math.min(1, dt * 3); }
       this.laneT -= dt;
       if (g.dolphin && this.laneT <= 0.5 && this.laneT > 0 && this.telegraph <= 0) this.telegraph = 0.5;
       if (this.laneT <= 0) {
@@ -210,7 +210,7 @@ class BossSsing {
       // 호버 복귀는 hover 모드에서만! (돌진 중에 실행되면 두 힘이 평형을 이뤄 중간에 멈춰버림)
       if (this.mode === 'hover') {
         this.x += (CFG.W * 0.85 - this.x) * Math.min(1, dt * 2);
-        this.y = CFG.H * 0.5 + Math.sin(this.anim * 0.7) * 110;
+        { const ty = CFG.H * 0.5 + Math.sin(this.anim * 0.7) * 110; this.y += (ty - this.y) * Math.min(1, dt * 3); }
       }
 
       this.trafficT -= dt;
