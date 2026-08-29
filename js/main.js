@@ -336,6 +336,17 @@ const Game = {
         L.done = true;
         this.clearBulletsRadius(L.x, L.y, L.r, true);
         this.fx.push({ x: L.x, y: L.y, ring: true, life: 0.5, maxLife: 0.5, r: L.r, color: '201,163,255' });
+        // 시간차가 곧 대가 — 터질 때 범위 피해도 준다
+        const r2 = L.r * L.r;
+        for (const e of this.enemies) {
+          if (e.kind === 'wreck') continue;
+          if (e.kind === 'ghost' && !e.solid) continue;
+          if ((e.x - L.x) ** 2 + (e.y - L.y) ** 2 < r2) e.takeDamage(14, this);
+        }
+        if (this.boss && !this.boss.dead && this.boss.phase > 0 && this.boss.hittable !== false) {
+          if ((this.boss.x - L.x) ** 2 + (this.boss.y - L.y) ** 2 < r2) this.boss.takeDamage(12);
+        }
+        this.addFx(L.x, L.y, '#ffd66e', 10);
         Sound.sfx('pearlBig');
       }
     }

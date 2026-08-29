@@ -49,7 +49,7 @@ const BOMB_DEFS = {
   // ---- 2. 몽실: 시간차로 켜지는 등불 ----
   lantern: {
     name: '등불 정원', color: '#c9a3ff', unlock: 'stage2',
-    desc: '등불 3개를 놓아 시간차로 크게 터뜨린다',
+    desc: '등불 3개를 놓아 시간차로 터뜨린다 — 소거 + 범위 피해',
     use(g) {
       const p = g.player;
       p.invuln = Math.max(p.invuln, 2.2);
