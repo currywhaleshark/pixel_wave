@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'pixel-wave-barrage-lab-v1';
+const CACHE = 'pixel-wave-barrage-lab-v2';
 const APP_FILES = [
   './barrage-editor.html',
   './barrage-editor.css',
