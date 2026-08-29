@@ -1020,10 +1020,25 @@ const Game = {
     const p = this.player;
     const t = performance.now() / 1000;
 
-    // 몽실: 놓인 등불 (터지기 직전 빠르게 깜빡)
+    // 몽실: 놓인 등불 — 터질 범위를 점선 원으로 미리 보여준다
     for (const L of this.bombLanterns) {
       const urgent = L.t < 0.35;
       const blink = urgent && Math.floor(L.t * 14) % 2 === 0;
+      // 폭발 예정 반경 (심지가 탈수록 또렷해지고, 안쪽 원이 차오른다)
+      const prog = 1 - Math.max(0, Math.min(1, L.t / 1.4));
+      ctx.save();
+      ctx.strokeStyle = `rgba(201,163,255,${0.25 + prog * 0.5})`;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 7]);
+      ctx.lineDashOffset = -t * 22;
+      ctx.beginPath(); ctx.arc(L.x, L.y, L.r, 0, 6.28); ctx.stroke();
+      ctx.setLineDash([]);
+      // 채워지는 안쪽 원 = 남은 시간
+      ctx.strokeStyle = `rgba(255,214,110,${0.5 + prog * 0.4})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(L.x, L.y, L.r * prog, 0, 6.28); ctx.stroke();
+      ctx.restore();
+      // 등불 본체
       const g = ctx.createRadialGradient(L.x, L.y, 0, L.x, L.y, 26);
       g.addColorStop(0, `rgba(255,214,110,${blink ? 0.95 : 0.6})`);
       g.addColorStop(1, 'rgba(201,163,255,0)');
@@ -1044,17 +1059,26 @@ const Game = {
       ctx.restore();
     }
 
-    // 초롱: 유인 광구
+    // 초롱: 유인 광구 — 실제 흡입 반경을 점선으로 표시
     if (this.bombLure) {
       const L = this.bombLure;
       const pulse = 1 + Math.sin(t * 12) * 0.06;
-      const g = ctx.createRadialGradient(L.x, L.y, 10, L.x, L.y, L.r * 0.55 * pulse);
-      g.addColorStop(0, 'rgba(215,255,250,0.5)');
-      g.addColorStop(0.4, 'rgba(126,232,224,0.18)');
+      const g = ctx.createRadialGradient(L.x, L.y, 10, L.x, L.y, L.r * pulse);
+      g.addColorStop(0, 'rgba(215,255,250,0.45)');
+      g.addColorStop(0.35, 'rgba(126,232,224,0.14)');
       g.addColorStop(1, 'rgba(126,232,224,0)');
       ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(L.x, L.y, L.r * 0.55 * pulse, 0, 6.28); ctx.fill();
-      ctx.strokeStyle = `rgba(126,232,224,${0.35 + Math.sin(t * 10) * 0.15})`;
+      ctx.beginPath(); ctx.arc(L.x, L.y, L.r * pulse, 0, 6.28); ctx.fill();
+      // 흡입 경계 (안쪽으로 흐르는 점선)
+      ctx.save();
+      ctx.strokeStyle = `rgba(126,232,224,${0.45 + Math.sin(t * 8) * 0.15})`;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([10, 8]);
+      ctx.lineDashOffset = t * 40;
+      ctx.beginPath(); ctx.arc(L.x, L.y, L.r, 0, 6.28); ctx.stroke();
+      ctx.restore();
+      // 삼키는 중심핵 (반경 46 안에서 진주로 바뀐다)
+      ctx.strokeStyle = `rgba(215,255,250,${0.5 + Math.sin(t * 10) * 0.2})`;
       ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(L.x, L.y, 46, 0, 6.28); ctx.stroke();
     }

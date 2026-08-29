@@ -54,6 +54,7 @@ const BOMB_DEFS = {
       const p = g.player;
       p.invuln = Math.max(p.invuln, 2.2);
       g.clearBulletsRadius(p.x, p.y, 150, true);
+      g.fx.push({ x: p.x, y: p.y, ring: true, life: 0.45, maxLife: 0.45, r: 150, color: '201,163,255' });
       for (let i = 0; i < 3; i++) {
         const a = -0.6 + i * 0.6;
         g.bombLanterns.push({
@@ -75,6 +76,7 @@ const BOMB_DEFS = {
       p.invuln = Math.max(p.invuln, 1.4);
       g.bombDash = { t: 0.55, dmgDone: new Set() };
       g.clearBulletsRadius(p.x, p.y, 130, true);
+      g.fx.push({ x: p.x, y: p.y, ring: true, life: 0.4, maxLife: 0.4, r: 130, color: '143,163,232' });
       Sound.sfx('ride');
       g.message('특급 배송!', '#8fa3e8');
     },
@@ -87,7 +89,7 @@ const BOMB_DEFS = {
     use(g) {
       const p = g.player;
       p.invuln = Math.max(p.invuln, 2.4);
-      g.bombLure = { t: 1.6, x: p.x, y: p.y, r: 420 };
+      g.bombLure = { t: 1.6, x: p.x, y: p.y, r: 380 };
       Sound.sfx('sonar');
       g.message('초롱 유인!', '#7ee8e0');
     },
@@ -96,11 +98,11 @@ const BOMB_DEFS = {
   // ---- 5. 부우: 유령화 ----
   ghost: {
     name: '유령화', color: '#9fe8b8', unlock: 'stage5',
-    desc: '탄은 지우지 않지만 한동안 완전 무적 (탄막을 그냥 통과)',
+    desc: '탄은 지우지 않지만 3초간 완전 무적 (탄막을 그냥 통과)',
     use(g) {
       const p = g.player;
-      p.invuln = Math.max(p.invuln, 4.5);
-      g.bombGhost = 4.5;
+      p.invuln = Math.max(p.invuln, 3.0);
+      g.bombGhost = 3.0;
       Sound.sfx('shield');
       g.message('유령화!', '#9fe8b8');
     },
@@ -114,6 +116,7 @@ const BOMB_DEFS = {
       const p = g.player;
       p.invuln = Math.max(p.invuln, 1.6);
       g.clearBulletsRadius(p.x, p.y, 170, true);
+      g.fx.push({ x: p.x, y: p.y, ring: true, life: 0.4, maxLife: 0.4, r: 170, color: '255,233,168' });
       g.bombThunder = { t: 0.45, y: p.y, x0: p.x };
       // 전방 일직선 강타 (관통)
       g.shots.push({
