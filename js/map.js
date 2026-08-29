@@ -508,8 +508,11 @@ const MapUI = {
       } else {
         const d = DOLPHIN_DEFS[t];
         ctx.globalAlpha = unlocked ? 1 : 0.35;
-        ctx.fillStyle = d.color;
-        ctx.beginPath(); ctx.ellipse(r.x + r.w / 2, r.y + 20, 13, 7, -0.15, 0, 6.28); ctx.fill();
+        // 돌고래 스프라이트 (헤엄 애니메이션 유지 — 잠긴 것은 흐리게)
+        if (!Sprites.draw(ctx, `dolphin.${t}`, r.x + r.w / 2, r.y + 20, { t: now })) {
+          ctx.fillStyle = d.color;
+          ctx.beginPath(); ctx.ellipse(r.x + r.w / 2, r.y + 20, 13, 7, -0.15, 0, 6.28); ctx.fill();
+        }
         ctx.fillStyle = unlocked ? '#fff' : 'rgba(255,255,255,0.5)';
         ctx.font = Fonts.f(11);
         ctx.fillText(unlocked ? `${d.label} Lv${Meta.data.dolphinLv[t]}` : '잠김', r.x + r.w / 2, r.y + 44);
