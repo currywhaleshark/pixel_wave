@@ -59,6 +59,60 @@ function run(pattern, difficulty = 0) {
 }
 
 {
+  const { bullets } = run(base({ type: 'fan', count: 1, angle: 0, speed: 50, motion: { acceleration: 50, angularVelocity: 90 } }));
+  const bullet = bullets[0];
+  BarrageRuntime.updateProjectile(bullet, 0.5, {});
+  assert.ok(bullet.barrage.speed > 60, '가속도가 탄속을 높인다');
+  assert.ok(bullet.vy > 0, '각속도가 탄의 진행 방향을 굽힌다');
+}
+
+{
+  const { bullets } = run(base({ type: 'fan', count: 1, angle: 0, motion: { homingTurnRate: 180, homingDuration: 2 } }));
+  const bullet = bullets[0];
+  BarrageRuntime.updateProjectile(bullet, 0.25, { target: { x: 80, y: 150 } });
+  assert.ok(bullet.barrage.heading > 0, '유도탄은 제한된 회전 속도로 목표를 향한다');
+}
+
+{
+  const { bullets } = run(base({ type: 'fan', count: 1, actions: [{ type: 'spawn', at: 0.2, repeat: 2, interval: 0.2, count: 3, spread: 120, speed: 80 }] }));
+  const spawned = [];
+  const budget = { remaining: 20 };
+  BarrageRuntime.updateProjectile(bullets[0], 0.25, { spawnBudget: budget, spawn: bullet => spawned.push(bullet) });
+  BarrageRuntime.updateProjectile(bullets[0], 0.2, { spawnBudget: budget, spawn: bullet => spawned.push(bullet) });
+  assert.equal(spawned.length, 6, '시간 행동은 이동 중 자탄을 반복해서 생성한다');
+  assert.ok(spawned.every(bullet => bullet.barrage.depth === 1));
+}
+
+{
+  const { bullets } = run(base({ type: 'fan', count: 1, speed: 100, actions: [
+    { type: 'changeSpeed', at: 0.1, value: 0, relative: false },
+    { type: 'changeDirection', at: 0.1, value: 90, relative: false },
+    { type: 'vanish', at: 0.5 },
+  ] }));
+  const bullet = bullets[0];
+  BarrageRuntime.updateProjectile(bullet, 0.2, {});
+  assert.equal(bullet.barrage.speed, 0, '속도 변경 행동이 절대 속도를 적용한다');
+  assert.ok(Math.abs(bullet.barrage.heading - Math.PI / 2) < 1e-6, '방향 변경 행동이 절대 각도를 적용한다');
+  BarrageRuntime.updateProjectile(bullet, 0.25, {});
+  BarrageRuntime.updateProjectile(bullet, 0.1, {});
+  assert.equal(bullet.dead, true, '소멸 행동이 탄을 제거한다');
+}
+
+{
+  const { bullets } = run(base({ type: 'laser', angle: 0, speed: 0, laserLength: 200, laserWidth: 20, laserTelegraph: 0.5, laserActive: 0.5, laserFade: 0.2 }));
+  const laser = bullets[0];
+  BarrageRuntime.updateProjectile(laser, 0.25, {});
+  assert.equal(BarrageRuntime.laserHits(laser, { x: 120, y: 50 }, 3), false, '레이저 예고선은 무해하다');
+  BarrageRuntime.updateProjectile(laser, 0.25, {});
+  BarrageRuntime.updateProjectile(laser, 0.05, {});
+  assert.equal(BarrageRuntime.laserHits(laser, { x: 120, y: 50 }, 3), true, '활성 레이저는 선분 전체에 충돌한다');
+  BarrageRuntime.updateProjectile(laser, 0.25, {});
+  BarrageRuntime.updateProjectile(laser, 0.25, {});
+  BarrageRuntime.updateProjectile(laser, 0.2, {});
+  assert.equal(laser.dead, true, '레이저는 예고·공격·소멸 수명이 끝나면 제거된다');
+}
+
+{
   const pattern = base({ type: 'ring', count: 4 }, { duration: 1, loop: true });
   const bullets = [];
   const runner = new BarrageRuntime.Runner(pattern, { emit: bullet => bullets.push(bullet) });

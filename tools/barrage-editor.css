@@ -171,6 +171,10 @@ input[type="range"] { accent-color: var(--pink); padding: 0; border: 0; backgrou
 .inspector-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
 .validation { margin-top: 12px; color: var(--danger); font-size: 10px; white-space: pre-wrap; }
 .hint { color: #6f98b9; font-size: 9px; margin: -4px 0 7px; }
+.action-card { margin: 8px 0; padding: 9px; border: 1px solid #28557e; border-radius: 6px; background: #071a31; }
+.action-head { display: flex; align-items: center; justify-content: space-between; color: #cfe8ff; font-size: 10px; }
+.action-head .icon-button { padding: 1px 7px; color: var(--danger); }
+.action-add { width: 100%; margin-top: 5px; }
 
 @media (max-width: 1180px) {
   .workspace { grid-template-columns: 250px minmax(430px, 1fr); }

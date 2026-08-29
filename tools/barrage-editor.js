@@ -5,8 +5,9 @@
   const canvas = $('#preview');
   const ctx = canvas.getContext('2d');
   const COLORS = ['#55d9e8', '#ff87bd', '#ffd66e', '#9d8cff', '#7dffb2', '#ff9b6e', '#78a9ff', '#e889ff'];
-  const TYPE_NAMES = { fan: '부채꼴', ring: '원형 링', spiral: '회전 나선', rain: '탄 비', wall: '틈새 벽' };
+  const TYPE_NAMES = { fan: '부채꼴', ring: '원형 링', spiral: '회전 나선', rain: '탄 비', wall: '틈새 벽', laser: '직선 레이저' };
   const KIND_NAMES = { bubble: '기포', spike: '가시', drop: '물방울', mine: '기뢰', star: '별', ghostflame: '유령불' };
+  const ACTION_NAMES = { changeSpeed: '속도 변경', changeDirection: '방향 변경', spawn: '자탄 발사', vanish: '소멸' };
   const DIFF_SPEED = [1, 1.1, 1.22];
   const LOCAL_PATTERNS_KEY = BarrageRuntime.STORAGE_KEY;
   const DRAFT_KEY = 'pixelWave.barrageDraft.v1';
@@ -19,18 +20,20 @@
 
   const presetEmitter = (type, index, duration) => BarrageRuntime.normalizeEmitter({
     id: `${type}-${index + 1}`,
-    name: { fan: '조준 부채꼴', ring: '원형 링', spiral: '회전 나선', rain: '탄 비', wall: '틈새 벽' }[type],
-    type, enabled: true, start: 0.5, end: duration, interval: type === 'spiral' ? 0.16 : type === 'rain' ? 0.55 : 1.8,
-    burstCount: 1, burstGap: 0.12, source: 'boss', x: type === 'fan' ? -20 : 0, y: 0,
+    name: { fan: '조준 부채꼴', ring: '원형 링', spiral: '회전 나선', rain: '탄 비', wall: '틈새 벽', laser: '직선 레이저' }[type],
+    type, enabled: true, start: 0.5, end: duration, interval: type === 'spiral' ? 0.16 : type === 'rain' ? 0.55 : type === 'laser' ? 3 : 1.8,
+    burstCount: 1, burstGap: 0.12, source: 'boss', x: type === 'fan' || type === 'laser' ? -20 : 0, y: 0,
     bulletKind: type === 'fan' || type === 'wall' ? 'spike' : 'bubble', radius: 5,
     mineTimer: 2.2,
-    speed: type === 'wall' ? 135 : type === 'spiral' ? 90 : 120,
+    speed: type === 'laser' ? 0 : type === 'wall' ? 135 : type === 'spiral' ? 90 : 120,
     difficultyCount: type === 'spiral' ? 1 : type === 'rain' ? 1 : 2, difficultySpeed: 0,
     count: type === 'ring' ? 16 : type === 'wall' ? 12 : type === 'rain' ? 2 : 3,
     angle: type === 'rain' ? 90 : type === 'wall' ? 90 : 180,
     angleStep: type === 'ring' ? 11 : 0, spread: 32, aim: type === 'fan', arms: 4, rotationSpeed: 70,
     xMin: 40, xMax: 920, yMin: -10, yMax: type === 'rain' ? -10 : 550,
     axis: 'vertical', gapCount: 2, gapIndex: 2, gapStep: 1, jitter: type === 'rain' ? 8 : 0,
+    motion: {}, actions: [], laserLength: 760, laserWidth: 18, laserTelegraph: 0.8,
+    laserActive: 1.1, laserFade: 0.35, laserRotationSpeed: 0,
   }, index);
 
   let pattern = defaultPattern();
@@ -187,6 +190,47 @@
     return `<section class="inspector-group"><h3>${title}</h3>${hint ? `<p class="hint">${hint}</p>` : ''}${content}</section>`;
   }
 
+  function nestedField(label, path, value, type = 'number', options = {}) {
+    const data = Object.entries(path).map(([key, item]) => `data-${key}="${item}"`).join(' ');
+    if (type === 'checkbox') return `<label class="check"><input ${data} type="checkbox" ${value ? 'checked' : ''}> ${label}</label>`;
+    if (type === 'select') {
+      const choices = options.choices.map(([choice, name]) => `<option value="${choice}" ${String(value) === String(choice) ? 'selected' : ''}>${name}</option>`).join('');
+      return `<label>${label}<select ${data}>${choices}</select></label>`;
+    }
+    const attrs = [options.min !== undefined ? `min="${options.min}"` : '', options.max !== undefined ? `max="${options.max}"` : '', options.step !== undefined ? `step="${options.step}"` : ''].join(' ');
+    return `<label>${label}<input ${data} type="${type}" value="${escapeHtml(String(value ?? ''))}" ${attrs}></label>`;
+  }
+
+  function motionFields(emitter) {
+    const motion = emitter.motion || {};
+    const item = (label, key, options) => nestedField(label, { motionKey: key }, motion[key], 'number', options);
+    return `<div class="field-row">${item('가속도', 'acceleration', { min: -800, max: 800, step: 5 })}${item('최대 속도(0=제한없음)', 'maxSpeed', { min: 0, max: 800, step: 5 })}</div>` +
+      `<div class="field-row">${item('회전 속도(°/초)', 'angularVelocity', { min: -720, max: 720, step: 1 })}${item('물결 폭(°)', 'waveAmplitude', { min: 0, max: 180, step: 1 })}</div>` +
+      `<div class="field-row">${item('물결 주파수(Hz)', 'waveFrequency', { min: 0, max: 20, step: 0.1 })}${item('유도 회전(°/초)', 'homingTurnRate', { min: 0, max: 720, step: 1 })}</div>` +
+      item('유도 시간(초)', 'homingDuration', { min: 0, max: 30, step: 0.1 });
+  }
+
+  function renderActions(emitter) {
+    const cards = (emitter.actions || []).map((action, index) => {
+      const item = (label, key, type = 'number', options = {}) => nestedField(label, { actionIndex: index, actionKey: key }, action[key], type, options);
+      let detail = '';
+      if (action.type === 'changeSpeed') {
+        detail = `<div class="field-row">${item('속도 값', 'value', 'number', { min: -800, max: 800, step: 5 })}${item('변화 시간', 'duration', 'number', { min: 0, max: 30, step: 0.1 })}</div>` + item('현재 속도에 더하기', 'relative', 'checkbox');
+      } else if (action.type === 'changeDirection') {
+        detail = `<div class="field-row">${item('각도 값(°)', 'value', 'number', { step: 1 })}${item('회전 시간', 'duration', 'number', { min: 0, max: 30, step: 0.1 })}</div>` + item('현재 방향 기준', 'relative', 'checkbox') + item('플레이어 조준', 'aim', 'checkbox');
+      } else if (action.type === 'spawn') {
+        detail = `<div class="field-row">${item('자탄 수', 'count', 'number', { min: 1, max: 64, step: 1 })}${item('펼침 각도(°)', 'spread', 'number', { min: 0, max: 360, step: 1 })}</div>` +
+          `<div class="field-row">${item('기준 각도(°)', 'angle', 'number', { step: 1 })}${item('자탄 속도', 'speed', 'number', { min: 0, max: 800, step: 5 })}</div>` +
+          `<div class="field-row">${item('자탄 모양', 'bulletKind', 'select', { choices: Object.entries(KIND_NAMES) })}${item('자탄 반지름', 'radius', 'number', { min: 1, max: 30, step: 1 })}</div>` + item('현재 방향 기준', 'relative', 'checkbox') + item('플레이어 조준', 'aim', 'checkbox');
+      }
+      return `<article class="action-card"><div class="action-head"><strong>행동 ${index + 1}</strong><button type="button" class="icon-button action-delete" data-action-delete="${index}">×</button></div>` +
+        item('종류', 'type', 'select', { choices: Object.entries(ACTION_NAMES) }) +
+        `<div class="field-row">${item('실행 시각', 'at', 'number', { min: 0, max: 120, step: 0.05 })}${item('반복 횟수', 'repeat', 'number', { min: 1, max: 32, step: 1 })}</div>` +
+        item('반복 간격', 'interval', 'number', { min: 0.03, max: 30, step: 0.05 }) + detail + '</article>';
+    }).join('');
+    return `${cards}<button type="button" class="button action-add" data-action-add="1" ${(emitter.actions || []).length >= 8 ? 'disabled' : ''}>+ 행동 추가</button>`;
+  }
+
   function renderInspector() {
     const emitter = selectedEmitter();
     $('#emptyInspector').hidden = !!emitter;
@@ -197,10 +241,10 @@
     const form = $('#inspector');
     const common = field('사용', 'enabled', 'checkbox') + field('이름', 'name', 'text', { maxlength: 80 }) + field('ID', 'id', 'text') + field('종류', 'type', 'select', { choices: Object.entries(TYPE_NAMES) });
     const timing = `<div class="field-row">${field('시작', 'start', 'number', { min: 0, max: 120, step: 0.05 })}${field('끝', 'end', 'number', { min: 0, max: 120, step: 0.05 })}</div>` + `<div class="field-row">${field('발사 간격', 'interval', 'number', { min: 0.03, max: 60, step: 0.01 })}${field('연사 수', 'burstCount', 'number', { min: 1, max: 20, step: 1 })}</div>` + field('연사 간격', 'burstGap', 'number', { min: 0.02, max: 10, step: 0.01 });
-    const bullet = `<div class="field-row">${field('탄 모양', 'bulletKind', 'select', { choices: Object.entries(KIND_NAMES) })}${field('탄 반지름', 'radius', 'number', { min: 1, max: 30, step: 1 })}</div>` + `<div class="field-row">${field('탄속', 'speed', 'number', { min: 0, max: 800, step: 1 })}${field('각도 흔들림', 'jitter', 'number', { min: 0, max: 180, step: 1 })}</div>` + field('기뢰 폭발 시간(초)', 'mineTimer', 'number', { min: 0.2, max: 20, step: 0.1 }) + `<div class="field-row">${field('난이도당 탄수', 'difficultyCount', 'number', { min: -20, max: 20, step: 1 })}${field('난이도당 탄속', 'difficultySpeed', 'number', { min: -0.4, max: 2, step: 0.05 })}</div>`;
+    const bullet = (emitter.type === 'laser' ? '' : `<div class="field-row">${field('탄 모양', 'bulletKind', 'select', { choices: Object.entries(KIND_NAMES) })}${field('탄 반지름', 'radius', 'number', { min: 1, max: 30, step: 1 })}</div>`) + `<div class="field-row">${field('탄속', 'speed', 'number', { min: 0, max: 800, step: 1 })}${field('각도 흔들림', 'jitter', 'number', { min: 0, max: 180, step: 1 })}</div>` + (emitter.type === 'laser' ? '' : field('기뢰 폭발 시간(초)', 'mineTimer', 'number', { min: 0.2, max: 20, step: 0.1 })) + `<div class="field-row">${field(emitter.type === 'laser' ? '난이도당 폭 증가' : '난이도당 탄수', 'difficultyCount', 'number', { min: -20, max: 20, step: 1 })}${field('난이도당 탄속', 'difficultySpeed', 'number', { min: -0.4, max: 2, step: 0.05 })}</div>`;
     let specific = '';
     let position = '';
-    if (['fan', 'ring', 'spiral'].includes(emitter.type)) {
+    if (['fan', 'ring', 'spiral', 'laser'].includes(emitter.type)) {
       position = field('발사 위치', 'source', 'select', { choices: [['boss', '보스 기준'], ['absolute', '화면 절대좌표']] }) + `<div class="field-row">${field('X/오프셋', 'x', 'number', { step: 1 })}${field('Y/오프셋', 'y', 'number', { step: 1 })}</div>`;
     }
     if (emitter.type === 'fan') {
@@ -213,8 +257,13 @@
       specific = `<div class="field-row">${field('한 번의 탄수', 'count', 'number', { min: 1, max: 160, step: 1 })}${field('낙하 각도(°)', 'angle', 'number', { step: 1 })}</div>` + `<div class="field-row">${field('X 최소', 'xMin', 'number', { step: 1 })}${field('X 최대', 'xMax', 'number', { step: 1 })}</div>` + `<div class="field-row">${field('Y 최소', 'yMin', 'number', { step: 1 })}${field('Y 최대', 'yMax', 'number', { step: 1 })}</div>` + field('발사마다 회전(°)', 'angleStep', 'number', { step: 1 });
     } else if (emitter.type === 'wall') {
       specific = field('배치 방향', 'axis', 'select', { choices: [['vertical', '가로로 나열'], ['horizontal', '세로로 나열']] }) + `<div class="field-row">${field('전체 칸', 'count', 'number', { min: 1, max: 160, step: 1 })}${field('빈 칸 수', 'gapCount', 'number', { min: 0, max: 159, step: 1 })}</div>` + `<div class="field-row">${field('첫 빈 칸', 'gapIndex', 'number', { min: 0, max: 159, step: 1 })}${field('발사마다 틈 이동', 'gapStep', 'number', { min: -159, max: 159, step: 1 })}</div>` + `<div class="field-row">${field('X 최소', 'xMin', 'number', { step: 1 })}${field('X 최대', 'xMax', 'number', { step: 1 })}</div>` + `<div class="field-row">${field('Y 최소', 'yMin', 'number', { step: 1 })}${field('Y 최대', 'yMax', 'number', { step: 1 })}</div>` + `<div class="field-row">${field('이동 각도(°)', 'angle', 'number', { step: 1 })}${field('발사마다 회전', 'angleStep', 'number', { step: 1 })}</div>`;
+    } else if (emitter.type === 'laser') {
+      specific = field('플레이어 조준', 'aim', 'checkbox') + `<div class="field-row">${field('기준 각도(°)', 'angle', 'number', { step: 1 })}${field('발사마다 회전(°)', 'angleStep', 'number', { step: 1 })}</div>` +
+        `<div class="field-row">${field('길이', 'laserLength', 'number', { min: 20, max: 1600, step: 10 })}${field('폭', 'laserWidth', 'number', { min: 2, max: 120, step: 1 })}</div>` +
+        `<div class="field-row">${field('예고 시간', 'laserTelegraph', 'number', { min: 0.05, max: 10, step: 0.05 })}${field('공격 시간', 'laserActive', 'number', { min: 0.05, max: 20, step: 0.05 })}</div>` +
+        `<div class="field-row">${field('소멸 시간', 'laserFade', 'number', { min: 0.05, max: 10, step: 0.05 })}${field('회전 속도(°/초)', 'laserRotationSpeed', 'number', { min: -360, max: 360, step: 1 })}</div>`;
     }
-    form.innerHTML = group('기본', common) + group('시간', timing, 'interval마다 한 묶음, burst는 묶음 안의 연사입니다.') + (position ? group('발사점', position) : '') + group(TYPE_NAMES[emitter.type], specific) + group('탄과 난이도', bullet, '난이도 값 1은 노멀, 2는 하드에서 두 번 적용됩니다.');
+    form.innerHTML = group('기본', common) + group('시간', timing, 'interval마다 한 묶음, burst는 묶음 안의 연사입니다.') + (position ? group('발사점', position) : '') + group(TYPE_NAMES[emitter.type], specific) + group('탄과 난이도', bullet, '난이도 값 1은 노멀, 2는 하드에서 두 번 적용됩니다.') + group('탄 궤적', motionFields(emitter), '가속·곡선·물결·유도를 조합할 수 있습니다.') + group('시간 행동', renderActions(emitter), '탄이 태어난 뒤 속도·방향을 바꾸거나 자탄을 뿌리고 사라지게 합니다.');
   }
 
   function renderValidation() {
@@ -291,29 +340,24 @@
   function updateBullets(dt) {
     const speedMul = DIFF_SPEED[difficulty];
     const spawned = [];
+    const spawnBudget = { remaining: 1200 };
     for (const bullet of bullets) {
-      bullet.x += bullet.vx * speedMul * dt;
-      bullet.y += bullet.vy * speedMul * dt;
-      bullet.life += dt;
-      if (bullet.kind === 'mine') {
-        bullet.vy *= Math.max(0, 1 - 1.5 * dt);
-        bullet.timer -= dt;
-        if (bullet.timer <= 0) {
-          bullet.dead = true;
-          for (let i = 0; i < 6 + difficulty; i++) {
-            const angle = i / (6 + difficulty) * Math.PI * 2;
-            spawned.push({ x: bullet.x, y: bullet.y, vx: Math.cos(angle) * 95, vy: Math.sin(angle) * 95, r: 5, kind: 'bubble', life: 0 });
-          }
-        }
-      }
-      if (player.invuln <= 0 && (bullet.x - player.x) ** 2 + (bullet.y - player.y) ** 2 < (bullet.r + 6) ** 2) {
+      BarrageRuntime.updateProjectile(bullet, dt, {
+        speedMul, target: player, difficulty, spawnBudget,
+        mineRingCount: 6 + difficulty, mineRingSpeed: 95,
+        spawn: child => spawned.push(child),
+      });
+      const hit = bullet.kind === 'laser'
+        ? BarrageRuntime.laserHits(bullet, player, 6)
+        : (bullet.x - player.x) ** 2 + (bullet.y - player.y) ** 2 < (bullet.r + 6) ** 2;
+      if (player.invuln <= 0 && hit) {
         player.invuln = 0.8;
         hitCount++;
         showHit();
       }
     }
     player.invuln = Math.max(0, player.invuln - dt);
-    bullets = bullets.filter(b => !b.dead && b.x > -60 && b.x < 1020 && b.y > -60 && b.y < 600 && b.life < 20).concat(spawned);
+    bullets = bullets.filter(b => !b.dead && b.life < 20 && (b.kind === 'laser' || (b.x > -60 && b.x < 1020 && b.y > -60 && b.y < 600))).concat(spawned);
   }
 
   function showHit() {
@@ -371,7 +415,25 @@
     ctx.save(); ctx.translate(bullet.x, bullet.y);
     const colors = { bubble: '#bdeaff', spike: '#ff9ec7', drop: '#8fc9ff', mine: '#ffd66e', star: '#bfffea', ghostflame: '#a8f0be' };
     const color = colors[bullet.kind] || '#fff';
-    if (bullet.kind === 'bubble') {
+    if (bullet.kind === 'laser') {
+      const state = BarrageRuntime.laserState(bullet);
+      const laser = bullet.laser;
+      const endX = Math.cos(laser.angle) * laser.length;
+      const endY = Math.sin(laser.angle) * laser.length;
+      ctx.globalAlpha = state.alpha;
+      ctx.lineCap = 'round';
+      if (state.phase === 'telegraph') {
+        ctx.setLineDash([12, 9]); ctx.strokeStyle = '#ffe07ecc'; ctx.lineWidth = Math.max(2, laser.width * 0.18);
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(endX, endY); ctx.stroke();
+      } else {
+        ctx.shadowColor = '#ff6fb5'; ctx.shadowBlur = 16; ctx.strokeStyle = '#ff529b66'; ctx.lineWidth = laser.width * 1.55;
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(endX, endY); ctx.stroke();
+        ctx.shadowBlur = 7; ctx.strokeStyle = '#ff83be'; ctx.lineWidth = laser.width;
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(endX, endY); ctx.stroke();
+        ctx.shadowBlur = 0; ctx.strokeStyle = '#fff4fb'; ctx.lineWidth = Math.max(2, laser.width * 0.24);
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(endX, endY); ctx.stroke();
+      }
+    } else if (bullet.kind === 'bubble') {
       ctx.fillStyle = '#a8dfff55'; ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, bullet.r + 1, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     } else if (bullet.kind === 'spike' || bullet.kind === 'drop') {
       ctx.rotate(Math.atan2(bullet.vy, bullet.vx)); ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(bullet.r + 3, 0); ctx.lineTo(-bullet.r, -bullet.r * 0.7); ctx.lineTo(-bullet.r, bullet.r * 0.7); ctx.closePath(); ctx.fill();
@@ -509,6 +571,21 @@
       $('#patternId').value = pattern.id; $('#patternDuration').value = pattern.duration;
       return;
     }
+    const motionKey = event.target.dataset.motionKey;
+    if (motionKey) {
+      const emitter = selectedEmitter(); if (!emitter) return;
+      emitter.motion[motionKey] = Number(event.target.value);
+      normalizeAndRestart();
+      return;
+    }
+    const actionKey = event.target.dataset.actionKey;
+    if (actionKey) {
+      const emitter = selectedEmitter(); if (!emitter) return;
+      const action = emitter.actions[Number(event.target.dataset.actionIndex)]; if (!action) return;
+      action[actionKey] = event.target.type === 'checkbox' ? event.target.checked : event.target.type === 'number' ? Number(event.target.value) : event.target.value;
+      normalizeAndRestart();
+      return;
+    }
     const emitterKey = event.target.dataset.emitterKey;
     if (emitterKey) {
       const emitter = selectedEmitter(); if (!emitter) return;
@@ -517,6 +594,22 @@
       if (emitterKey === 'id') value = uniqueId(value, oldId);
       emitter[emitterKey] = value;
       if (emitterKey === 'id') selectedId = value;
+      normalizeAndRestart();
+    }
+  });
+
+  document.addEventListener('click', event => {
+    const add = event.target.closest('[data-action-add]');
+    if (add) {
+      const emitter = selectedEmitter(); if (!emitter || emitter.actions.length >= 8) return;
+      emitter.actions.push(BarrageRuntime.normalizeAction({ type: 'spawn', at: 1, count: 6, spread: 360, speed: 100 }, emitter.actions.length));
+      normalizeAndRestart();
+      return;
+    }
+    const remove = event.target.closest('[data-action-delete]');
+    if (remove) {
+      const emitter = selectedEmitter(); if (!emitter) return;
+      emitter.actions.splice(Number(remove.dataset.actionDelete), 1);
       normalizeAndRestart();
     }
   });

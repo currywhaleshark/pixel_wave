@@ -571,7 +571,9 @@ const Game = {
     }
     this.shots = this.shots.filter(s => s.x > -30 && s.x < CFG.W + 30 && s.y > -30 && s.y < CFG.H + 30 && !s.dead);
 
-    // 적탄 (기뢰는 제자리에서 카운트다운 → 링 폭발, 폭풍에선 해류에 휜다)
+    // 적탄 (JSON 탄막은 에디터와 같은 공통 런타임으로 이동·행동을 처리한다)
+    const barrageSpawned = [];
+    const barrageSpawnBudget = { remaining: 1200 };
     for (const b of this.ebullets) {
       if (b.kind === 'storm' && this.boss && !this.boss.dead) {
         // 폭풍탄 (라스보스): 바깥에서 계속 생성되어 감겨들고, 안쪽 벽(반경 175)에서
@@ -588,6 +590,21 @@ const Game = {
       }
       // 난이도: 적탄 속도 배율 (탄 자체 속도에만 — 해류는 그대로)
       const sm = this.D.ebSpd;
+      if (b.barrage && typeof BarrageRuntime !== 'undefined') {
+        const mineWasArmed = b.kind === 'mine' && Number.isFinite(b.timer) && b.timer > 0;
+        BarrageRuntime.updateProjectile(b, dt, {
+          speedMul: sm,
+          current: { x: this.curX * 0.75, y: this.curY * 0.6 },
+          target: this.player,
+          difficulty: this.diff,
+          mineRingCount: CFG.mineRingN + this.diff,
+          mineRingSpeed: CFG.mineRingSpd,
+          spawnBudget: barrageSpawnBudget,
+          spawn: child => barrageSpawned.push(child),
+        });
+        if (mineWasArmed && b.dead) this.addFx(b.x, b.y, '#ffd66e', 6);
+        continue;
+      }
       if (b.armT !== undefined && b.armT > 0) b.armT -= dt; // 태어나는 중 (무해 예고)
       if (b.fallTo) { // 별똥별 (초롱 진 대파도): 완만한 가속 — 읽힌다
         b.vx += (b.fallTo.vx - b.vx) * Math.min(1, dt * 2.2);
@@ -604,10 +621,12 @@ const Game = {
         }
       }
     }
+    if (barrageSpawned.length) this.ebullets.push(...barrageSpawned);
     // x 경계는 넉넉하게 — 콘보이(줄지어 진입)는 화면 밖에서 스폰되어 걸어들어온다
     // 폭풍탄은 궤도가 화면 밖을 지나므로 경계 예외 (보스 있는 동안 유지)
     this.ebullets = this.ebullets.filter(b => !b.dead && (
       b.kind === 'storm' ? (this.boss && !this.boss.dead)
+        : b.kind === 'laser' ? !b.dead
         : (b.x > -40 && b.x < CFG.W + 480 && b.y > -20 && b.y < CFG.H + 20)
     ));
 
@@ -679,6 +698,10 @@ const Game = {
     // 적탄 vs 플레이어
     for (const b of this.ebullets) {
       if (b.armT !== undefined && b.armT > 0) continue; // 태어나는 중인 별은 무해
+      if (b.kind === 'laser' && typeof BarrageRuntime !== 'undefined') {
+        if (BarrageRuntime.laserHits(b, pl, CFG.playerHitR) && pl.hit(this)) break;
+        continue;
+      }
       const r = CFG.playerHitR + b.r;
       if ((b.x - pl.x) ** 2 + (b.y - pl.y) ** 2 < r * r) {
         if (pl.hit(this)) { b.dead = true; break; }
@@ -929,7 +952,28 @@ const Game = {
       ctx.save();
       ctx.translate(b.x, b.y);
       ctx.globalAlpha = alphaMul;
-      if (b.kind === 'car') {
+      if (b.kind === 'laser' && typeof BarrageRuntime !== 'undefined') {
+        const state = BarrageRuntime.laserState(b);
+        const laser = b.laser;
+        const endX = Math.cos(laser.angle) * laser.length;
+        const endY = Math.sin(laser.angle) * laser.length;
+        ctx.globalAlpha *= state.alpha;
+        ctx.lineCap = 'round';
+        if (state.phase === 'telegraph') {
+          ctx.setLineDash([12, 9]);
+          ctx.strokeStyle = 'rgba(255,224,126,0.88)';
+          ctx.lineWidth = Math.max(2, laser.width * 0.18);
+          ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(endX, endY); ctx.stroke();
+        } else {
+          ctx.shadowColor = '#ff6fb5'; ctx.shadowBlur = 16;
+          ctx.strokeStyle = 'rgba(255,82,155,0.34)'; ctx.lineWidth = laser.width * 1.55;
+          ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(endX, endY); ctx.stroke();
+          ctx.shadowBlur = 7; ctx.strokeStyle = '#ff83be'; ctx.lineWidth = laser.width;
+          ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(endX, endY); ctx.stroke();
+          ctx.shadowBlur = 0; ctx.strokeStyle = '#fff4fb'; ctx.lineWidth = Math.max(2, laser.width * 0.24);
+          ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(endX, endY); ctx.stroke();
+        }
+      } else if (b.kind === 'car') {
         // 씽씽 P2: 차선 사이를 달리는 큰 탄 — 헤드라이트 달린 "차"
         const dir = Math.sign(b.vx) || -1;
         // 속도 잔상

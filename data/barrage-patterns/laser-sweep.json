@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "id": "laser-sweep",
+  "name": "등대 레이저 소인",
+  "description": "노란 예고선을 보여 준 뒤 천천히 회전하는 직선 레이저가 화면을 훑는다.",
+  "duration": 12,
+  "loop": true,
+  "seed": 902,
+  "emitters": [
+    {
+      "id": "clockwise-beam",
+      "name": "시계 방향 광선",
+      "enabled": true,
+      "type": "laser",
+      "start": 0.8,
+      "end": 9.8,
+      "interval": 3,
+      "burstCount": 1,
+      "burstGap": 0.1,
+      "source": "boss",
+      "x": -20,
+      "y": 0,
+      "speed": 0,
+      "difficultyCount": 3,
+      "difficultySpeed": 0,
+      "angle": 150,
+      "angleStep": -24,
+      "aim": false,
+      "jitter": 0,
+      "motion": {},
+      "actions": [],
+      "laserLength": 920,
+      "laserWidth": 18,
+      "laserTelegraph": 0.9,
+      "laserActive": 1.35,
+      "laserFade": 0.35,
+      "laserRotationSpeed": 13
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "id": "stop-and-turn",
+  "name": "멈춤 뒤 재조준",
+  "description": "느린 탄이 멈춰 예고한 뒤 플레이어 방향으로 꺾여 다시 가속한다.",
+  "duration": 12,
+  "loop": true,
+  "seed": 515,
+  "emitters": [
+    {
+      "id": "pause-turn-volley",
+      "name": "멈춤 재조준탄",
+      "enabled": true,
+      "type": "ring",
+      "start": 0.6,
+      "end": 10.1,
+      "interval": 2.4,
+      "burstCount": 1,
+      "burstGap": 0.1,
+      "source": "boss",
+      "x": -18,
+      "y": 0,
+      "bulletKind": "ghostflame",
+      "radius": 6,
+      "speed": 95,
+      "difficultyCount": 2,
+      "difficultySpeed": 0,
+      "count": 9,
+      "angle": 0,
+      "angleStep": 13,
+      "jitter": 0,
+      "motion": {},
+      "actions": [
+        {
+          "id": "brake",
+          "type": "changeSpeed",
+          "at": 0.65,
+          "repeat": 1,
+          "interval": 0.3,
+          "value": 0,
+          "duration": 0.28,
+          "relative": false
+        },
+        {
+          "id": "retarget",
+          "type": "changeDirection",
+          "at": 1.18,
+          "repeat": 1,
+          "interval": 0.3,
+          "value": 0,
+          "duration": 0.22,
+          "relative": false,
+          "aim": true
+        },
+        {
+          "id": "dash",
+          "type": "changeSpeed",
+          "at": 1.22,
+          "repeat": 1,
+          "interval": 0.3,
+          "value": 175,
+          "duration": 0.32,
+          "relative": false
+        }
+      ]
+    }
+  ]
+}
