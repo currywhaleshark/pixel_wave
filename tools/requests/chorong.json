@@ -1,0 +1,27 @@
+{
+  "states": {
+    "idle": {
+      "frames": 2,
+      "fps": 4,
+      "loop": true,
+      "action": "left-facing two-frame anglerfish boss breathing loop at strict scale lock: keep the nervous eye, brow, head, teeth, body center and tail root fixed; in frame 2 move the attached tail and lower fin by two logical pixels and open the lower jaw by one logical pixel; exclude the lure stalk and light because runtime code draws them; no translation, resizing, detached parts, glow or effects"
+    }
+  },
+  "cell": {
+    "width": 56,
+    "height": 48,
+    "safe_margin_x": 2,
+    "safe_margin_y": 2
+  },
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 14
+  },
+  "pixel_lint": {
+    "fail_on_pitch_warnings": true,
+    "max_frame_bbox_delta": { "width": 2, "height": 2 }
+  }
+}

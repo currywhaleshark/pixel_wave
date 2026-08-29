@@ -1,0 +1,76 @@
+{
+  "characterId": "enemy-viper",
+  "engine": "component-row",
+  "game_input": "sprite-sheet-pixel.png",
+  "degraded_static_fallback": false,
+  "curation_applied": true,
+  "frame_variant": "pixel",
+  "sprite_sheet_alpha": "sprite-sheet-alpha.png",
+  "sprite_sheet_alpha_report": "sprite-sheet-alpha.report.json",
+  "base_image": "base-source.png",
+  "cell": {
+    "shape": "rect",
+    "width": 20,
+    "height": 10,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "chroma_key": {
+    "name": "magenta",
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "selection": "manual"
+  },
+  "animation": {
+    "cellWidth": 20,
+    "cellHeight": 10,
+    "columns": 2,
+    "rows": {
+      "swim": {
+        "row": 0,
+        "frames": 2,
+        "fps": 8,
+        "durations_ms": [
+          125,
+          125
+        ],
+        "loop": true,
+        "frame_variant": "pixel"
+      }
+    }
+  },
+  "frame_layout": {
+    "sheetWidth": 40,
+    "sheetHeight": 10,
+    "cellWidth": 20,
+    "cellHeight": 10,
+    "rows": {
+      "swim": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 20,
+          "h": 10
+        },
+        {
+          "x": 20,
+          "y": 0,
+          "w": 20,
+          "h": 10
+        }
+      ]
+    }
+  },
+  "pixel_normalization": {
+    "version": 1,
+    "source": "sprite-sheet-alpha.png",
+    "palette": "palette.lock.json",
+    "report": "pixel-normalize.report.json",
+    "alpha_threshold": 128,
+    "remove_isolated_max": 0
+  }
+}

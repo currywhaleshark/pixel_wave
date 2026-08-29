@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-curation",
+  "states": {
+    "idle": {
+      "selected": [
+        0
+      ],
+      "order": [
+        0
+      ],
+      "transforms": {},
+      "revision": [
+        "af4499e5c2f5"
+      ]
+    }
+  },
+  "run_revision": "ec525b2a7080e40e"
+}

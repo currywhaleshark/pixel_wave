@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "bullet-star",
+    "description": "centered native 10x10 compact four-point bioluminescent deep-sea star projectile core with pale mint center and cyan tips",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "square",
+    "width": 10,
+    "height": 10,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1,
+    "size": 10,
+    "safe_margin": 1
+  },
+  "chroma_key": {
+    "name": "magenta",
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "selection": "manual"
+  },
+  "states": {
+    "blink": {
+      "frames": 2,
+      "fps": 6,
+      "loop": true,
+      "action": "centered two-frame four-point star projectile blink at strict scale lock: frame 1 has long vertical tips and short horizontal tips, frame 2 has long horizontal tips and short vertical tips; keep the pale mint center fixed, preserve the same total 8x8 footprint and palette; no rotation blur, translation, resizing, detached sparkles, halo or glow"
+    }
+  },
+  "style": "native 10x10 hard-edged symmetric pixel art with large countable logical pixels and a shared limited pale-mint-cyan-dark-teal palette; preserve the accepted star core identity exactly",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 6
+  },
+  "chroma": {
+    "mode": "rgb",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

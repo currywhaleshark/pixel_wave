@@ -1,0 +1,24 @@
+{
+  "states": {
+    "idle": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one canonical left-facing chibi deep-sea anglerfish boss idle pose with a massive dark indigo head, nervous round eye, huge crescent mouth, pale triangular teeth, stout body and attached tail; exclude the lure stalk and light because runtime code draws them"
+    }
+  },
+  "cell": {
+    "width": 56,
+    "height": 48,
+    "safe_margin_x": 2,
+    "safe_margin_y": 2
+  },
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 14,
+    "pitch_hint": 18
+  }
+}

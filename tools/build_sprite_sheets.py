@@ -32,18 +32,30 @@ MAIN = (
     Placement("enemy-ray", "flap", 64, 36, 32, 26, 2),
     Placement("enemy-turret", "idle", 136, 40, 16, 14, 1),
     Placement("enemy-lantern", "float", 0, 64, 18, 24, 2),
+    Placement("enemy-viper", "swim", 36, 64, 20, 10, 2),
+    Placement("enemy-ghost", "float", 76, 64, 14, 12, 2),
     Placement("enemy-big", "swim", 0, 96, 32, 24, 2),
+    Placement("enemy-wreck", "variants", 64, 96, 40, 32, 4),
+    Placement("turtle-taxi", "paddle", 0, 128, 32, 20, 2),
     Placement("pearl-small", "idle", 0, 152, 6, 6, 1),
     Placement("pearl-big", "idle", 8, 152, 10, 10, 1),
     Placement("bullet-bubble", "idle", 24, 152, 8, 8, 1),
     Placement("bullet-spike", "idle", 32, 152, 8, 8, 1),
     Placement("bullet-mine", "blink", 40, 152, 10, 10, 2),
+    Placement("bullet-star", "blink", 64, 152, 10, 10, 2),
     Placement("shot-wave", "shot", 88, 152, 10, 6, 1),
 )
 
 BOSSES = (
     Placement("pangpang", "idle", 0, 0, 48, 48, 2),
     Placement("mongsil", "idle", 96, 0, 48, 56, 2),
+    Placement("ssing", "flap", 0, 64, 56, 40, 2),
+    Placement("chorong", "idle", 112, 64, 56, 48, 2),
+    Placement("buu", "idle", 0, 128, 40, 32, 2),
+)
+
+BUU_HULL = (
+    Placement("buu-hull", "idle", 0, 0, 64, 250, 1),
 )
 
 
@@ -103,7 +115,8 @@ def build(path: Path, size: tuple[int, int], placements: tuple[Placement, ...]) 
 def main() -> None:
     build(ROOT / "assets" / "sprites.png", (224, 168), MAIN)
     build(ROOT / "assets" / "bosses.png", (256, 240), BOSSES)
-    print("packed assets/sprites.png (224x168) and assets/bosses.png (256x240)")
+    build(ROOT / "assets" / "backgrounds" / "stage5-buu-hull.png", (64, 250), BUU_HULL)
+    print("packed sprites.png, bosses.png and stage5-buu-hull.png")
 
 
 if __name__ == "__main__":

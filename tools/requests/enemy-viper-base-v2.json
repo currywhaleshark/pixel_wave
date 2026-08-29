@@ -1,0 +1,24 @@
+{
+  "states": {
+    "idle": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one canonical left-facing compact deep-sea viperfish idle pose with a huge readable jaw, four to six pale triangular teeth, one cyan luminous eye and an attached narrow tail; no motion or detached effects"
+    }
+  },
+  "cell": {
+    "width": 20,
+    "height": 10,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 8,
+    "pitch_hint": 48
+  }
+}

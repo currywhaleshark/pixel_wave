@@ -1,0 +1,126 @@
+{
+  "kind": "pixel-wave-lint-report",
+  "version": 1,
+  "run": "turtle-taxi",
+  "game_input": "sprite-sheet-pixel.png",
+  "ok": true,
+  "warnings": [],
+  "failures": [],
+  "checks": {
+    "canvas_size": {
+      "ok": true,
+      "width": 64,
+      "height": 20
+    },
+    "binary_alpha": {
+      "ok": true,
+      "values": [
+        0,
+        255
+      ],
+      "semi_transparent_pixels": 0
+    },
+    "palette": {
+      "ok": true,
+      "used_colors": 10,
+      "locked_colors": 12,
+      "foreign_colors": []
+    },
+    "transparent_rgb_clear": {
+      "ok": true,
+      "pixels": 0
+    },
+    "frames_nonempty": {
+      "ok": true,
+      "empty_frames": 0
+    },
+    "isolated_pixels": {
+      "ok": true,
+      "count": 0,
+      "tiny_components_max_3px": 0,
+      "severity": "warning"
+    },
+    "safe_margin": {
+      "ok": true,
+      "touching_frames": 0,
+      "severity": "warning"
+    },
+    "frame_palette_drift": {
+      "ok": true,
+      "maximum": 0.04635,
+      "warning_threshold": 0.35,
+      "pairs": [
+        {
+          "state": "paddle",
+          "from": 0,
+          "to": 1,
+          "histogram_drift": 0.04635
+        }
+      ],
+      "severity": "warning"
+    },
+    "extraction_pitch": {
+      "ok": true,
+      "strict": false,
+      "warnings": [],
+      "severity": "warning"
+    },
+    "silhouette_contract": {
+      "ok": true,
+      "bbox_aspect_violations": [],
+      "bbox_delta_violations": [],
+      "contract": {
+        "bbox_aspect_ratio": null,
+        "max_frame_bbox_delta": null
+      }
+    },
+    "curve_stair_steps": {
+      "status": "manual_review_required",
+      "reason": "curve cluster intent cannot be inferred reliably from topology alone"
+    }
+  },
+  "frames": [
+    {
+      "state": "paddle",
+      "index": 0,
+      "width": 32,
+      "height": 20,
+      "opaque_pixels": 260,
+      "bbox": [
+        1,
+        3,
+        31,
+        17
+      ],
+      "bbox_width": 30,
+      "bbox_height": 14,
+      "bbox_aspect_ratio": 2.142857,
+      "colors": 10,
+      "components": 1,
+      "isolated_1px_components": 0,
+      "tiny_components_max_3px": 0,
+      "touches_safe_margin": false
+    },
+    {
+      "state": "paddle",
+      "index": 1,
+      "width": 32,
+      "height": 20,
+      "opaque_pixels": 274,
+      "bbox": [
+        1,
+        2,
+        31,
+        17
+      ],
+      "bbox_width": 30,
+      "bbox_height": 15,
+      "bbox_aspect_ratio": 2.0,
+      "colors": 10,
+      "components": 1,
+      "isolated_1px_components": 0,
+      "tiny_components_max_3px": 0,
+      "touches_safe_margin": false
+    }
+  ]
+}

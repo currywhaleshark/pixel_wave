@@ -22,6 +22,18 @@ const Backgrounds = {
       far: [0.12, 245, 0.24], mid: [0.34, 270, 0.40], near: [0.84, 270, 1],
       fx: { shaft: '#77e1d6', mote: '#a6eadb', bubble: '#d5f4e7', cutout: '#0a7f94' },
     },
+    3: {
+      prefix: 'background.stage4',
+      seaSpeed: 0.018,
+      far: [0.10, 252, 0.20], mid: [0.30, 270, 0.34], near: [0.78, 270, 1],
+      fx: { shaft: '#304f91', mote: '#526fa8', bubble: '#7488ba', cutout: '#091b44' },
+    },
+    4: {
+      prefix: 'background.stage5',
+      seaSpeed: 0.016,
+      far: [0.09, 252, 0.22], mid: [0.28, 280, 0.36], near: [0.76, 286, 1],
+      fx: { shaft: '#356f76', mote: '#5d8b82', bubble: '#8fb1a2', cutout: '#102f37' },
+    },
   },
 
   draw(ctx, game) {

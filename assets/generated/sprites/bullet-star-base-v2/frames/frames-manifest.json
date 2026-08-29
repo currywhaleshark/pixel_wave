@@ -1,0 +1,56 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "engine_revision": "866582aacc15",
+  "extract_args": {
+    "min_used_pixels": 4
+  },
+  "run_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\sprites\\bullet-star-base-v2",
+  "cell": {
+    "shape": "square",
+    "width": 10,
+    "height": 10,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1,
+    "size": 10,
+    "safe_margin": 1
+  },
+  "chroma_key": {
+    "name": "magenta",
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "selection": "manual"
+  },
+  "rows": [
+    {
+      "state": "idle",
+      "frames": 1,
+      "method": "components",
+      "files": [
+        "frames/idle/frame-0.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 15,
+          "bbox": [
+            2,
+            2,
+            8,
+            7
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true,
+      "engine_revision": "866582aacc15"
+    }
+  ],
+  "errors": [],
+  "warnings": []
+}

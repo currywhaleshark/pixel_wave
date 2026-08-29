@@ -1,0 +1,16 @@
+{
+  "kind": "pixel-wave-normalize-report",
+  "version": 1,
+  "run": "enemy-ghost",
+  "source": "sprite-sheet-alpha.png",
+  "output": "sprite-sheet-pixel.png",
+  "width": 28,
+  "height": 12,
+  "alpha_threshold": 128,
+  "palette_colors": 8,
+  "opaque_pixels_before_cleanup": 165,
+  "alpha_or_transparent_rgb_changed_pixels": 125,
+  "palette_remapped_pixels": 122,
+  "removed_component_pixels": 0,
+  "sha256": "0a0a57252d7d861780665090b8a157b5d92158b93929ce209f79fa33ef7f5151"
+}

@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "turtle-taxi",
+    "description": "right-facing native 32x20 friendly sea-turtle taxi with broad olive shell platform, four attached mint flippers and navy driver cap",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "rect",
+    "width": 32,
+    "height": 20,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "chroma_key": {
+    "name": "magenta",
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "selection": "manual"
+  },
+  "states": {
+    "paddle": {
+      "frames": 2,
+      "fps": 6,
+      "loop": true,
+      "action": "right-facing two-frame swimming loop at strict scale lock: keep the head, eye, cap, shell platform and body center fixed; in frame 2 alternate the four attached flippers by one to two logical pixels while preserving the same shell footprint and baseline; seamless alternating loop; no passenger, translation, resizing, detached parts, bubbles or effects"
+    }
+  },
+  "style": "native 32x20 hard-edged pixel art with large countable logical pixels, one-pixel dark teal outline, flat clusters and a shared limited olive-mint-navy palette; preserve the accepted turtle base identity exactly and animate only the flippers",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 12
+  },
+  "chroma": {
+    "mode": "rgb",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

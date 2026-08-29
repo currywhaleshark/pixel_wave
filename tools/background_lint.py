@@ -148,10 +148,14 @@ def main() -> int:
     sea_run = ROOT / "assets" / "generated" / "backgrounds" / "stage1-sea-strip"
     stage2_run = ROOT / "assets" / "generated" / "backgrounds" / "stage2-jelly-meadow"
     stage3_run = ROOT / "assets" / "generated" / "backgrounds" / "stage3-turtle-highway"
+    stage4_run = ROOT / "assets" / "generated" / "backgrounds" / "stage4-deep-canyon"
+    stage5_run = ROOT / "assets" / "generated" / "backgrounds" / "stage5-wreck-graveyard"
     errors = lint(run_dir)
     sea_errors = lint_sea(sea_run)
     stage2_errors = lint_stage2(stage2_run)
     stage3_errors = lint_stage2(stage3_run)
+    stage4_errors = lint_stage2(stage4_run)
+    stage5_errors = lint_stage2(stage5_run)
     report = {"ok": not errors, "run": str(run_dir.relative_to(ROOT)), "errors": errors}
     (run_dir / "background-lint.report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     sea_report = {"ok": not sea_errors, "run": str(sea_run.relative_to(ROOT)), "errors": sea_errors}
@@ -166,7 +170,15 @@ def main() -> int:
     (stage3_run / "background-lint.report.json").write_text(
         json.dumps(stage3_report, indent=2) + "\n", encoding="utf-8"
     )
-    if errors or sea_errors or stage2_errors or stage3_errors:
+    stage4_report = {"ok": not stage4_errors, "run": str(stage4_run.relative_to(ROOT)), "errors": stage4_errors}
+    (stage4_run / "background-lint.report.json").write_text(
+        json.dumps(stage4_report, indent=2) + "\n", encoding="utf-8"
+    )
+    stage5_report = {"ok": not stage5_errors, "run": str(stage5_run.relative_to(ROOT)), "errors": stage5_errors}
+    (stage5_run / "background-lint.report.json").write_text(
+        json.dumps(stage5_report, indent=2) + "\n", encoding="utf-8"
+    )
+    if errors or sea_errors or stage2_errors or stage3_errors or stage4_errors or stage5_errors:
         for error in errors:
             print(f"FAIL {error}")
         for error in sea_errors:
@@ -175,8 +187,12 @@ def main() -> int:
             print(f"FAIL stage2: {error}")
         for error in stage3_errors:
             print(f"FAIL stage3: {error}")
+        for error in stage4_errors:
+            print(f"FAIL stage4: {error}")
+        for error in stage5_errors:
+            print(f"FAIL stage5: {error}")
         return 1
-    print("PASS stage backgrounds: Stage 1 + Stage 2 + Stage 3 sizes, alpha, palette, seamless edges")
+    print("PASS stage backgrounds: Stage 1 + Stage 2 + Stage 3 + Stage 4 + Stage 5 sizes, alpha, palette, seamless edges")
     return 0
 
 

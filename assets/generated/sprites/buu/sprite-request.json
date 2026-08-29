@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "buu",
+    "description": "",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "rect",
+    "width": 40,
+    "height": 32,
+    "safe_margin_x": 2,
+    "safe_margin_y": 2
+  },
+  "chroma_key": {
+    "name": "magenta",
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "selection": "auto",
+    "score": 239.18,
+    "min_subject_distance": 223.19,
+    "background": {
+      "mode": "flat",
+      "hex": "#FA05DD",
+      "rgb": [
+        250,
+        5,
+        221
+      ],
+      "opaque_border_fraction": 1.0,
+      "border_coverage": 1.0,
+      "enclosed_background_pixels": 0,
+      "enclosed_material_pixels": 0,
+      "subject_pixels": 12033
+    },
+    "candidates": [
+      {
+        "name": "magenta",
+        "hex": "#FF00FF",
+        "score": 239.18,
+        "min_subject_distance": 223.19,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "green",
+        "hex": "#00FF00",
+        "score": 176.37,
+        "min_subject_distance": 170.7,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "cyan",
+        "hex": "#00FFFF",
+        "score": 154.32,
+        "min_subject_distance": 146.66,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "blue",
+        "hex": "#004DFF",
+        "score": 151.06,
+        "min_subject_distance": 141.88,
+        "clears_erase_radius": true
+      }
+    ],
+    "selection_reason": "highest 1st-percentile subject distance among the 4 candidate(s) clearing the 96 erase radius"
+  },
+  "states": {
+    "idle": {
+      "frames": 2,
+      "fps": 6,
+      "loop": true,
+      "action": "left-facing two-frame ghost moray boss head loop at strict scale lock: keep the snout, eye, skull silhouette and right-edge neck root fixed; in frame 2 open the cheeky grin by one logical pixel, shift the four small teeth with the jaw and flex only the small attached dorsal fin by one pixel; head and neck only, no long body, tail, detached pieces, glow, bubbles or effects"
+    }
+  },
+  "style": "native 40x32 hard-edged pixel art with large countable logical pixels, one-pixel dark teal outline and shared limited mint-seafoam-teal-ivory palette; friendly mischievous ghost moray, not a dinosaur",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 12
+  },
+  "chroma": {
+    "mode": "rgb",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

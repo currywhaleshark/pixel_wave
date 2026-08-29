@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "ssing",
+    "description": "left-facing native 56x40 periwinkle express-courier manta boss with one determined eye and attached red scarf knot",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "rect",
+    "width": 56,
+    "height": 40,
+    "safe_margin_x": 1,
+    "safe_margin_y": 2
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "manual"
+  },
+  "states": {
+    "flap": {
+      "frames": 2,
+      "fps": 6,
+      "loop": true,
+      "action": "left-facing two-frame boss wing-flap loop at strict scale lock: keep the determined eye, brow, dark center body, red scarf knot, tail root and body center fixed; frame 1 has both broad wings moderately raised and frame 2 presses both wings lower by three to four logical pixels; preserve identical body length and palette; seamless alternating loop; no long scarf ribbon, translation, resizing, detached parts, speed lines or effects"
+    }
+  },
+  "style": "native 56x40 hard-edged pixel art with large countable logical pixels, one-pixel dark indigo outline, flat clusters and a shared limited navy-periwinkle-lavender-red palette; preserve the accepted Ssing base identity exactly and animate only the wing angle",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 14
+  },
+  "chroma": {
+    "mode": "rgb",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "engine_revision": "866582aacc15",
+  "extract_args": {
+    "repalette": true,
+    "min_used_pixels": 50
+  },
+  "run_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\sprites\\enemy-ghost",
+  "cell": {
+    "shape": "rect",
+    "width": 14,
+    "height": 12,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "chroma_key": {
+    "name": "magenta",
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "selection": "auto",
+    "score": 235.04,
+    "min_subject_distance": 232.06,
+    "background": {
+      "mode": "flat",
+      "hex": "#F904F8",
+      "rgb": [
+        249,
+        4,
+        248
+      ],
+      "opaque_border_fraction": 1.0,
+      "border_coverage": 1.0,
+      "enclosed_background_pixels": 0,
+      "enclosed_material_pixels": 0,
+      "subject_pixels": 5154
+    },
+    "candidates": [
+      {
+        "name": "magenta",
+        "hex": "#FF00FF",
+        "score": 235.04,
+        "min_subject_distance": 232.06,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "green",
+        "hex": "#00FF00",
+        "score": 184.09,
+        "min_subject_distance": 176.53,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "cyan",
+        "hex": "#00FFFF",
+        "score": 168.81,
+        "min_subject_distance": 155.66,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "blue",
+        "hex": "#004DFF",
+        "score": 161.16,
+        "min_subject_distance": 148.4,
+        "clears_erase_radius": true
+      }
+    ],
+    "selection_reason": "highest 1st-percentile subject distance among the 4 candidate(s) clearing the 96 erase radius"
+  },
+  "rows": [
+    {
+      "state": "float",
+      "frames": 2,
+      "method": "components",
+      "files": [
+        "frames/float/frame-0.png",
+        "frames/float/frame-1.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 58,
+          "bbox": [
+            2,
+            2,
+            14,
+            10
+          ],
+          "edge_pixels": 6,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 1,
+          "nontransparent_pixels": 57,
+          "bbox": [
+            2,
+            2,
+            14,
+            10
+          ],
+          "edge_pixels": 5,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true,
+      "engine_revision": "866582aacc15"
+    }
+  ],
+  "errors": [],
+  "warnings": []
+}

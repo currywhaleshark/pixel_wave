@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "enemy-ghost",
+    "description": "left-facing tiny pale mint ghost fish with two round eyes, O mouth and one attached wispy tail",
+    "base_image": "base-source.png"
+  },
+  "cell": { "shape": "rect", "width": 14, "height": 12, "safe_margin_x": 1, "safe_margin_y": 1 },
+  "chroma_key": { "name": "magenta", "hex": "#FF00FF", "rgb": [255, 0, 255], "selection": "manual" },
+  "states": {
+    "float": {
+      "frames": 2,
+      "fps": 4,
+      "loop": true,
+      "action": "left-facing two-frame ghost fish float loop at strict scale lock: keep the oval face, two eyes, O mouth and body center fixed; wave only the attached two-lobed spectral tail up then down by one logical pixel; no translation, resizing, detached mist, glow, bubbles or effects"
+    }
+  },
+  "style": "native 14x12 hard-edged pixel art with large countable logical pixels, one-pixel dark teal outline and shared limited mint-seafoam-teal palette",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": { "resample": "kcentroid", "align_x": "alpha-centroid", "align_y": "center", "pixel_perfect": false, "palette_size": 8 },
+  "chroma": { "mode": "rgb", "unmix_reach": 4, "spill_max_fraction": 0.005 },
+  "pixel_lint": { "fail_on_pitch_warnings": true, "max_frame_bbox_delta": { "width": 1, "height": 1 } }
+}

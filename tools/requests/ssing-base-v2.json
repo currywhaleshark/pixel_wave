@@ -1,0 +1,24 @@
+{
+  "states": {
+    "idle": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one canonical left-facing express-courier manta boss idle pose with broad periwinkle wings, one determined eye and one attached red scarf knot"
+    }
+  },
+  "cell": {
+    "width": 56,
+    "height": 40,
+    "safe_margin_x": 2,
+    "safe_margin_y": 2
+  },
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 14,
+    "pitch_hint": 18
+  }
+}

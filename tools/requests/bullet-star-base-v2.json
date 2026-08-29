@@ -1,0 +1,24 @@
+{
+  "states": {
+    "idle": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one canonical centered four-point deep-sea star projectile core with a pale mint center, cyan tips and a one-pixel dark teal separator; symmetric, compact and without glow or detached sparkles"
+    }
+  },
+  "cell": {
+    "width": 10,
+    "height": 10,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 6,
+    "pitch_hint": 52
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "chorong",
+    "description": "left-facing native 56x48 chibi dark-indigo anglerfish boss body with huge toothed mouth, nervous eye, attached tail and no lure",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "rect",
+    "width": 56,
+    "height": 48,
+    "safe_margin_x": 2,
+    "safe_margin_y": 2
+  },
+  "chroma_key": {
+    "name": "magenta",
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "selection": "manual"
+  },
+  "states": {
+    "idle": {
+      "frames": 2,
+      "fps": 4,
+      "loop": true,
+      "action": "left-facing two-frame anglerfish boss breathing loop at strict scale lock: keep the nervous eye, brow, head, teeth, body center and tail root fixed; in frame 2 move the attached tail and lower fin by two logical pixels and open the lower jaw by one logical pixel; exclude the lure stalk and light because runtime code draws them; no translation, resizing, detached parts, glow or effects"
+    }
+  },
+  "style": "native 56x48 hard-edged pixel art with large countable logical pixels, one-pixel dark indigo outline and a shared limited navy-periwinkle-ivory-pink palette; preserve the accepted Chorong body exactly and exclude the code-drawn lure",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 14
+  },
+  "chroma": {
+    "mode": "rgb",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "engine_revision": "866582aacc15",
+  "extract_args": {
+    "repalette": true,
+    "min_used_pixels": 300
+  },
+  "run_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\sprites\\enemy-wreck",
+  "cell": {
+    "shape": "rect",
+    "width": 40,
+    "height": 32,
+    "safe_margin_x": 2,
+    "safe_margin_y": 0
+  },
+  "chroma_key": {
+    "name": "magenta",
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "selection": "auto",
+    "score": 240.88,
+    "min_subject_distance": 227.0,
+    "background": {
+      "mode": "flat",
+      "hex": "#FA04F7",
+      "rgb": [
+        250,
+        4,
+        247
+      ],
+      "opaque_border_fraction": 1.0,
+      "border_coverage": 1.0,
+      "enclosed_background_pixels": 0,
+      "enclosed_material_pixels": 0,
+      "subject_pixels": 14260
+    },
+    "candidates": [
+      {
+        "name": "magenta",
+        "hex": "#FF00FF",
+        "score": 240.88,
+        "min_subject_distance": 227.0,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "green",
+        "hex": "#00FF00",
+        "score": 188.81,
+        "min_subject_distance": 167.19,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "cyan",
+        "hex": "#00FFFF",
+        "score": 219.63,
+        "min_subject_distance": 168.18,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "blue",
+        "hex": "#004DFF",
+        "score": 176.41,
+        "min_subject_distance": 145.49,
+        "clears_erase_radius": true
+      }
+    ],
+    "selection_reason": "highest 1st-percentile subject distance among the 4 candidate(s) clearing the 96 erase radius"
+  },
+  "rows": [
+    {
+      "state": "variants",
+      "frames": 4,
+      "method": "components",
+      "files": [
+        "frames/variants/frame-0.png",
+        "frames/variants/frame-1.png",
+        "frames/variants/frame-2.png",
+        "frames/variants/frame-3.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 393,
+          "bbox": [
+            13,
+            0,
+            26,
+            32
+          ],
+          "edge_pixels": 52,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 1,
+          "nontransparent_pixels": 355,
+          "bbox": [
+            14,
+            0,
+            26,
+            32
+          ],
+          "edge_pixels": 48,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 2,
+          "nontransparent_pixels": 383,
+          "bbox": [
+            13,
+            0,
+            26,
+            32
+          ],
+          "edge_pixels": 52,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 3,
+          "nontransparent_pixels": 377,
+          "bbox": [
+            13,
+            0,
+            26,
+            32
+          ],
+          "edge_pixels": 52,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true,
+      "engine_revision": "866582aacc15"
+    }
+  ],
+  "errors": [],
+  "warnings": [
+    "variants: frame 00 has 52 non-transparent edge pixels",
+    "variants: frame 01 has 48 non-transparent edge pixels",
+    "variants: frame 02 has 52 non-transparent edge pixels",
+    "variants: frame 03 has 52 non-transparent edge pixels"
+  ]
+}

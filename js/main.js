@@ -979,8 +979,11 @@ const Game = {
         glow.addColorStop(1, 'rgba(140,240,226,0)');
         ctx.fillStyle = glow;
         ctx.beginPath(); ctx.arc(0, 0, 13, 0, 6.28); ctx.fill();
-        ctx.fillStyle = '#eafffb';
-        ctx.beginPath(); ctx.arc(0, 0, b.r * 0.7, 0, 6.28); ctx.fill();
+        // 광원은 코드 효과로 유지하고, 충돌 중심의 별 코어만 네이티브 스프라이트로 교체한다.
+        if (!Sprites.draw(ctx, 'bullet.star', 0, 0, { t: performance.now() / 1000 })) {
+          ctx.fillStyle = '#eafffb';
+          ctx.beginPath(); ctx.arc(0, 0, b.r * 0.7, 0, 6.28); ctx.fill();
+        }
       } else if (b.kind === 'ghostflame') {
         // 유령불: 창백한 초록 도깨비불
         const fl = 0.75 + Math.sin((b.x + b.y) * 0.08 + performance.now() / 200) * 0.25;
@@ -1163,6 +1166,7 @@ const Game = {
   // 거북 택시 (플레이어 아래에 그려짐)
   drawTurtle(x, y) {
     const t = performance.now() / 1000;
+    if (Sprites.draw(ctx, 'turtle.taxi', x, y, { t })) return;
     ctx.save();
     ctx.translate(x, y);
     // 지느러미 (헤엄 애니메이션)

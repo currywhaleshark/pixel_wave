@@ -1,0 +1,68 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "engine_revision": "866582aacc15",
+  "extract_args": {
+    "repalette": true,
+    "min_used_pixels": 180
+  },
+  "run_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\sprites\\ssing",
+  "cell": {
+    "shape": "rect",
+    "width": 56,
+    "height": 40,
+    "safe_margin_x": 1,
+    "safe_margin_y": 2
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "manual"
+  },
+  "rows": [
+    {
+      "state": "flap",
+      "frames": 2,
+      "method": "components",
+      "files": [
+        "frames/flap/frame-0.png",
+        "frames/flap/frame-1.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 725,
+          "bbox": [
+            2,
+            2,
+            53,
+            38
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 1,
+          "nontransparent_pixels": 604,
+          "bbox": [
+            2,
+            6,
+            56,
+            33
+          ],
+          "edge_pixels": 4,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true,
+      "engine_revision": "866582aacc15"
+    }
+  ],
+  "errors": [],
+  "warnings": []
+}

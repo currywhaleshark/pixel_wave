@@ -314,6 +314,10 @@ class Enemy {
     this.escaped = false;
     this.maxHp = this.hp;
     this.flash = 0;
+    if (this.kind === 'wreck') {
+      const seed = spec.variant ?? Math.floor((spec.y ?? 0) / 48) + (spec.side === 'top' ? 1 : 0);
+      this.wreckVariant = ((seed % 4) + 4) % 4;
+    }
   }
 
   update(dt, game) {
@@ -442,6 +446,21 @@ class Enemy {
     // 스프라이트 우선, 없으면 임시 도형 (kind 이름이 곧 스프라이트 id)
     let alpha = this.flash > 0 ? 0.6 : 1;
     if (this.kind === 'ghost') alpha *= this.solid ? 0.9 : 0.25;
+    if (this.kind === 'wreck' && Sprites.has('enemy.wreck')) {
+      const sprite = SPRITES['enemy.wreck'];
+      const tileH = sprite.h * CFG.pxUnit;
+      const top = this.y - this.wreckH / 2;
+      const bottom = this.y + this.wreckH / 2;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(this.x - this.wreckW / 2, top, this.wreckW, this.wreckH);
+      ctx.clip();
+      for (let y = top + tileH / 2; y < bottom + tileH; y += tileH) {
+        Sprites.draw(ctx, 'enemy.wreck', this.x, y, { frame: this.wreckVariant, alpha });
+      }
+      ctx.restore();
+      return;
+    }
     if (Sprites.draw(ctx, `enemy.${this.kind}`, this.x, this.y, {
       t: this.t, alpha, flipX: this.dirX > 0,
     })) return;

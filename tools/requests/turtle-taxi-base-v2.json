@@ -1,0 +1,24 @@
+{
+  "states": {
+    "idle": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one canonical right-facing friendly sea-turtle taxi idle pose with broad shell platform, four attached flippers and one attached navy driver cap"
+    }
+  },
+  "cell": {
+    "width": 32,
+    "height": 20,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 12,
+    "pitch_hint": 28
+  }
+}

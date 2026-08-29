@@ -1,0 +1,68 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "engine_revision": "866582aacc15",
+  "extract_args": {
+    "repalette": true,
+    "min_used_pixels": 10
+  },
+  "run_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\sprites\\enemy-viper",
+  "cell": {
+    "shape": "rect",
+    "width": 20,
+    "height": 10,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "chroma_key": {
+    "name": "magenta",
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "selection": "manual"
+  },
+  "rows": [
+    {
+      "state": "swim",
+      "frames": 2,
+      "method": "components",
+      "files": [
+        "frames/swim/frame-0.png",
+        "frames/swim/frame-1.png"
+      ],
+      "frame_records": [
+        {
+          "index": 0,
+          "nontransparent_pixels": 82,
+          "bbox": [
+            2,
+            1,
+            20,
+            9
+          ],
+          "edge_pixels": 14,
+          "chroma_adjacent_pixels": 0
+        },
+        {
+          "index": 1,
+          "nontransparent_pixels": 83,
+          "bbox": [
+            2,
+            1,
+            20,
+            9
+          ],
+          "edge_pixels": 14,
+          "chroma_adjacent_pixels": 0
+        }
+      ],
+      "ok": true,
+      "engine_revision": "866582aacc15"
+    }
+  ],
+  "errors": [],
+  "warnings": []
+}

@@ -1,0 +1,16 @@
+{
+  "kind": "pixel-wave-normalize-report",
+  "version": 1,
+  "run": "turtle-taxi",
+  "source": "sprite-sheet-alpha.png",
+  "output": "sprite-sheet-pixel.png",
+  "width": 64,
+  "height": 20,
+  "alpha_threshold": 128,
+  "palette_colors": 12,
+  "opaque_pixels_before_cleanup": 534,
+  "alpha_or_transparent_rgb_changed_pixels": 141,
+  "palette_remapped_pixels": 527,
+  "removed_component_pixels": 0,
+  "sha256": "c6a7ad36cec4c802a171e59d640a09108a398f60a2c8e3efcd2a2fe5f5d79d5b"
+}

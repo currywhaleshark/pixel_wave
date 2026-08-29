@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "enemy-wreck",
+    "description": "",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "rect",
+    "width": 40,
+    "height": 32,
+    "safe_margin_x": 2,
+    "safe_margin_y": 0
+  },
+  "chroma_key": {
+    "name": "magenta",
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "selection": "auto",
+    "score": 240.88,
+    "min_subject_distance": 227.0,
+    "background": {
+      "mode": "flat",
+      "hex": "#FA04F7",
+      "rgb": [
+        250,
+        4,
+        247
+      ],
+      "opaque_border_fraction": 1.0,
+      "border_coverage": 1.0,
+      "enclosed_background_pixels": 0,
+      "enclosed_material_pixels": 0,
+      "subject_pixels": 14260
+    },
+    "candidates": [
+      {
+        "name": "magenta",
+        "hex": "#FF00FF",
+        "score": 240.88,
+        "min_subject_distance": 227.0,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "green",
+        "hex": "#00FF00",
+        "score": 188.81,
+        "min_subject_distance": 167.19,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "cyan",
+        "hex": "#00FFFF",
+        "score": 219.63,
+        "min_subject_distance": 168.18,
+        "clears_erase_radius": true
+      },
+      {
+        "name": "blue",
+        "hex": "#004DFF",
+        "score": 176.41,
+        "min_subject_distance": 145.49,
+        "clears_erase_radius": true
+      }
+    ],
+    "selection_reason": "highest 1st-percentile subject distance among the 4 candidate(s) clearing the 96 erase radius"
+  },
+  "states": {
+    "variants": {
+      "frames": 4,
+      "fps": 0,
+      "loop": false,
+      "action": "four separate centered 40x32 vertical shipwreck obstacle tiles at equal scale, left to right: 1 broken bow plank cross-section, 2 exposed curved hull ribs, 3 damaged stern planks with oxidized bolt housing, 4 crossed mast-and-keel beams; every frame is one connected sturdy silhouette with compatible straight top and bottom edges for vertical repetition; no detached splinters, no animation, no labels, no floor, no coral or creatures"
+    }
+  },
+  "style": "native 40x32 hard-edged pixel art with countable square pixels, one-pixel blue-black outline and a shared limited drowned brown-oxidized teal palette",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "bbox-center",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 12
+  },
+  "chroma": {
+    "mode": "rgb",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "states": {
+    "paddle": {
+      "frames": 2,
+      "fps": 6,
+      "loop": true,
+      "action": "right-facing two-frame swimming loop at strict scale lock: keep the head, eye, cap, shell platform and body center fixed; in frame 2 alternate the four attached flippers by one to two logical pixels while preserving the same shell footprint and baseline; seamless alternating loop; no passenger, translation, resizing, detached parts, bubbles or effects"
+    }
+  },
+  "cell": {
+    "width": 32,
+    "height": 20,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 12
+  },
+  "pixel_lint": {
+    "fail_on_pitch_warnings": true,
+    "max_frame_bbox_delta": { "width": 2, "height": 2 }
+  }
+}

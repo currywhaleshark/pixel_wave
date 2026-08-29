@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "bullet-star-base-v2",
+    "description": "centered compact four-point bioluminescent deep-sea star projectile core with pale mint center and cyan tips",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "square",
+    "width": 10,
+    "height": 10,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1,
+    "size": 10,
+    "safe_margin": 1
+  },
+  "chroma_key": {
+    "name": "magenta",
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "selection": "manual"
+  },
+  "states": {
+    "idle": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one canonical centered four-point deep-sea star projectile core with a pale mint center, cyan tips and a one-pixel dark teal separator; symmetric, compact and without glow or detached sparkles"
+    }
+  },
+  "style": "native 10x10 coarse pixel art; maximum 6 flat colors; hard symmetric clusters; no gradients, antialiasing or micro-detail",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 6,
+    "pitch_hint": 52
+  },
+  "chroma": {
+    "mode": "rgb",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

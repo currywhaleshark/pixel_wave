@@ -17,8 +17,9 @@ class BossBuu {
     this.game = game;
     this.hp = CFG.boss5Hp;
     this.maxHp = CFG.boss5Hp;
-    this.holes = [0.22, 0.44, 0.66, 0.85].map(f => f * CFG.H);
-    this.holeX = CFG.W * 0.935;   // 구멍 위치 (선체 위)
+    // 전용 선체 이미지 안의 실제 구멍 중심. 구멍마다 선체 굴곡이 달라 x도 따로 둔다.
+    this.holes = [129, 242, 365, 462];
+    this.holeXs = [901, 896, 901, 903];
     this.outX = CFG.W * 0.84;     // 완전히 나왔을 때 머리 위치
     this.emerge = 0;              // 0=구멍 속, 1=완전히 나옴 (미끄러져 나오는 연출)
     this.x = CFG.W + 200;      // 숨어 있을 땐 화면 밖 (표적 안 됨)
@@ -45,6 +46,41 @@ class BossBuu {
   }
 
   hpRatio() { return Math.max(0, this.hp / this.maxHp); }
+
+  holeX(i = this.holeIdx) { return this.holeXs[i]; }
+
+  headAngle() {
+    if (this.trail.length < 2) return 0;
+    return Math.atan2(this.trail[1].y - this.trail[0].y, this.trail[1].x - this.trail[0].x);
+  }
+
+  // 프레임 번호가 아니라 실제 이동 거리를 기준으로 궤적을 다시 샘플링한다.
+  // 프레임률이 달라도 몸통 간격이 일정하고, 회전 방향은 각 구간의 접선을 따른다.
+  bodySegments(spacing = 14, maxSegments = 24) {
+    if (this.trail.length < 2) return [];
+    const result = [];
+    let carried = 0;
+    let a = { ...this.trail[0] };
+    for (let i = 1; i < this.trail.length && result.length < maxSegments; i++) {
+      const target = this.trail[i];
+      let dx = target.x - a.x, dy = target.y - a.y;
+      let distance = Math.hypot(dx, dy);
+      while (distance > 0 && carried + distance >= spacing && result.length < maxSegments) {
+        const step = spacing - carried;
+        const ratio = step / distance;
+        const x = a.x + dx * ratio;
+        const y = a.y + dy * ratio;
+        result.push({ x, y, angle: Math.atan2(dy, dx) });
+        a = { x, y };
+        dx = target.x - a.x; dy = target.y - a.y;
+        distance = Math.hypot(dx, dy);
+        carried = 0;
+      }
+      carried += distance;
+      a = { ...target };
+    }
+    return result;
+  }
 
   mercy() {
     const over = this.t - CFG.bossMercyTime;
@@ -153,7 +189,7 @@ class BossBuu {
       } else if (this.mode === 'tel') {
         // 구멍에서 거품 예고 (fx)
         if (Math.random() < 0.3) {
-          g.fx.push({ x: this.holeX + (Math.random() - 0.5) * 20, y: this.holes[this.holeIdx],
+          g.fx.push({ x: this.holeX() + (Math.random() - 0.5) * 20, y: this.holes[this.holeIdx],
                       vx: (Math.random() - 0.5) * 30, vy: -60 - Math.random() * 40,
                       life: 0.6, color: '#bfe8d8' });
         }
@@ -176,7 +212,8 @@ class BossBuu {
         // 미끄러져 나오기(0.28초) / 마지막에 도로 들어가기(0.28초)
         if (this.modeT > 0.28) this.emerge = Math.min(1, this.emerge + dt / 0.28);
         else this.emerge = Math.max(0, this.emerge - dt / 0.28);
-        this.x = this.holeX + (this.outX - this.holeX) * this.emerge;
+        const holeX = this.holeX();
+        this.x = holeX + (this.outX - holeX) * this.emerge;
         this.y = this.holes[this.holeIdx] + Math.sin(this.anim * 4) * 4 * this.emerge;
         this.hittable = this.emerge > 0.5;  // 반쯤 나와야 맞는다
         const elapsed = (p2 ? 1.7 : 1.9) - this.modeT;
@@ -224,9 +261,11 @@ class BossBuu {
       if (this.trail.length > 80) this.trail.pop();
       // 몸통 마디 vs 플레이어 (머리는 본체 충돌이 처리)
       const pl = g.player;
-      for (let i = 10; i < this.trail.length; i += 10) {
-        const seg = this.trail[i];
-        const rr = CFG.playerHitR + 17;
+      const body = this.bodySegments();
+      for (let i = 0; i < body.length; i++) {
+        const seg = body[i];
+        const taper = i / Math.max(1, body.length - 1);
+        const rr = CFG.playerHitR + (13 - taper * 6);
         if ((seg.x - pl.x) ** 2 + (seg.y - pl.y) ** 2 < rr * rr) { pl.hit(g); break; }
         // 거울 분신 몸통 (P4): 상하 반전 위치
         if (this.phase === 4) {
@@ -262,97 +301,136 @@ class BossBuu {
     }
   }
 
-  draw(ctx) {
-    // 난파선 골조 (배경, P3에선 반투명하게 물러남)
-    ctx.save();
-    ctx.globalAlpha = (this.phase === 3 ? 0.4 : 1) * (this.dead ? Math.max(0, 1 - this.deathT / 2) : 1);
-    ctx.fillStyle = '#33291f';
-    ctx.strokeStyle = '#1f1811'; ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.roundRect(CFG.W * 0.9, 20, CFG.W * 0.12, CFG.H - 40, 14);
-    ctx.fill(); ctx.stroke();
-    // 기울어진 돛대
-    ctx.strokeStyle = '#3a2e22'; ctx.lineWidth = 8;
-    ctx.beginPath(); ctx.moveTo(CFG.W * 0.93, 40); ctx.lineTo(CFG.W * 0.8, -30); ctx.stroke();
-    // 구멍들 (선체 위)
-    for (let i = 0; i < this.holes.length; i++) {
-      ctx.fillStyle = '#120d08';
-      ctx.beginPath(); ctx.ellipse(this.holeX, this.holes[i], 26, 20, 0, 0, 6.28); ctx.fill();
-      ctx.strokeStyle = 'rgba(90,70,55,0.6)'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.ellipse(this.holeX, this.holes[i], 26, 20, 0, 0, 6.28); ctx.stroke();
+  drawHull(ctx, alpha) {
+    // 전용 4구멍 선체. 자산 미로딩 때만 기존 도형으로 폴백한다.
+    if (!Sprites.draw(ctx, 'boss.buuHull', CFG.W - 64, CFG.H / 2, { alpha })) {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = '#33291f';
+      ctx.strokeStyle = '#1f1811'; ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(CFG.W * 0.9, 20, CFG.W * 0.12, CFG.H - 40, 14);
+      ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = '#3a2e22'; ctx.lineWidth = 8;
+      ctx.beginPath(); ctx.moveTo(CFG.W * 0.93, 40); ctx.lineTo(CFG.W * 0.8, -30); ctx.stroke();
+      for (let i = 0; i < this.holes.length; i++) {
+        ctx.fillStyle = '#120d08';
+        ctx.beginPath(); ctx.ellipse(this.holeX(i), this.holes[i], 26, 20, 0, 0, 6.28); ctx.fill();
+        ctx.strokeStyle = 'rgba(90,70,55,0.6)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.ellipse(this.holeX(i), this.holes[i], 26, 20, 0, 0, 6.28); ctx.stroke();
+      }
+      ctx.restore();
     }
-    ctx.restore();
+  }
+
+  draw(ctx) {
+    const hullAlpha = (this.phase >= 3 ? 0.4 : 1) * (this.dead ? Math.max(0, 1 - this.deathT / 2) : 1);
+    this.drawHull(ctx, hullAlpha);
 
     if (this.dead) {
       // 성불 중 — 몸통도 머리를 따라 함께 (머리만 떠 있으면 섭섭하니까)
       ctx.save();
       ctx.globalAlpha = Math.max(0, 1 - this.deathT / 2.6);
-      for (let i = 10; i < this.trail.length; i += 10) {
-        const seg = this.trail[i];
-        const k = i / 80;
+      const body = this.bodySegments();
+      for (let i = body.length - 1; i >= 0; i--) {
+        const seg = body[i];
+        const k = i / Math.max(1, body.length - 1);
         ctx.save();
         ctx.globalAlpha *= (0.85 - k * 0.5);
-        const r = 19 - k * 9;
+        const rx = 18 - k * 8, ry = 13 - k * 6;
         ctx.fillStyle = '#a8d8bc';
-        ctx.beginPath(); ctx.arc(seg.x, seg.y, r, 0, 6.28); ctx.fill();
+        ctx.translate(Math.round(seg.x), Math.round(seg.y));
+        ctx.rotate(seg.angle);
+        ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, 6.28); ctx.fill();
         ctx.restore();
       }
-      this.drawHead(ctx, this.x, this.y, 1);
+      this.drawHead(ctx, this.x, this.y, 1, this.headAngle());
       ctx.restore();
       return;
     }
     if (this.phase === 0) {
       // 구멍에서 빼꼼
-      this.drawHead(ctx, this.holeX - 18, this.holes[1], 0.7);
+      this.drawBurrowBody(ctx, this.holeX(1) - 18, this.holes[1], 0.7, 1);
       return;
     }
 
     if (this.phase >= 3) {
       // 몸통 마디 (머리 궤적 추종 — 꼬리로 갈수록 가늘고 투명)
-      for (let i = 10; i < this.trail.length; i += 10) {
-        const seg = this.trail[i];
-        const k = i / 80;
+      const body = this.bodySegments();
+      for (let i = body.length - 1; i >= 0; i--) {
+        const seg = body[i];
+        const k = i / Math.max(1, body.length - 1);
         ctx.save();
         ctx.globalAlpha = 0.85 - k * 0.5;
-        const r = 19 - k * 9;
-        const body = ctx.createRadialGradient(seg.x - 4, seg.y - 4, 2, seg.x, seg.y, r);
-        body.addColorStop(0, '#c9f0d8');
-        body.addColorStop(1, '#7fb99a');
-        ctx.fillStyle = body;
-        ctx.beginPath(); ctx.arc(seg.x, seg.y, r, 0, 6.28); ctx.fill();
+        const rx = 17 - k * 8, ry = 10 - k * 5;
+        ctx.translate(Math.round(seg.x), Math.round(seg.y));
+        ctx.rotate(seg.angle);
+        ctx.fillStyle = '#7fb99a';
+        ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, 6.28); ctx.fill();
+        ctx.fillStyle = '#c9f0d8';
+        ctx.beginPath(); ctx.ellipse(-2, -3, Math.max(2, rx - 5), Math.max(2, ry - 6), 0, Math.PI, 6.28); ctx.fill();
         // 등지느러미 물결
         ctx.strokeStyle = 'rgba(159,232,184,0.6)'; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.arc(seg.x, seg.y - r - 2, 6, Math.PI, 0); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, -ry - 1, 5, Math.PI, 0); ctx.stroke();
         // 거울 분신 마디 (P4, 반투명)
         if (this.phase === 4) {
+          ctx.restore();
+          ctx.save();
           ctx.globalAlpha *= 0.5;
+          ctx.translate(Math.round(seg.x), Math.round(CFG.H - seg.y));
+          ctx.rotate(-seg.angle);
           ctx.fillStyle = '#e8fff0';
-          ctx.beginPath(); ctx.arc(seg.x, CFG.H - seg.y, r, 0, 6.28); ctx.fill();
+          ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, 6.28); ctx.fill();
         }
         ctx.restore();
       }
-      this.drawHead(ctx, this.x, this.y, 1);
+      const headAngle = this.headAngle();
+      this.drawHead(ctx, this.x, this.y, 1, headAngle);
       if (this.phase === 4) {
         ctx.save();
         ctx.globalAlpha = 0.5;
-        this.drawHead(ctx, this.x, CFG.H - this.y, 1);
+        this.drawHead(ctx, this.x, CFG.H - this.y, 1, -headAngle);
         ctx.restore();
       }
     } else if (this.mode === 'out' || this.mode === 'tel') {
       // 구멍에서 미끄러져 나오는 중 — 작게 시작해 커진다
-      if (this.mode === 'out') this.drawHead(ctx, this.x, this.y, 0.4 + 0.6 * this.emerge);
+      if (this.mode === 'out') this.drawBurrowBody(ctx, this.x, this.y, 0.4 + 0.6 * this.emerge, this.holeIdx);
+    }
+
+    if (this.mode === 'out' || this.mode === 'tel') {
       // 힌트 예고 반짝
       if (this.telegraph > 0) {
         ctx.strokeStyle = `rgba(255, 240, 150, ${Math.min(1, this.telegraph)})`;
         ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.arc(this.holeX, this.holes[this.holeIdx], 42, 0, 6.28); ctx.stroke();
+        ctx.beginPath(); ctx.arc(this.holeX(), this.holes[this.holeIdx], 42, 0, 6.28); ctx.stroke();
       }
     }
   }
 
-  drawHead(ctx, x, y, s) {
+  drawBurrowBody(ctx, x, y, scale, holeIdx) {
+    const hx = this.holeX(holeIdx), hy = this.holes[holeIdx];
+    const angle = Math.atan2(hy - y, hx - x);
+    // 스프라이트 목 끝은 기준점에서 오른쪽 15px(게임 좌표 30px)에 있다.
+    const neckReach = 30 * scale;
+    const nx = x + Math.cos(angle) * neckReach;
+    const ny = y + Math.sin(angle) * neckReach;
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#7fb99a';
+    ctx.lineWidth = 20 * scale;
+    ctx.beginPath(); ctx.moveTo(nx, ny); ctx.lineTo(hx, hy); ctx.stroke();
+    ctx.strokeStyle = 'rgba(201, 240, 216, 0.7)';
+    ctx.lineWidth = Math.max(3, 6 * scale);
+    ctx.beginPath(); ctx.moveTo(nx, ny - 3 * scale); ctx.lineTo(hx, hy - 3 * scale); ctx.stroke();
+    ctx.restore();
+    this.drawHead(ctx, x, y, scale, angle);
+  }
+
+  drawHead(ctx, x, y, s, angle = 0) {
+    if (Sprites.draw(ctx, 'boss.buu', x, y, { t: this.anim, scale: s, rot: angle })) return;
     ctx.save();
     ctx.translate(x, y);
+    ctx.rotate(angle);
     const R = 30 * s;
     // 목 (구멍 쪽으로)
     if (this.phase !== 3 && !this.dead) {

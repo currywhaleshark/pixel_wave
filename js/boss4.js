@@ -102,10 +102,10 @@ class BossChorong {
     this.t += dt; this.anim += dt;
     const g = this.game;
 
-    // 초롱불 위치 (입 앞 위쪽, 하늘하늘)
+    // 초롱불 위치. 완성 스프라이트 안에 그려진 흰 전구와 광원·탄 원점을 맞춘다.
     const s = this.scale;
-    this.lureX = this.x - 58 * s + Math.sin(this.anim * 2.1) * 8;
-    this.lureY = this.y - 44 * s + Math.sin(this.anim * 1.6) * 10;
+    this.lureX = this.x - 50 * s;
+    this.lureY = this.y - 40 * s;
 
     if (this.dead) {
       this.deathT += dt;
@@ -262,6 +262,9 @@ class BossChorong {
       ctx.beginPath(); ctx.arc(0, 0, R + 18, 0, 6.28); ctx.stroke();
     }
 
+    // 본체만 스프라이트로 교체한다. 초롱 줄기·광원·예고는 코드 연출을 유지한다.
+    const spriteBodyDrawn = Sprites.draw(ctx, 'boss.chorong', 0, 0, { t: this.anim, scale: s });
+    if (!spriteBodyDrawn) {
     // 몸통 (어두운 심해색 — 어둠 속에선 실루엣만)
     const body = ctx.createRadialGradient(-R * 0.2, -R * 0.25, R * 0.2, 0, 0, R);
     body.addColorStop(0, '#31406b');
@@ -316,22 +319,29 @@ class BossChorong {
     ctx.lineTo(R * 0.35, R * 1.0 + wag * 0.4);
     ctx.lineTo(R * 0.5, R * 0.65);
     ctx.fill();
+    }
     ctx.restore();
 
-    // 초롱 줄기 + 불 (화면 좌표 — 광원 구멍과 일치)
+    // 생성 스프라이트에는 초롱 줄기와 전구가 이미 포함되어 있다.
+    // 폴백 몸체에서만 기존 줄기를 그리고, 스프라이트일 때는 같은 전구 위치의 점멸만 덧댄다.
     ctx.save();
-    ctx.strokeStyle = '#31406b'; ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(this.x - 20 * s, this.y - 34 * s);
-    ctx.quadraticCurveTo(this.x - 50 * s, this.y - 62 * s, this.lureX, this.lureY + 8);
-    ctx.stroke();
     const blinkFast = this.mode === 'blink' && Math.floor(this.modeT * 14) % 2 === 0;
-    const lure = ctx.createRadialGradient(this.lureX, this.lureY, 0, this.lureX, this.lureY, 18);
-    lure.addColorStop(0, blinkFast ? '#ffffff' : '#d8fff8');
-    lure.addColorStop(0.5, blinkFast ? '#ffd0d0' : '#8ef0e2');
-    lure.addColorStop(1, 'rgba(126,232,224,0)');
-    ctx.fillStyle = lure;
-    ctx.beginPath(); ctx.arc(this.lureX, this.lureY, 18, 0, 6.28); ctx.fill();
+    if (!spriteBodyDrawn) {
+      ctx.strokeStyle = '#31406b'; ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(this.x - 20 * s, this.y - 34 * s);
+      ctx.quadraticCurveTo(this.x - 50 * s, this.y - 62 * s, this.lureX, this.lureY + 8);
+      ctx.stroke();
+      const lure = ctx.createRadialGradient(this.lureX, this.lureY, 0, this.lureX, this.lureY, 18);
+      lure.addColorStop(0, blinkFast ? '#ffffff' : '#d8fff8');
+      lure.addColorStop(0.5, blinkFast ? '#ffd0d0' : '#8ef0e2');
+      lure.addColorStop(1, 'rgba(126,232,224,0)');
+      ctx.fillStyle = lure;
+      ctx.beginPath(); ctx.arc(this.lureX, this.lureY, 18, 0, 6.28); ctx.fill();
+    } else if (blinkFast) {
+      ctx.fillStyle = '#ffd0d0';
+      ctx.beginPath(); ctx.arc(this.lureX, this.lureY, 4, 0, 6.28); ctx.fill();
+    }
     ctx.restore();
   }
 

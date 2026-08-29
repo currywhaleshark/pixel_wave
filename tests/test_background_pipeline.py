@@ -107,6 +107,43 @@ class BackgroundPipelineTest(unittest.TestCase):
             self.assertEqual(layer["seam_cap"]["positions"], [0, 480, 960])
             self.assertTrue((run / layer["seam_cap"]["generated"]).is_file())
 
+    def test_stage4_canyon_is_connected_dark_and_height_varied(self) -> None:
+        run = ROOT / "assets" / "generated" / "backgrounds" / "stage4-deep-canyon"
+        self.assertEqual(lint_stage2(run), [])
+        manifest = json.loads((run / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(list(manifest["layers"]), ["sea", "far", "mid", "near"])
+        self.assertEqual(
+            [manifest["layers"][name]["height"] for name in ("sea", "far", "mid", "near")],
+            [270, 80, 80, 128],
+        )
+        self.assertGreaterEqual(manifest["layers"]["near"]["height_range"][1], 90)
+        self.assertLessEqual(manifest["layers"]["near"]["height_range"][0], 35)
+        for name in ("far", "mid", "near"):
+            layer = manifest["layers"][name]
+            self.assertTrue(layer["aspect_preserved"])
+            self.assertEqual(layer["runtime_scale"], 1)
+            self.assertEqual(layer["seam_cap"]["positions"], [0, 480, 960])
+            self.assertTrue((run / layer["seam_cap"]["generated"]).is_file())
+
+    def test_stage5_graveyard_has_varied_connected_wreck_layers(self) -> None:
+        run = ROOT / "assets" / "generated" / "backgrounds" / "stage5-wreck-graveyard"
+        self.assertEqual(lint_stage2(run), [])
+        manifest = json.loads((run / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(list(manifest["layers"]), ["sea", "far", "mid", "near"])
+        self.assertEqual(
+            [manifest["layers"][name]["height"] for name in ("sea", "far", "mid", "near")],
+            [270, 80, 160, 160],
+        )
+        self.assertGreaterEqual(len(manifest["wreck_silhouettes"]), 8)
+        self.assertGreaterEqual(manifest["layers"]["near"]["height_range"][1], 115)
+        self.assertLessEqual(manifest["layers"]["near"]["height_range"][0], 30)
+        for name in ("far", "mid", "near"):
+            layer = manifest["layers"][name]
+            self.assertTrue(layer["aspect_preserved"])
+            self.assertEqual(layer["runtime_scale"], 1)
+            self.assertEqual(layer["seam_cap"]["positions"], [0, 480, 960])
+            self.assertTrue((run / layer["seam_cap"]["generated"]).is_file())
+
 
 if __name__ == "__main__":
     unittest.main()

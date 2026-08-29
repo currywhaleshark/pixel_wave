@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "enemy-wreck",
+    "description": "vertically tileable waterlogged shipwreck obstacle fragments in drowned wood and oxidized teal",
+    "base_image": "base-source.png"
+  },
+  "cell": { "shape": "rect", "width": 40, "height": 32, "safe_margin_x": 2, "safe_margin_y": 0 },
+  "chroma_key": { "name": "magenta", "hex": "#FF00FF", "rgb": [255, 0, 255], "selection": "manual" },
+  "states": {
+    "variants": {
+      "frames": 4,
+      "fps": 0,
+      "loop": false,
+      "action": "four separate centered 40x32 vertical shipwreck obstacle tiles at equal scale, left to right: 1 broken bow plank cross-section, 2 exposed curved hull ribs, 3 damaged stern planks with oxidized bolt housing, 4 crossed mast-and-keel beams; every frame is one connected sturdy silhouette with compatible straight top and bottom edges for vertical repetition; no detached splinters, no animation, no labels, no floor, no coral or creatures"
+    }
+  },
+  "style": "native 40x32 hard-edged pixel art with countable square pixels, one-pixel blue-black outline and a shared limited drowned brown-oxidized teal palette",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": { "resample": "kcentroid", "align_x": "bbox-center", "align_y": "center", "pixel_perfect": false, "palette_size": 12 },
+  "chroma": { "mode": "rgb", "unmix_reach": 4, "spill_max_fraction": 0.005 }
+}

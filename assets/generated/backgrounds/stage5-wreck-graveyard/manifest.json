@@ -1,0 +1,282 @@
+{
+  "version": 1,
+  "kind": "pixel-wave-stage-background",
+  "stage": "stage5",
+  "name": "난파선 묘지",
+  "logical_viewport": [
+    480,
+    270
+  ],
+  "palette": [
+    [
+      3,
+      11,
+      17
+    ],
+    [
+      5,
+      18,
+      25
+    ],
+    [
+      7,
+      27,
+      35
+    ],
+    [
+      10,
+      38,
+      45
+    ],
+    [
+      13,
+      51,
+      56
+    ],
+    [
+      18,
+      65,
+      67
+    ],
+    [
+      25,
+      81,
+      78
+    ],
+    [
+      35,
+      98,
+      89
+    ],
+    [
+      49,
+      116,
+      101
+    ],
+    [
+      68,
+      134,
+      112
+    ],
+    [
+      90,
+      151,
+      127
+    ],
+    [
+      38,
+      43,
+      45
+    ],
+    [
+      55,
+      56,
+      52
+    ],
+    [
+      73,
+      69,
+      59
+    ],
+    [
+      92,
+      83,
+      67
+    ],
+    [
+      113,
+      100,
+      78
+    ]
+  ],
+  "layers": {
+    "sea": {
+      "file": "../../../backgrounds/stage5-sea-strip.png",
+      "generated": "sea-strip.png",
+      "source": "sources/sea-long-source-v1.png",
+      "width": 1440,
+      "height": 270,
+      "parallax": 0.016,
+      "seamless": true,
+      "opaque": true,
+      "palette": [
+        "#194f5b",
+        "#144452",
+        "#103948",
+        "#0d3040",
+        "#0a2737",
+        "#081f2e",
+        "#061826",
+        "#051320",
+        "#040f1a",
+        "#030b16"
+      ],
+      "source_size": [
+        1774,
+        887
+      ],
+      "crop_box": [
+        0,
+        277,
+        1774,
+        610
+      ],
+      "runtime_scale": 1
+    },
+    "far": {
+      "file": "../../../backgrounds/stage5-far-strip.png",
+      "generated": "far-strip.png",
+      "source": "sources/far-long-source-v1.png",
+      "width": 1440,
+      "height": 80,
+      "parallax": 0.09,
+      "seamless": true,
+      "source_size": [
+        2172,
+        724
+      ],
+      "source_bbox": [
+        0,
+        444,
+        2172,
+        724
+      ],
+      "content_size": [
+        480,
+        62
+      ],
+      "height_range": [
+        7,
+        62
+      ],
+      "panel_width": 480,
+      "panel_count": 3,
+      "runtime_scale": 1,
+      "scale": 0.220994,
+      "aspect_preserved": true,
+      "seam_cap": {
+        "generated": "caps/far-seam-cap.png",
+        "positions": [
+          0,
+          480,
+          960
+        ],
+        "size": [
+          46,
+          80
+        ],
+        "runtime_scale": 1,
+        "source": "sources/far-long-source-v1.png"
+      }
+    },
+    "mid": {
+      "file": "../../../backgrounds/stage5-mid-strip.png",
+      "generated": "mid-strip.png",
+      "source": "sources/mid-long-source-v1.png",
+      "width": 1440,
+      "height": 160,
+      "parallax": 0.28,
+      "seamless": true,
+      "source_size": [
+        2172,
+        724
+      ],
+      "source_bbox": [
+        0,
+        165,
+        2172,
+        724
+      ],
+      "content_size": [
+        480,
+        124
+      ],
+      "height_range": [
+        8,
+        124
+      ],
+      "panel_width": 480,
+      "panel_count": 3,
+      "runtime_scale": 1,
+      "scale": 0.220994,
+      "aspect_preserved": true,
+      "seam_cap": {
+        "generated": "caps/mid-seam-cap.png",
+        "positions": [
+          0,
+          480,
+          960
+        ],
+        "size": [
+          62,
+          160
+        ],
+        "runtime_scale": 1,
+        "source": "sources/mid-long-source-v1.png"
+      }
+    },
+    "near": {
+      "file": "../../../backgrounds/stage5-near-strip.png",
+      "generated": "near-strip.png",
+      "source": "sources/near-long-source-v1.png",
+      "width": 1440,
+      "height": 160,
+      "parallax": 0.76,
+      "seamless": true,
+      "source_size": [
+        2172,
+        724
+      ],
+      "source_bbox": [
+        0,
+        176,
+        2172,
+        724
+      ],
+      "content_size": [
+        480,
+        121
+      ],
+      "height_range": [
+        17,
+        121
+      ],
+      "panel_width": 480,
+      "panel_count": 3,
+      "runtime_scale": 1,
+      "scale": 0.220994,
+      "aspect_preserved": true,
+      "seam_cap": {
+        "generated": "caps/near-seam-cap.png",
+        "positions": [
+          0,
+          480,
+          960
+        ],
+        "size": [
+          88,
+          160
+        ],
+        "runtime_scale": 1,
+        "source": "sources/near-long-source-v1.png"
+      }
+    }
+  },
+  "wreck_silhouettes": [
+    "bow",
+    "stern",
+    "hull-side",
+    "rib-cage",
+    "mast",
+    "anchor",
+    "keel",
+    "propeller-housing"
+  ],
+  "runtime_effects": [
+    "murky-shafts",
+    "graveyard-motes",
+    "gameplay-darkness-mask"
+  ],
+  "prompt_log": "generation-prompts.md",
+  "notes": "Distinct wreck fragments are fused into continuous terrain. Native-scale seam caps cover every 480px panel boundary."
+}

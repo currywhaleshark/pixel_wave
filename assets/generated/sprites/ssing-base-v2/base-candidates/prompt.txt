@@ -1,0 +1,6 @@
+Use case: stylized-concept
+Asset type: canonical base identity for a 56x40 native-resolution boss sprite
+Primary request: Create exactly one large boss manta ray named Ssing, full body in a clean left-facing side view, centered and fully visible. It is a speed-crazed express courier: broad powerful periwinkle wings, compact dark navy center body, one large determined visible eye with an angled brow, pale lavender belly markings, a short tapering tail, and one small attached bright red scarf knot at the rear shoulder. Do not draw the long scarf ribbon because runtime code adds the trailing ribbon separately.
+Style/medium: true coarse pixel art matching the attached Pixel Wave sprite references: large countable square logical pixels, hard one-logical-pixel dark indigo outline, limited 12-14 color pastel underwater palette, flat readable clusters, no antialiasing, no gradients, no micro-pixel texture.
+Scene/backdrop: perfectly flat solid #00FF00 green chroma-key background, edge-to-edge.
+Constraints: readable at 56x40; one eye only; no cropped parts; no detached objects; no long scarf ribbon; no shadow; no glow; no speed lines; no water; no bubbles; no scenery; no text; no UI; no grid; no frame boxes; no watermark.

@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": "ssing-base-v2",
+    "description": "left-facing coarse-grid periwinkle express-courier manta boss with one determined eye and attached red scarf knot",
+    "base_image": "base-source.png"
+  },
+  "cell": {
+    "shape": "rect",
+    "width": 56,
+    "height": 40,
+    "safe_margin_x": 2,
+    "safe_margin_y": 2
+  },
+  "chroma_key": {
+    "name": "green",
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "selection": "manual"
+  },
+  "states": {
+    "idle": {
+      "frames": 1,
+      "fps": 0,
+      "loop": true,
+      "action": "one canonical left-facing express-courier manta boss idle pose with broad periwinkle wings, one determined eye and one attached red scarf knot"
+    }
+  },
+  "style": "native 56x40 coarse pixel art; maximum 14 flat colors; hard clusters; no gradients, antialiasing or micro-detail",
+  "motion_phase_guides": false,
+  "layout": "taxonomy/v1",
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 14,
+    "pitch_hint": 18
+  },
+  "chroma": {
+    "mode": "rgb",
+    "unmix_reach": 4,
+    "spill_max_fraction": 0.005
+  }
+}

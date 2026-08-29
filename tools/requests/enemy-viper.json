@@ -1,0 +1,27 @@
+{
+  "states": {
+    "swim": {
+      "frames": 2,
+      "fps": 8,
+      "loop": true,
+      "action": "left-facing two-frame viperfish swim loop at strict scale lock: keep the huge jaw, teeth, cyan eye, head and body center fixed; swing only the attached tail tip up and down by one logical pixel and shift the lower jaw by at most one logical pixel; no translation, resizing, detached pixels, bubbles, glow or effects"
+    }
+  },
+  "cell": {
+    "width": 20,
+    "height": 10,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 8
+  },
+  "pixel_lint": {
+    "fail_on_pitch_warnings": true,
+    "max_frame_bbox_delta": { "width": 1, "height": 1 }
+  }
+}

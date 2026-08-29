@@ -319,6 +319,12 @@ class BossSsing {
     ctx.quadraticCurveTo(R * 0.9, -R * 0.15 + Math.sin(this.anim * 8) * 8, R * 1.4, Math.sin(this.anim * 8 + 1) * 12);
     ctx.stroke();
 
+    // 본체만 스프라이트로 교체한다. 스카프·돌진 예고·잔상은 위의 코드 연출을 유지한다.
+    if (Sprites.draw(ctx, 'boss.ssing', 0, 0, { t: this.anim, scale: s })) {
+      ctx.restore();
+      return;
+    }
+
     // 몸통: 큰 가오리 날개
     ctx.fillStyle = '#7189d8';
     ctx.beginPath();

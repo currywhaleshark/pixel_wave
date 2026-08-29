@@ -1,0 +1,16 @@
+{
+  "kind": "pixel-wave-normalize-report",
+  "version": 1,
+  "run": "chorong",
+  "source": "sprite-sheet-alpha.png",
+  "output": "sprite-sheet-pixel.png",
+  "width": 112,
+  "height": 48,
+  "alpha_threshold": 128,
+  "palette_colors": 13,
+  "opaque_pixels_before_cleanup": 2994,
+  "alpha_or_transparent_rgb_changed_pixels": 183,
+  "palette_remapped_pixels": 2862,
+  "removed_component_pixels": 0,
+  "sha256": "c60132e9063c2c1346763efd5df82297dd0ad3d11dc44c53357fd270284adc41"
+}

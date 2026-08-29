@@ -1,0 +1,27 @@
+{
+  "states": {
+    "blink": {
+      "frames": 2,
+      "fps": 6,
+      "loop": true,
+      "action": "centered two-frame four-point star projectile blink at strict scale lock: frame 1 has long vertical tips and short horizontal tips, frame 2 has long horizontal tips and short vertical tips; keep the pale mint center fixed, preserve the same total 8x8 footprint and palette; no rotation blur, translation, resizing, detached sparkles, halo or glow"
+    }
+  },
+  "cell": {
+    "width": 10,
+    "height": 10,
+    "safe_margin_x": 1,
+    "safe_margin_y": 1
+  },
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 6
+  },
+  "pixel_lint": {
+    "fail_on_pitch_warnings": true,
+    "max_frame_bbox_delta": { "width": 0, "height": 0 }
+  }
+}

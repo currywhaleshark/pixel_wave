@@ -1,0 +1,16 @@
+{
+  "kind": "pixel-wave-normalize-report",
+  "version": 1,
+  "run": "ssing",
+  "source": "sprite-sheet-alpha.png",
+  "output": "sprite-sheet-pixel.png",
+  "width": 112,
+  "height": 40,
+  "alpha_threshold": 128,
+  "palette_colors": 14,
+  "opaque_pixels_before_cleanup": 1233,
+  "alpha_or_transparent_rgb_changed_pixels": 258,
+  "palette_remapped_pixels": 1206,
+  "removed_component_pixels": 0,
+  "sha256": "555d72d9c3953b3f2c69f685088843bc3c2230472442ff8a67e05bbebb51ecbc"
+}

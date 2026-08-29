@@ -1,0 +1,6 @@
+Use case: stylized-concept
+Asset type: canonical base identity for a 32x20 native-resolution game sprite
+Primary request: Create exactly one friendly sea-turtle taxi character, full body in clean right-facing side view, centered and fully visible. The turtle has a wide low domed olive-jade shell shaped like a small riding platform, a warm mint-green head and four attached flippers, one tiny readable dark eye, and a small navy taxi-driver cap. Keep the silhouette compact and horizontal so a separate mermaid can ride just above the shell; do not draw the mermaid or any passenger.
+Style/medium: true coarse pixel art matching the attached Pixel Wave sprite references: large countable square logical pixels, hard 1-pixel dark teal outline, limited 10-12 color pastel underwater palette, flat clusters only, no antialiasing, no gradients, no micro-pixel texture.
+Scene/backdrop: perfectly flat solid #FF00FF magenta chroma-key background, edge-to-edge.
+Constraints: exactly one turtle and one attached cap; all flippers attached; readable at 32x20; no cropped parts; no detached objects; no shadow; no glow; no water; no bubbles; no scenery; no text; no UI; no grid; no frame boxes; no watermark.

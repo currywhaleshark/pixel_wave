@@ -1,0 +1,27 @@
+{
+  "states": {
+    "flap": {
+      "frames": 2,
+      "fps": 6,
+      "loop": true,
+      "action": "left-facing two-frame boss wing-flap loop at strict scale lock: keep the determined eye, brow, dark center body, red scarf knot, tail root and body center fixed; frame 1 has both broad wings moderately raised and frame 2 presses both wings lower by three to four logical pixels; preserve identical body length and palette; seamless alternating loop; no long scarf ribbon, translation, resizing, detached parts, speed lines or effects"
+    }
+  },
+  "cell": {
+    "width": 56,
+    "height": 40,
+    "safe_margin_x": 1,
+    "safe_margin_y": 2
+  },
+  "fit": {
+    "resample": "kcentroid",
+    "align_x": "alpha-centroid",
+    "align_y": "center",
+    "pixel_perfect": false,
+    "palette_size": 14
+  },
+  "pixel_lint": {
+    "fail_on_pitch_warnings": true,
+    "max_frame_bbox_delta": { "width": 3, "height": 3 }
+  }
+}
