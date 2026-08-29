@@ -509,6 +509,7 @@ const Game = {
   // 라스보스 격파 → 엔딩 시퀀스 (일반 victory 대신)
   startEnding() {
     this.commitRun();
+    this.msgs = [];
     this.state = 'ending';
     this.endingT = 0;
     this.bolts = [];
@@ -521,6 +522,7 @@ const Game = {
     this.commitRun();
     Sound.stopBgm(1.5);
     Sound.sfx('clear');
+    this.msgs = [];   // 남은 중앙 메시지가 결과창과 겹치지 않게
     this.state = 'victory';
     this.victoryT = 0;
     Input.anyPressed = false; // 클리어 순간의 잔여 입력으로 즉시 재시작 방지
@@ -1799,17 +1801,12 @@ const Game = {
     ctx.fillStyle = 'rgba(5, 15, 45, 0.6)';
     ctx.fillRect(0, 0, CFG.W, CFG.H);
     ctx.textAlign = 'center';
-    PXUI.text(ctx, '해역 클리어!', CFG.W / 2, CFG.H * 0.34, 36, '#ffe9a8');
+    const stage = STAGES[this.stageIdx];
+    PXUI.text(ctx, '해역 클리어!', CFG.W / 2, CFG.H * 0.26, 36, '#ffe9a8');
+    // 재클리어면 친구가 된 뒤의 문구로
     ctx.fillStyle = '#a8ffcf';
     ctx.font = Fonts.f(16);
-    ctx.fillText(STAGES[this.stageIdx].clearMsg, CFG.W / 2, CFG.H * 0.44);
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    ctx.font = Fonts.f(15);
-    ctx.fillText(`진주 ${this.stats.pearls} · 격침 ${this.stats.deaths}회 · 소나 ${this.stats.bombs}회 · ${Math.floor(this.stats.time)}초`, CFG.W / 2, CFG.H * 0.54);
-    ctx.fillStyle = '#d8b4e8';
-    ctx.font = Fonts.f(14);
-    const bk = this.stats.banked ?? this.stats.pearls;
-    ctx.fillText(`[${this.D.name}] 진주 ${bk}개 입금 완료 (×${this.D.pearlMul}) — 보유 ${Meta.data.bank}개`, CFG.W / 2, CFG.H * 0.60);
+    ctx.fillText(this.replay ? (stage.clearMsgAgain ?? stage.clearMsg) : stage.clearMsg, CFG.W / 2, CFG.H * 0.35);
     // 점수 결산
     {
       const tags = [];
@@ -1817,21 +1814,28 @@ const Game = {
       if (this.stats.noBomb) tags.push('노봄 +3000');
       if (this.grazeN > 0) tags.push(`그레이즈 ${this.grazeN}`);
       ctx.fillStyle = '#fff';
-      ctx.font = Fonts.f(18, true);
-      ctx.fillText(`점수 ${this.score.toLocaleString()}`, CFG.W / 2, CFG.H * 0.475);
+      ctx.font = Fonts.f(20, true);
+      ctx.fillText(`점수 ${this.score.toLocaleString()}`, CFG.W / 2, CFG.H * 0.45);
       if (tags.length) {
         ctx.fillStyle = '#ffe9a8'; ctx.font = Fonts.f(12);
-        ctx.fillText(tags.join(' · '), CFG.W / 2, CFG.H * 0.505);
+        ctx.fillText(tags.join(' · '), CFG.W / 2, CFG.H * 0.50);
       }
-      if (this.newBest) {
-        ctx.fillStyle = Math.sin(performance.now() / 200) > 0 ? '#ffd76e' : '#ffe9a8';
-        ctx.font = Fonts.f(14, true);
-        ctx.fillText('★ 최고 기록 갱신! ★', CFG.W / 2, CFG.H * 0.65);
-      }
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.font = Fonts.f(15);
+    ctx.fillText(`진주 ${this.stats.pearls} · 격침 ${this.stats.deaths}회 · 소나 ${this.stats.bombs}회 · ${Math.floor(this.stats.time)}초`, CFG.W / 2, CFG.H * 0.575);
+    ctx.fillStyle = '#d8b4e8';
+    ctx.font = Fonts.f(14);
+    const bk = this.stats.banked ?? this.stats.pearls;
+    ctx.fillText(`[${this.D.name}] 진주 ${bk}개 입금 완료 (×${this.D.pearlMul}) — 보유 ${Meta.data.bank}개`, CFG.W / 2, CFG.H * 0.635);
+    if (this.newBest) {
+      ctx.fillStyle = Math.sin(performance.now() / 200) > 0 ? '#ffd76e' : '#ffe9a8';
+      ctx.font = Fonts.f(14, true);
+      ctx.fillText('★ 최고 기록 갱신! ★', CFG.W / 2, CFG.H * 0.705);
     }
     ctx.fillStyle = '#ffe9a8';
     ctx.font = Fonts.f(16, true);
-    if (Math.sin(performance.now() / 300) > -0.3) ctx.fillText('아무 키 / 클릭 — 항해도로', CFG.W / 2, CFG.H * 0.7);
+    if (Math.sin(performance.now() / 300) > -0.3) ctx.fillText('아무 키 / 클릭 — 항해도로', CFG.W / 2, CFG.H * 0.79);
     ctx.restore();
   },
 };

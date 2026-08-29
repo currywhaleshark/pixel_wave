@@ -519,19 +519,26 @@ const STAGE7_TIMELINE = [
 // ------------------------------------------------------------
 const STAGES = [
   { id: 'stage1', name: '산호 초입',   timeline: STAGE1_TIMELINE, boss: (g) => new Boss(g),
-    clearMsg: '별빛 길이 한 칸 이어졌다... 팡팡이 친구가 되었다!', friendColor: '#e8c84e' },
+    clearMsg: '별빛 길이 한 칸 이어졌다... 팡팡이 친구가 되었다!',
+    clearMsgAgain: '팡팡과 한바탕 놀아줬다. 다음엔 자기가 이긴다나 뭐라나.', friendColor: '#e8c84e' },
   { id: 'stage2', name: '해파리 초원', timeline: STAGE2_TIMELINE, boss: (g) => new BossMongsil(g),
-    clearMsg: '별빛 길이 한 칸 이어졌다... 몽실이 친구가 되었다!', friendColor: '#c9a3ff' },
+    clearMsg: '별빛 길이 한 칸 이어졌다... 몽실이 친구가 되었다!',
+    clearMsgAgain: '몽실의 등불 정원을 다시 구경하고 왔다~', friendColor: '#c9a3ff' },
   { id: 'stage3', name: '거북이 고속도로', timeline: STAGE3_TIMELINE, boss: (g) => new BossSsing(g),
-    clearMsg: '별빛 길이 한 칸 이어졌다... 씽씽이 친구가 되었다!', friendColor: '#8fa3e8' },
+    clearMsg: '별빛 길이 한 칸 이어졌다... 씽씽이 친구가 되었다!',
+    clearMsgAgain: '씽씽과의 리턴 매치 승리! 오늘도 최고 속도 배송.', friendColor: '#8fa3e8' },
   { id: 'stage4', name: '심해 협곡', timeline: STAGE4_TIMELINE, boss: (g) => new BossChorong(g),
-    clearMsg: '별빛 길이 한 칸 이어졌다... 초롱이가 친구가 되었다!', friendColor: '#7ee8e0', dark: 0.86 },
+    clearMsg: '별빛 길이 한 칸 이어졌다... 초롱이가 친구가 되었다!',
+    clearMsgAgain: '초롱이의 별밤을 또 보고 왔다. 기다리고 있었대.', friendColor: '#7ee8e0', dark: 0.86 },
   { id: 'stage5', name: '난파선 묘지', timeline: STAGE5_TIMELINE, boss: (g) => new BossBuu(g),
-    clearMsg: '별빛 길이 한 칸 이어졌다... 부우가 친구가 되었다!', friendColor: '#9fe8b8', dark: 0.3 },
+    clearMsg: '별빛 길이 한 칸 이어졌다... 부우가 친구가 되었다!',
+    clearMsgAgain: '부우와 숨바꼭질 한 판. 오늘도 안 놀라줬다.', friendColor: '#9fe8b8', dark: 0.3 },
   { id: 'stage6', name: '폭풍 수면', timeline: STAGE6_TIMELINE, boss: (g) => new BossUreu(g),
-    clearMsg: '별빛 길이 한 칸 이어졌다... 우르릉이 친구가 되었다!', friendColor: '#ffd76e', storm: true },
+    clearMsg: '별빛 길이 한 칸 이어졌다... 우르릉이 친구가 되었다!',
+    clearMsgAgain: '폭풍의 왕님은 오늘도 관대하게 봐주셨다고 한다.', friendColor: '#ffd76e', storm: true },
   { id: 'stage7', name: '용궁 앞바다', timeline: STAGE7_TIMELINE, boss: (g) => new BossHwii(g),
-    clearMsg: '폭풍이 걷혔다... 집이다!', friendColor: '#b8d8f0', storm: true, stormLevel: 0.55 },
+    clearMsg: '폭풍이 걷혔다... 집이다!',
+    clearMsgAgain: '휘이의 눈 속은 오늘도 고요했다.', friendColor: '#b8d8f0', storm: true, stormLevel: 0.55 },
 ];
 
 class Spawner {
