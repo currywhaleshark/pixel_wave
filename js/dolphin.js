@@ -69,8 +69,7 @@ class Dolphin {
         game.shots.push({
           kind: 'beam', x: this.x + 10, y: this.y,
           vx: 420, vy: 0, dmg: 8, pierce: 999, r: 13, big: true, t: 0,
-        });
-        game.message('더블 파도!', '#cfd8e8');
+        });   // 굵은 빔 자체가 보이므로 문자 안내는 생략
       }
     }
 

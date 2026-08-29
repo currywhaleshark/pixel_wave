@@ -286,7 +286,7 @@ const Game = {
       if (g.isFormation && g.killed === g.total) {
         this.pearls.push(new Pearl(e.x, e.y, { big: true }));
         this.addScore(300, true);
-        this.message('편대 전멸! 큰 진주!', '#ffe9a8');
+        this.addFx(e.x, e.y, '#ffe9a8', 10);   // 큰 진주 드랍이 보상 신호 — 문자는 생략
       }
     }
   },
