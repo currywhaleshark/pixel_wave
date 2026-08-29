@@ -20,7 +20,7 @@ const MapUI = {
 
   // 별빛 길 노드 (스테이지 1~7 + 집)
   NODES: [
-    { x: 150, y: 435, name: '산호 초입' },
+    { x: 150, y: 422, name: '산호 초입' },
     { x: 255, y: 390, name: '해파리 초원' },
     { x: 355, y: 335, name: '거북이 고속도로' },
     { x: 450, y: 295, name: '심해 협곡' },
@@ -315,30 +315,55 @@ const MapUI = {
       ctx.save();
       ctx.translate(n.x, n.y);
       if (unlocked) {
-        const pulse = 1 + Math.sin(now * 3) * 0.08;
-        // 키보드 선택 링
+        // 키보드 선택 링 (아이콘 프레임을 감싸는 사각 링)
         if (i === this.sel) {
           ctx.strokeStyle = `rgba(255,255,255,${0.6 + Math.sin(now * 5) * 0.3})`;
           ctx.lineWidth = 2.5;
-          ctx.beginPath(); ctx.arc(0, 0, 26, 0, 6.28); ctx.stroke();
+          ctx.beginPath(); ctx.roundRect(-27, -27, 54, 54, 12); ctx.stroke();
         }
-        // 별 노드 — 색 = 최고 클리어 난이도 (이지 청록 / 노멀 금 / 하드 빨강)
-        ctx.fillStyle = cleared ? DIFFS[clearLv].color : '#ffd76e';
-        ctx.strokeStyle = cleared ? '#ffffff' : '#fff3b0'; ctx.lineWidth = 2;
-        this.star(ctx, 0, 0, 16 * pulse, 8 * pulse);
-        ctx.fill(); ctx.stroke();
+        // 해역 아이콘 (스프라이트 준비 전까지는 자리 표시 프레임)
+        ctx.fillStyle = 'rgba(255,255,255,0.10)';
+        ctx.strokeStyle = i === this.sel ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.35)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.roundRect(-22, -22, 44, 44, 10); ctx.fill(); ctx.stroke();
+        if (!Sprites.draw(ctx, `icon.stage${i + 1}`, 0, 0, {})) {
+          // 임시: 해역 상징색 원 + 번호
+          ctx.fillStyle = STAGES[i].friendColor;
+          ctx.globalAlpha = 0.85;
+          ctx.beginPath(); ctx.arc(0, -3, 11, 0, 6.28); ctx.fill();
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = '#0d3a86';
+          ctx.font = Fonts.f(12, true); ctx.textAlign = 'center';
+          ctx.fillText(`${i + 1}`, 0, 1);
+        }
+        // 이름
         ctx.fillStyle = '#fff';
         ctx.font = Fonts.f(13, true); ctx.textAlign = 'center';
-        ctx.fillText(`${i + 1}. ${n.name}`, 0, -28);
+        ctx.fillText(n.name, 0, -34);
+        // 클리어 난이도 별 3개: 이지 1 / 노멀 2 / 하드 3
+        const filled = clearLv + 1;
+        for (let k = 0; k < 3; k++) {
+          const sx = (k - 1) * 16, sy = 33;
+          if (k < filled) {
+            ctx.fillStyle = '#ffd76e';
+            ctx.strokeStyle = '#fff3b0'; ctx.lineWidth = 1;
+            this.star(ctx, sx, sy, 7, 3.5);
+            ctx.fill(); ctx.stroke();
+          } else {
+            ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1.2;
+            this.star(ctx, sx, sy, 7, 3.5);
+            ctx.stroke();
+          }
+        }
         if (cleared) {
           // 친구가 된 보스 얼굴 (해역별 색)
           ctx.fillStyle = STAGES[i].friendColor;
-          ctx.beginPath(); ctx.arc(28, -18, 9, 0, 6.28); ctx.fill();
+          ctx.beginPath(); ctx.arc(27, -22, 9, 0, 6.28); ctx.fill();
           ctx.fillStyle = '#333';
-          ctx.beginPath(); ctx.arc(25, -20, 1.3, 0, 6.28); ctx.fill();
-          ctx.beginPath(); ctx.arc(31, -20, 1.3, 0, 6.28); ctx.fill();
+          ctx.beginPath(); ctx.arc(24, -24, 1.3, 0, 6.28); ctx.fill();
+          ctx.beginPath(); ctx.arc(30, -24, 1.3, 0, 6.28); ctx.fill();
           ctx.strokeStyle = '#333'; ctx.lineWidth = 1;
-          ctx.beginPath(); ctx.arc(28, -16, 3, 0.2, Math.PI - 0.2); ctx.stroke(); // 웃음
+          ctx.beginPath(); ctx.arc(27, -20, 3, 0.2, Math.PI - 0.2); ctx.stroke(); // 웃음
         }
       } else {
         ctx.fillStyle = 'rgba(255,255,255,0.18)';

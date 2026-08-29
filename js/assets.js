@@ -13,6 +13,7 @@ const SHEETS = {
   bossUreu: 'assets/boss-ureu.png?v=2',
   bossHwii: 'assets/boss-hwii.png?v=1',
   bossHwiiArm: 'assets/boss-hwii-arm.png?v=1',
+  'screen.title': 'assets/screens/title-background.png?v=1',
   'stage5.buuHull': 'assets/backgrounds/stage5-buu-hull.png?v=1',
   'background.stage1.sea': 'assets/backgrounds/stage1-sea-strip.png?v=1',
   'background.stage1.far': 'assets/backgrounds/stage1-far-strip.png?v=8',
@@ -98,6 +99,13 @@ const SPRITES = {
   // 왼쪽 뿌리가 중심핵 아래에 묻히도록 앵커를 잡은 모듈형 나선 구름 팔.
   'boss.hwiiArm':   { sheet: 'bossHwiiArm', x: 0, y: 0, w: 72, h: 40, frames: 2, fps: 4, ax: 6, ay: 20, on: true },
 };
+
+// ---- 항해도 해역 아이콘 (24×24 × 7, 가로 일렬) ----
+// assets/stage-icons.png 가 준비되면 각 항목 on: true 로 켠다. 그 전엔 자리 표시 프레임.
+SHEETS.icons = 'assets/stage-icons.png?v=1';
+for (let i = 1; i <= 7; i++) {
+  SPRITES[`icon.stage${i}`] = { sheet: 'icons', x: (i - 1) * 24, y: 0, w: 24, h: 24, frames: 1, fps: 0, ax: 12, ay: 12, on: false };
+}
 
 const Assets = {
   images: {},     // sheet id → { img, ok }
