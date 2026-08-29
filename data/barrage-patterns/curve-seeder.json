@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "id": "curve-seeder",
+  "name": "해마 씨앗 곡선",
+  "description": "굽어 날아가는 모탄이 이동 중 양옆으로 자탄을 연속 살포한다.",
+  "duration": 12,
+  "loop": true,
+  "seed": 731,
+  "emitters": [
+    {
+      "id": "curving-seeds",
+      "name": "곡선 씨앗",
+      "enabled": true,
+      "type": "fan",
+      "start": 0.7,
+      "end": 10.7,
+      "interval": 2.5,
+      "burstCount": 1,
+      "burstGap": 0.1,
+      "source": "boss",
+      "x": -24,
+      "y": 0,
+      "bulletKind": "star",
+      "radius": 7,
+      "speed": 105,
+      "difficultyCount": 1,
+      "difficultySpeed": 0.05,
+      "count": 2,
+      "angle": 180,
+      "angleStep": 14,
+      "spread": 42,
+      "aim": true,
+      "jitter": 0,
+      "motion": {
+        "acceleration": 10,
+        "maxSpeed": 165,
+        "angularVelocity": 28,
+        "waveAmplitude": 0,
+        "waveFrequency": 0,
+        "homingTurnRate": 0,
+        "homingDuration": 0
+      },
+      "actions": [
+        {
+          "id": "shed-droplets",
+          "type": "spawn",
+          "at": 0.45,
+          "repeat": 5,
+          "interval": 0.34,
+          "relative": true,
+          "aim": false,
+          "count": 2,
+          "spread": 150,
+          "angle": 180,
+          "speed": 78,
+          "bulletKind": "drop",
+          "radius": 4
+        },
+        {
+          "id": "seed-vanish",
+          "type": "vanish",
+          "at": 2.35,
+          "repeat": 1,
+          "interval": 0.3
+        }
+      ]
+    }
+  ]
+}

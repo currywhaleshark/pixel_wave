@@ -47,4 +47,8 @@ boss.update(0.02);
 assert.equal(context.game.ebullets.length, 3, '팡팡 P1은 JSON의 조준 3발을 실제 적탄 배열에 넣는다');
 assert.ok(context.game.ebullets.every(bullet => bullet.vx < 0), '플레이어 쪽인 왼쪽으로 발사한다');
 
+const mainSource = fs.readFileSync(path.join(root, 'js/main.js'), 'utf8');
+assert.match(mainSource, /BarrageRuntime\.updateProjectile\(b, dt/, '실제 게임은 공통 탄 이동·행동 실행기를 사용한다');
+assert.match(mainSource, /BarrageRuntime\.laserHits\(b, pl/, '실제 게임은 레이저 선분 충돌을 사용한다');
+
 console.log('barrage game integration: ok');

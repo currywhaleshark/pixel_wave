@@ -5,7 +5,7 @@ require('../js/barragePatterns.generated.js');
 require('../js/barrage.js');
 
 const catalog = globalThis.BARRAGE_PATTERN_DATA;
-assert.equal(Object.keys(catalog).length, 8, '기본 탄막 프리셋 8종이 번들되어야 한다');
+assert.equal(Object.keys(catalog).length, 11, '기본 탄막 프리셋 11종이 번들되어야 한다');
 
 for (const [id, raw] of Object.entries(catalog)) {
   assert.equal(raw.id, id, `${id}: 레지스트리 키와 패턴 id가 같아야 한다`);

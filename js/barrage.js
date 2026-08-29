@@ -9,8 +9,9 @@
   const TAU = Math.PI * 2;
   const EPS = 1e-7;
   const STORAGE_KEY = 'pixelWave.barragePatterns.v1';
-  const TYPES = new Set(['fan', 'ring', 'spiral', 'rain', 'wall']);
+  const TYPES = new Set(['fan', 'ring', 'spiral', 'rain', 'wall', 'laser']);
   const KINDS = new Set(['bubble', 'spike', 'drop', 'mine', 'star', 'ghostflame']);
+  const ACTION_TYPES = new Set(['changeSpeed', 'changeDirection', 'spawn', 'vanish']);
 
   const finite = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
   const clamp = (value, lo, hi) => Math.max(lo, Math.min(hi, finite(value, lo)));
@@ -18,6 +19,40 @@
 
   function slug(value) {
     return String(value || '').trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+
+  function normalizeMotion(raw = {}) {
+    return {
+      acceleration: clamp(raw.acceleration ?? 0, -800, 800),
+      maxSpeed: clamp(raw.maxSpeed ?? 0, 0, 800),
+      angularVelocity: clamp(raw.angularVelocity ?? 0, -720, 720),
+      waveAmplitude: clamp(raw.waveAmplitude ?? 0, 0, 180),
+      waveFrequency: clamp(raw.waveFrequency ?? 0, 0, 20),
+      homingTurnRate: clamp(raw.homingTurnRate ?? 0, 0, 720),
+      homingDuration: clamp(raw.homingDuration ?? 0, 0, 30),
+    };
+  }
+
+  function normalizeAction(raw = {}, index = 0) {
+    const type = ACTION_TYPES.has(raw.type) ? raw.type : 'spawn';
+    return {
+      id: slug(raw.id) || `action-${index + 1}`,
+      type,
+      at: clamp(raw.at ?? 1, 0, 120),
+      repeat: Math.round(clamp(raw.repeat ?? 1, 1, 32)),
+      interval: clamp(raw.interval ?? 0.3, 0.03, 30),
+      value: finite(raw.value, type === 'changeSpeed' ? 100 : 0),
+      duration: clamp(raw.duration ?? 0, 0, 30),
+      relative: raw.relative !== false,
+      aim: !!raw.aim,
+      count: Math.round(clamp(raw.count ?? 6, 1, 64)),
+      spread: clamp(raw.spread ?? 360, 0, 360),
+      angle: finite(raw.angle, 0),
+      speed: clamp(raw.speed ?? 100, 0, 800),
+      bulletKind: KINDS.has(raw.bulletKind) ? raw.bulletKind : 'bubble',
+      radius: clamp(raw.radius ?? 5, 1, 30),
+      mineTimer: clamp(raw.mineTimer ?? 2.2, 0.2, 20),
+    };
   }
 
   function normalizeEmitter(raw = {}, index = 0) {
@@ -59,6 +94,14 @@
       gapIndex: Math.round(clamp(raw.gapIndex ?? 2, 0, 159)),
       gapStep: Math.round(clamp(raw.gapStep ?? 1, -159, 159)),
       jitter: clamp(raw.jitter ?? 0, 0, 180),
+      motion: normalizeMotion(raw.motion),
+      actions: (Array.isArray(raw.actions) ? raw.actions : []).slice(0, 8).map(normalizeAction),
+      laserLength: clamp(raw.laserLength ?? 760, 20, 1600),
+      laserWidth: clamp(raw.laserWidth ?? 18, 2, 120),
+      laserTelegraph: clamp(raw.laserTelegraph ?? 0.8, 0.05, 10),
+      laserActive: clamp(raw.laserActive ?? 1.1, 0.05, 20),
+      laserFade: clamp(raw.laserFade ?? 0.35, 0.05, 10),
+      laserRotationSpeed: clamp(raw.laserRotationSpeed ?? 0, -360, 360),
     };
   }
 
@@ -100,6 +143,11 @@
       seen.add(id);
       if (finite(item.interval, 0) < 0.03) errors.push(`emitters[${index}].interval은 0.03초 이상이어야 합니다.`);
       if (finite(item.start, -1) < 0 || finite(item.end, -1) < finite(item.start, 0)) errors.push(`emitters[${index}]의 시작/끝 시간이 올바르지 않습니다.`);
+      if (Array.isArray(item.actions) && item.actions.length > 8) errors.push(`emitters[${index}].actions는 최대 8개입니다.`);
+      for (const [actionIndex, action] of (Array.isArray(item.actions) ? item.actions : []).entries()) {
+        if (!action || typeof action !== 'object' || !ACTION_TYPES.has(action.type)) errors.push(`emitters[${index}].actions[${actionIndex}].type이 올바르지 않습니다.`);
+        if (finite(action?.at, -1) < 0) errors.push(`emitters[${index}].actions[${actionIndex}].at은 0 이상이어야 합니다.`);
+      }
     }
     return errors;
   }
@@ -159,6 +207,21 @@
     return Math.max(0, emitter.speed * (1 + difficulty * emitter.difficultySpeed));
   }
 
+  function behaviorState(angle, speed, emitter, difficulty = 0, depth = 0) {
+    return {
+      age: 0,
+      heading: angle,
+      speed,
+      difficulty,
+      depth,
+      motion: normalizeMotion(emitter.motion),
+      actions: (emitter.actions || []).map(normalizeAction),
+      fired: (emitter.actions || []).map(() => 0),
+      speedTween: null,
+      directionTween: null,
+    };
+  }
+
   function fireEvent(event, pattern, context, emit) {
     const e = event.emitter;
     const difficulty = clamp(context.difficulty ?? 0, 0, 2);
@@ -172,10 +235,43 @@
 
     const bullet = (x, y, angle, kind = e.bulletKind) => {
       const a = angle + rad((rng() - 0.5) * e.jitter);
-      const item = { x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, r: e.radius, kind, emitterId: e.id };
+      const item = {
+        x, y,
+        vx: Math.cos(a) * speed,
+        vy: Math.sin(a) * speed,
+        r: e.radius,
+        kind,
+        emitterId: e.id,
+        barrage: behaviorState(a, speed, e, difficulty),
+      };
       if (kind === 'mine') item.timer = e.mineTimer;
       emit(item);
     };
+
+    if (e.type === 'laser') {
+      const a = baseAngle + rad((rng() - 0.5) * e.jitter);
+      emit({
+        x: point.x,
+        y: point.y,
+        vx: Math.cos(a) * speed,
+        vy: Math.sin(a) * speed,
+        r: e.laserWidth / 2,
+        kind: 'laser',
+        emitterId: e.id,
+        laser: {
+          age: 0,
+          angle: a,
+          length: e.laserLength,
+          width: e.laserWidth + difficulty * Math.max(0, e.difficultyCount),
+          telegraph: e.laserTelegraph,
+          active: e.laserActive,
+          fade: e.laserFade,
+          rotationSpeed: rad(e.laserRotationSpeed),
+        },
+        barrage: behaviorState(a, speed, e, difficulty),
+      });
+      return;
+    }
 
     if (e.type === 'ring') {
       for (let i = 0; i < count; i++) bullet(point.x, point.y, baseAngle + i / count * TAU);
@@ -218,6 +314,173 @@
         const x = e.axis === 'vertical' ? e.xMin + (e.xMax - e.xMin) * ratio : e.xMin;
         const y = e.axis === 'horizontal' ? e.yMin + (e.yMax - e.yMin) * ratio : e.yMin;
         bullet(x, y, rad(e.angle + event.volley * e.angleStep));
+      }
+    }
+  }
+
+  function shortestAngle(from, to) {
+    let delta = (to - from + Math.PI) % TAU;
+    if (delta < 0) delta += TAU;
+    return delta - Math.PI;
+  }
+
+  function turnToward(from, to, maxDelta) {
+    const delta = shortestAngle(from, to);
+    return from + Math.max(-maxDelta, Math.min(maxDelta, delta));
+  }
+
+  function childProjectile(parent, action, angle, state) {
+    const speed = action.speed;
+    const child = {
+      x: parent.x,
+      y: parent.y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      r: action.radius,
+      kind: action.bulletKind,
+      emitterId: parent.emitterId,
+      life: 0,
+      barrage: behaviorState(angle, speed, { motion: {}, actions: [] }, state.difficulty, state.depth + 1),
+    };
+    if (child.kind === 'mine') child.timer = action.mineTimer;
+    return child;
+  }
+
+  function spawnActionChildren(projectile, action, state, context) {
+    if (typeof context.spawn !== 'function' || state.depth >= finite(context.maxDepth, 2)) return;
+    const target = context.target || { x: projectile.x - 100, y: projectile.y };
+    const aimed = Math.atan2(target.y - projectile.y, target.x - projectile.x);
+    const base = action.aim ? aimed : action.relative ? state.heading + rad(action.angle) : rad(action.angle);
+    const spread = rad(action.spread);
+    const ring = action.spread >= 359.999;
+    for (let i = 0; i < action.count; i++) {
+      if (context.spawnBudget && context.spawnBudget.remaining <= 0) break;
+      const offset = action.count === 1 ? 0 : ring ? i / action.count * TAU : (i / (action.count - 1) - 0.5) * spread;
+      context.spawn(childProjectile(projectile, action, base + offset, state));
+      if (context.spawnBudget) context.spawnBudget.remaining--;
+    }
+  }
+
+  function executeAction(projectile, action, state, context) {
+    if (action.type === 'changeSpeed') {
+      const to = Math.max(0, action.relative ? state.speed + action.value : action.value);
+      if (action.duration <= EPS) state.speed = to;
+      else state.speedTween = { from: state.speed, to, start: state.age, duration: action.duration };
+      return;
+    }
+    if (action.type === 'changeDirection') {
+      const target = context.target || { x: projectile.x - 100, y: projectile.y };
+      const aimed = Math.atan2(target.y - projectile.y, target.x - projectile.x);
+      const to = action.aim ? aimed + rad(action.value) : action.relative ? state.heading + rad(action.value) : rad(action.value);
+      if (action.duration <= EPS) state.heading = to;
+      else state.directionTween = { from: state.heading, to: state.heading + shortestAngle(state.heading, to), start: state.age, duration: action.duration };
+      return;
+    }
+    if (action.type === 'spawn') {
+      spawnActionChildren(projectile, action, state, context);
+      return;
+    }
+    if (action.type === 'vanish') projectile.dead = true;
+  }
+
+  function applyTweens(state) {
+    if (state.speedTween) {
+      const tween = state.speedTween;
+      const p = clamp((state.age - tween.start) / Math.max(EPS, tween.duration), 0, 1);
+      state.speed = tween.from + (tween.to - tween.from) * p;
+      if (p >= 1) state.speedTween = null;
+    }
+    if (state.directionTween) {
+      const tween = state.directionTween;
+      const p = clamp((state.age - tween.start) / Math.max(EPS, tween.duration), 0, 1);
+      state.heading = tween.from + (tween.to - tween.from) * p;
+      if (p >= 1) state.directionTween = null;
+    }
+  }
+
+  function laserState(projectile) {
+    const laser = projectile?.laser;
+    if (!laser) return { phase: 'none', active: false, alpha: 0 };
+    const telegraphEnd = laser.telegraph;
+    const activeEnd = telegraphEnd + laser.active;
+    const fadeEnd = activeEnd + laser.fade;
+    if (laser.age < telegraphEnd) return { phase: 'telegraph', active: false, alpha: clamp(laser.age / Math.max(EPS, telegraphEnd), 0.15, 1) };
+    if (laser.age < activeEnd) return { phase: 'active', active: true, alpha: 1 };
+    if (laser.age < fadeEnd) return { phase: 'fade', active: false, alpha: 1 - (laser.age - activeEnd) / Math.max(EPS, laser.fade) };
+    return { phase: 'done', active: false, alpha: 0 };
+  }
+
+  function laserHits(projectile, point, radius = 0) {
+    const state = laserState(projectile);
+    if (!state.active) return false;
+    const laser = projectile.laser;
+    const x2 = projectile.x + Math.cos(laser.angle) * laser.length;
+    const y2 = projectile.y + Math.sin(laser.angle) * laser.length;
+    const dx = x2 - projectile.x;
+    const dy = y2 - projectile.y;
+    const length2 = dx * dx + dy * dy;
+    const t = length2 <= EPS ? 0 : clamp(((point.x - projectile.x) * dx + (point.y - projectile.y) * dy) / length2, 0, 1);
+    const nearX = projectile.x + dx * t;
+    const nearY = projectile.y + dy * t;
+    const hitRadius = laser.width / 2 + finite(radius);
+    return (point.x - nearX) ** 2 + (point.y - nearY) ** 2 <= hitRadius ** 2;
+  }
+
+  function updateProjectile(projectile, dt, context = {}) {
+    if (!projectile || projectile.dead || !projectile.barrage) return;
+    const delta = clamp(dt, 0, 0.25);
+    const state = projectile.barrage;
+    state.age += delta;
+    projectile.life = finite(projectile.life) + delta;
+
+    for (let index = 0; index < state.actions.length && !projectile.dead; index++) {
+      const action = state.actions[index];
+      while (state.fired[index] < action.repeat && state.age + EPS >= action.at + state.fired[index] * action.interval) {
+        executeAction(projectile, action, state, context);
+        state.fired[index]++;
+        if (action.type === 'vanish') break;
+      }
+    }
+    if (projectile.dead) return;
+
+    applyTweens(state);
+    const motion = state.motion;
+    state.speed = Math.max(0, state.speed + motion.acceleration * delta);
+    if (motion.maxSpeed > 0) state.speed = Math.min(state.speed, motion.maxSpeed);
+    state.heading += rad(motion.angularVelocity) * delta;
+    if (motion.homingTurnRate > 0 && state.age <= motion.homingDuration && context.target) {
+      const targetAngle = Math.atan2(context.target.y - projectile.y, context.target.x - projectile.x);
+      state.heading = turnToward(state.heading, targetAngle, rad(motion.homingTurnRate) * delta);
+    }
+    const wave = motion.waveFrequency > 0 ? rad(motion.waveAmplitude) * Math.sin(state.age * motion.waveFrequency * TAU) : 0;
+    const travelAngle = state.heading + wave;
+    projectile.vx = Math.cos(travelAngle) * state.speed;
+    projectile.vy = Math.sin(travelAngle) * state.speed;
+    const speedMul = finite(context.speedMul, 1);
+    const current = context.current || { x: 0, y: 0 };
+    projectile.x += (projectile.vx * speedMul + finite(current.x)) * delta;
+    projectile.y += (projectile.vy * speedMul + finite(current.y)) * delta;
+
+    if (projectile.kind === 'laser' && projectile.laser) {
+      projectile.laser.age = state.age;
+      projectile.laser.angle = state.heading + projectile.laser.rotationSpeed * state.age + wave;
+      if (laserState(projectile).phase === 'done') projectile.dead = true;
+      return;
+    }
+
+    if (projectile.kind === 'mine' && Number.isFinite(projectile.timer)) {
+      state.speed *= Math.max(0, 1 - 1.5 * delta);
+      projectile.vx = Math.cos(travelAngle) * state.speed;
+      projectile.vy = Math.sin(travelAngle) * state.speed;
+      projectile.timer -= delta;
+      if (projectile.timer <= 0) {
+        projectile.dead = true;
+        const count = Math.round(clamp(context.mineRingCount ?? 6 + state.difficulty, 1, 32));
+        const mineAction = normalizeAction({
+          type: 'spawn', count, spread: 360, speed: context.mineRingSpeed ?? 95,
+          bulletKind: 'bubble', radius: 5, relative: true,
+        });
+        spawnActionChildren(projectile, mineAction, state, context);
       }
     }
   }
@@ -290,5 +553,9 @@
     return registry[id] ? normalize(registry[id]) : null;
   }
 
-  root.BarrageRuntime = Object.freeze({ TYPES: [...TYPES], STORAGE_KEY, normalize, normalizeEmitter, validate, compile, Runner, get });
+  root.BarrageRuntime = Object.freeze({
+    TYPES: [...TYPES], ACTION_TYPES: [...ACTION_TYPES], STORAGE_KEY,
+    normalize, normalizeEmitter, normalizeMotion, normalizeAction,
+    validate, compile, Runner, get, updateProjectile, laserState, laserHits,
+  });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

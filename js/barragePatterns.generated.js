@@ -161,6 +161,115 @@ globalThis.BARRAGE_PATTERN_DATA = Object.freeze({
       }
     ]
   },
+  "curve-seeder": {
+    "version": 1,
+    "id": "curve-seeder",
+    "name": "해마 씨앗 곡선",
+    "description": "굽어 날아가는 모탄이 이동 중 양옆으로 자탄을 연속 살포한다.",
+    "duration": 12,
+    "loop": true,
+    "seed": 731,
+    "emitters": [
+      {
+        "id": "curving-seeds",
+        "name": "곡선 씨앗",
+        "enabled": true,
+        "type": "fan",
+        "start": 0.7,
+        "end": 10.7,
+        "interval": 2.5,
+        "burstCount": 1,
+        "burstGap": 0.1,
+        "source": "boss",
+        "x": -24,
+        "y": 0,
+        "bulletKind": "star",
+        "radius": 7,
+        "speed": 105,
+        "difficultyCount": 1,
+        "difficultySpeed": 0.05,
+        "count": 2,
+        "angle": 180,
+        "angleStep": 14,
+        "spread": 42,
+        "aim": true,
+        "jitter": 0,
+        "motion": {
+          "acceleration": 10,
+          "maxSpeed": 165,
+          "angularVelocity": 28,
+          "waveAmplitude": 0,
+          "waveFrequency": 0,
+          "homingTurnRate": 0,
+          "homingDuration": 0
+        },
+        "actions": [
+          {
+            "id": "shed-droplets",
+            "type": "spawn",
+            "at": 0.45,
+            "repeat": 5,
+            "interval": 0.34,
+            "relative": true,
+            "aim": false,
+            "count": 2,
+            "spread": 150,
+            "angle": 180,
+            "speed": 78,
+            "bulletKind": "drop",
+            "radius": 4
+          },
+          {
+            "id": "seed-vanish",
+            "type": "vanish",
+            "at": 2.35,
+            "repeat": 1,
+            "interval": 0.3
+          }
+        ]
+      }
+    ]
+  },
+  "laser-sweep": {
+    "version": 1,
+    "id": "laser-sweep",
+    "name": "등대 레이저 소인",
+    "description": "노란 예고선을 보여 준 뒤 천천히 회전하는 직선 레이저가 화면을 훑는다.",
+    "duration": 12,
+    "loop": true,
+    "seed": 902,
+    "emitters": [
+      {
+        "id": "clockwise-beam",
+        "name": "시계 방향 광선",
+        "enabled": true,
+        "type": "laser",
+        "start": 0.8,
+        "end": 9.8,
+        "interval": 3,
+        "burstCount": 1,
+        "burstGap": 0.1,
+        "source": "boss",
+        "x": -20,
+        "y": 0,
+        "speed": 0,
+        "difficultyCount": 3,
+        "difficultySpeed": 0,
+        "angle": 150,
+        "angleStep": -24,
+        "aim": false,
+        "jitter": 0,
+        "motion": {},
+        "actions": [],
+        "laserLength": 920,
+        "laserWidth": 18,
+        "laserTelegraph": 0.9,
+        "laserActive": 1.35,
+        "laserFade": 0.35,
+        "laserRotationSpeed": 13
+      }
+    ]
+  },
   "mine-bloom-garden": {
     "version": 1,
     "id": "mine-bloom-garden",
@@ -318,6 +427,74 @@ globalThis.BARRAGE_PATTERN_DATA = Object.freeze({
         "gapIndex": 2,
         "gapStep": 1,
         "jitter": 0
+      }
+    ]
+  },
+  "stop-and-turn": {
+    "version": 1,
+    "id": "stop-and-turn",
+    "name": "멈춤 뒤 재조준",
+    "description": "느린 탄이 멈춰 예고한 뒤 플레이어 방향으로 꺾여 다시 가속한다.",
+    "duration": 12,
+    "loop": true,
+    "seed": 515,
+    "emitters": [
+      {
+        "id": "pause-turn-volley",
+        "name": "멈춤 재조준탄",
+        "enabled": true,
+        "type": "ring",
+        "start": 0.6,
+        "end": 10.1,
+        "interval": 2.4,
+        "burstCount": 1,
+        "burstGap": 0.1,
+        "source": "boss",
+        "x": -18,
+        "y": 0,
+        "bulletKind": "ghostflame",
+        "radius": 6,
+        "speed": 95,
+        "difficultyCount": 2,
+        "difficultySpeed": 0,
+        "count": 9,
+        "angle": 0,
+        "angleStep": 13,
+        "jitter": 0,
+        "motion": {},
+        "actions": [
+          {
+            "id": "brake",
+            "type": "changeSpeed",
+            "at": 0.65,
+            "repeat": 1,
+            "interval": 0.3,
+            "value": 0,
+            "duration": 0.28,
+            "relative": false
+          },
+          {
+            "id": "retarget",
+            "type": "changeDirection",
+            "at": 1.18,
+            "repeat": 1,
+            "interval": 0.3,
+            "value": 0,
+            "duration": 0.22,
+            "relative": false,
+            "aim": true
+          },
+          {
+            "id": "dash",
+            "type": "changeSpeed",
+            "at": 1.22,
+            "repeat": 1,
+            "interval": 0.3,
+            "value": 175,
+            "duration": 0.32,
+            "relative": false
+          }
+        ]
       }
     ]
   },

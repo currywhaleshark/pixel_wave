@@ -16,7 +16,7 @@ PORT = 8321
 ROOT = Path(__file__).resolve().parent
 PATTERN_DIR = ROOT / "data" / "barrage-patterns"
 PATTERN_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-PATTERN_TYPES = {"fan", "ring", "spiral", "rain", "wall"}
+PATTERN_TYPES = {"fan", "ring", "spiral", "rain", "wall", "laser"}
 
 
 def validate_pattern(data: object) -> list[str]:
