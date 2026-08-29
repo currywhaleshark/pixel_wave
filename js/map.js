@@ -10,6 +10,7 @@ const MapUI = {
   shopCursor: 0,    // 상점 키보드 커서
   launchOpen: false,             // 출격 준비 창
   cursor: { row: 3, col: 0 },    // 창 안 마커 — 열릴 때 출격 버튼(3행)에 붙는다
+  boardOpen: false,              // 랭킹 보드
 
   // 해역별 난이도 해금: 그 해역을 d-1 난이도로 클리어해야 d 해금
   maxDiffFor(stageIdx) {
@@ -31,8 +32,19 @@ const MapUI = {
   HOME: { x: 845, y: 105 },
 
   BTN: {
-    shop: { x: 402, y: 482, w: 156, h: 44 },
+    shop: { x: 402, y: 482, w: 156, h: 44 },       // 랭킹 미설정 시 (중앙 단독)
+    shop2:{ x: 322, y: 482, w: 150, h: 44 },       // 랭킹 활성 시 (한 쌍)
+    board:{ x: 488, y: 482, w: 150, h: 44 },
     close:{ x: 838, y: 52,  w: 34,  h: 26 },
+    bdNick:{ x: 330, y: 448, w: 170, h: 30 },      // 보드 안 이름 버튼
+  },
+  shopBtn() { return Board.ready() ? this.BTN.shop2 : this.BTN.shop; },
+
+  openBoard() {
+    this.boardOpen = true;
+    Sound.sfx('uiSelect');
+    Board.submit();       // 열 때 내 최신 총점 반영
+    Board.fetchTop();
   },
   // ---- 출격 준비 창 지오메트리 ----
   LP: { x: 250, y: 92, w: 460, h: 366 },
@@ -180,6 +192,22 @@ const MapUI = {
     const clicks = Input.consumeClicks();
     Input.consumeAny(); Input.consumeBomb();
 
+    // ---- 랭킹 보드 ----
+    if (this.boardOpen) {
+      for (const k of Input.consumeKeyPresses()) {
+        if (k === 'escape' || k === 'x') this.boardOpen = false;
+      }
+      for (const p of clicks) {
+        if (this.inRect(p, this.BTN.close)) { this.boardOpen = false; continue; }
+        if (this.inRect(p, this.BTN.bdNick)) {
+          Board.askNick((ok) => { if (ok) { Board.submit(); Board.fetchTop(); } });
+          continue;
+        }
+        if (p.x < 200 || p.x > 760 || p.y < 60 || p.y > 500) this.boardOpen = false;  // 바깥 클릭
+      }
+      return;
+    }
+
     // ---- 출격 준비 창이 열려 있으면 전부 그쪽으로 ----
     if (this.launchOpen) {
       this.updateLaunch(game, Input.consumeKeyPresses(), clicks);
@@ -211,6 +239,7 @@ const MapUI = {
         else if (k === 'arrowright' || k === 'd') { this.sel = Math.min(this.unlockedCount() - 1, this.sel + 1); Sound.sfx('uiMove'); }
         else if (k === 'enter' || k === 'z') { this.openLaunch(); return; }
         else if (k === 's' || k === 'x') { this.shopOpen = true; this.shopCursor = 0; }
+        else if (k === 'r' && Board.ready()) { this.openBoard(); }
       }
     }
 
@@ -229,7 +258,8 @@ const MapUI = {
       // 볼륨 컨트롤
       if (this.inRect(p, this.volBtn(0))) { Sound.cycleVol('bgm'); continue; }
       if (this.inRect(p, this.volBtn(1))) { Sound.cycleVol('sfx'); continue; }
-      if (this.inRect(p, this.BTN.shop)) { this.shopOpen = true; continue; }
+      if (this.inRect(p, this.shopBtn())) { this.shopOpen = true; continue; }
+      if (Board.ready() && this.inRect(p, this.BTN.board)) { this.openBoard(); continue; }
       // 해금된 노드 클릭 = 선택 (같은 노드 다시 클릭 = 출격 준비 창)
       for (let i = 0; i < this.unlockedCount() && i < STAGES.length; i++) {
         const n = this.NODES[i];
@@ -243,11 +273,18 @@ const MapUI = {
   },
 
   draw(ctx, game) {
-    // 바다 배경 (밝은 항해도 톤)
-    const g = ctx.createLinearGradient(0, 0, 0, CFG.H);
-    g.addColorStop(0, '#2a6fd0'); g.addColorStop(1, '#0d3a86');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, CFG.W, CFG.H);
+    // 480×270 항해도 원본을 월드 픽셀 그대로 2배 확대한다.
+    if (Assets.ready('screen.map')) {
+      ctx.save();
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(Assets.image('screen.map'), 0, 0, 480, 270, 0, 0, CFG.W, CFG.H);
+      ctx.restore();
+    } else {
+      const g = ctx.createLinearGradient(0, 0, 0, CFG.H);
+      g.addColorStop(0, '#2a6fd0'); g.addColorStop(1, '#0d3a86');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, CFG.W, CFG.H);
+    }
     const now = performance.now() / 1000;
 
     ctx.save();
@@ -318,11 +355,7 @@ const MapUI = {
         if (i === this.sel) {
           PXUI.frame(ctx, -28, -28, 56, 56, `rgba(255,255,255,${0.6 + Math.sin(now * 5) * 0.3})`);
         }
-        // 해역 아이콘 (스프라이트 준비 전까지는 자리 표시 프레임)
-        PXUI.chip(ctx, { x: -22, y: -22, w: 44, h: 44 }, {
-          border: i === this.sel ? 'rgba(255,255,255,0.75)' : 'rgba(210,225,255,0.35)',
-          fill: 'rgba(10, 24, 62, 0.85)',
-        });
+        // 해역 아이콘은 배경 풍경 위에 직접 놓는다. 선택 상태는 바깥 링으로만 표시한다.
         if (!Sprites.draw(ctx, `icon.stage${i + 1}`, 0, 0, {})) {
           // 임시: 해역 상징색 원 + 번호
           ctx.fillStyle = STAGES[i].friendColor;
@@ -375,15 +408,14 @@ const MapUI = {
     // 집 (용궁 성)
     ctx.save();
     ctx.translate(this.HOME.x, this.HOME.y);
-    ctx.fillStyle = '#ffcf8f';
-    ctx.fillRect(-18, -8, 36, 22);
-    ctx.beginPath(); ctx.moveTo(-22, -8); ctx.lineTo(0, -30); ctx.lineTo(22, -8); ctx.fill();
-    ctx.fillStyle = '#ff9ec7';
-    ctx.fillRect(-3, -44, 2, 14); // 깃대
-    ctx.beginPath(); ctx.moveTo(-1, -44); ctx.lineTo(12, -40); ctx.lineTo(-1, -36); ctx.fill();
+    if (!Sprites.draw(ctx, 'map.home', 0, 0, {})) {
+      ctx.fillStyle = '#ffcf8f';
+      ctx.fillRect(-18, -8, 36, 22);
+      ctx.beginPath(); ctx.moveTo(-22, -8); ctx.lineTo(0, -30); ctx.lineTo(22, -8); ctx.fill();
+    }
     ctx.fillStyle = 'rgba(255,255,255,0.85)';
     ctx.font = Fonts.f(12, true); ctx.textAlign = 'center';
-    ctx.fillText('집', 0, 32);
+    ctx.fillText('집', 0, 56);
     ctx.restore();
 
     // ---- 하단 바 ----
@@ -401,18 +433,20 @@ const MapUI = {
     ctx.font = Fonts.f(16, true); ctx.textAlign = 'left';
     ctx.fillText(`${Meta.data.bank}`, 48, 508);
 
-    // 세이브 섬 (상점) — 항해도 하단에는 이것만 남긴다.
+    // 세이브 섬 (상점) + 랭킹(설정 시) — 항해도 하단에는 이것만.
     // 난이도·돌고래·봄은 해역 선택 후 출격 준비 창에서 고른다.
-    this.button(ctx, this.BTN.shop, '세이브 섬 (상점)', '#ffb0c8', false);
+    this.button(ctx, this.shopBtn(), '세이브 섬 (상점)', '#ffb0c8', false);
+    if (Board.ready()) this.button(ctx, this.BTN.board, '태평양 랭킹 (R)', '#8ff7ff', false);
 
     // 키보드 조작 힌트
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.font = Fonts.f(11);
     ctx.textAlign = 'center';
-    ctx.fillText('←→ 해역 · Enter 출격 준비 · S 상점', CFG.W / 2, 430);
+    ctx.fillText(Board.ready() ? '←→ 해역 · Enter 출격 준비 · S 상점 · R 랭킹' : '←→ 해역 · Enter 출격 준비 · S 상점', CFG.W / 2, 430);
 
     if (this.launchOpen) this.drawLaunch(ctx);
     if (this.shopOpen) this.drawShop(ctx);
+    if (this.boardOpen) this.drawBoard(ctx);
 
     // 토스트
     if (this.toastT > 0 && this.toast) {
@@ -560,6 +594,77 @@ const MapUI = {
     ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = Fonts.f(11);
     ctx.fillText('↑↓←→ 이동 · Enter 선택/출격 · Esc 닫기', P.x + P.w / 2, P.y + P.h - 14);
+    ctx.restore();
+  },
+
+  // 태평양 랭킹 — 총점(해역별 최고 합산) 보드
+  drawBoard(ctx) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(4, 12, 40, 0.72)';
+    ctx.fillRect(0, 0, CFG.W, CFG.H);
+    PXUI.panel(ctx, 200, 60, 560, 440, { border: '#8ff7ff', fill: 'rgba(6, 14, 42, 0.97)' });
+    ctx.textAlign = 'center';
+    PXUI.text(ctx, '태평양 랭킹', CFG.W / 2, 96, 20, '#8ff7ff');
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = Fonts.f(11);
+    ctx.fillText('총점 = 해역별 최고 점수 합산', CFG.W / 2, 114);
+
+    // 닫기
+    const c = this.BTN.close;
+    PXUI.chip(ctx, c, { border: 'rgba(143,247,255,0.5)', fill: 'rgba(6,14,40,0.9)' });
+    ctx.fillStyle = '#fff'; ctx.font = Fonts.f(13, true);
+    ctx.fillText('✕', c.x + c.w / 2, c.y + 18);
+
+    const myTotal = STAGES.reduce((a, st) => a + Meta.bestFor(st.id), 0);
+    const myId = Board.playerId();
+
+    if (Board.state === 'loading' || Board.state === 'idle') {
+      ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = Fonts.f(14);
+      ctx.fillText('불러오는 중...', CFG.W / 2, 260);
+    } else if (Board.state === 'error') {
+      ctx.fillStyle = '#ff9e9e'; ctx.font = Fonts.f(13);
+      ctx.fillText('랭킹을 불러오지 못했습니다', CFG.W / 2, 250);
+      ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = Fonts.f(11);
+      ctx.fillText('잠시 후 다시 열어보세요', CFG.W / 2, 270);
+    } else if (Board.rows) {
+      let inList = false;
+      Board.rows.slice(0, 12).forEach((row, i) => {
+        const y = 148 + i * 26;
+        const mine = row.player_id === myId;
+        if (mine) {
+          inList = true;
+          PXUI.chip(ctx, { x: 224, y: y - 17, w: 512, h: 24 },
+            { border: '#ffe9a8', fill: 'rgba(40, 36, 14, 0.6)' });
+        }
+        ctx.textAlign = 'left';
+        ctx.fillStyle = i === 0 ? '#ffd76e' : i === 1 ? '#d8e4f0' : i === 2 ? '#e8b48a' : 'rgba(255,255,255,0.75)';
+        ctx.font = Fonts.f(13, i < 3);
+        ctx.fillText(`${i + 1}`, 244, y);
+        ctx.fillStyle = mine ? '#ffe9a8' : '#fff';
+        ctx.fillText(row.name, 292, y);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = mine ? '#ffe9a8' : 'rgba(255,255,255,0.85)';
+        ctx.fillText(row.total.toLocaleString(), 716, y);
+      });
+      if (!Board.rows.length) {
+        ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = Fonts.f(13); ctx.textAlign = 'center';
+        ctx.fillText('아직 아무도 없어요 — 첫 기록의 주인공이 되세요!', CFG.W / 2, 250);
+      }
+      // 순위권 밖이어도 내 총점은 보여준다
+      if (!inList && myTotal > 0) {
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ffe9a8'; ctx.font = Fonts.f(12);
+        ctx.fillText(`내 총점 ${myTotal.toLocaleString()}${Meta.data.nick ? '' : ' (닉네임을 정하면 등록됩니다)'}`, CFG.W / 2, 468);
+      }
+    }
+
+    // 이름 버튼
+    const nb = this.BTN.bdNick;
+    PXUI.chip(ctx, nb, { border: 'rgba(143,247,255,0.5)', fill: 'rgba(6,14,40,0.9)' });
+    ctx.fillStyle = '#8ff7ff'; ctx.font = Fonts.f(12, true); ctx.textAlign = 'center';
+    ctx.fillText(Meta.data.nick ? `이름: ${Meta.data.nick} (바꾸기)` : '닉네임 정하기', nb.x + nb.w / 2, nb.y + 20);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = Fonts.f(11);
+    ctx.fillText('Esc 닫기', 620, 468);
     ctx.restore();
   },
 

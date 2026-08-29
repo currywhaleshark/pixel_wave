@@ -53,7 +53,8 @@ js/dolphin.js       옵션 돌고래 3종
 js/waves.js         잡몹 문법(5축) + 스테이지 타임라인
 js/barrage.js        데이터 기반 탄막 실행기 (게임·탄막 공방 공용)
 js/boss*.js         보스 1~7
-js/map.js           항해도 · 상점 UI
+js/map.js           항해도 · 상점 · 랭킹 UI
+js/board.js         온라인 스코어보드 (Supabase — docs/SCOREBOARD.md)
 js/main.js          게임 루프 · 충돌 · 렌더
 data/barrage-patterns/ 보스 탄막 JSON
 tools/barrage-editor.html 보스 탄막 제작·미리보기·저장 도구

@@ -482,6 +482,7 @@ const Game = {
     if (this.stats.noBomb) this.addScore(3000, true);
     this.stats.score = this.score;
     this.newBest = Meta.recordScore(STAGES[this.stageIdx].id, this.score);
+    if (this.newBest && typeof Board !== 'undefined') Board.submit();   // 랭킹 자동 갱신 (설정 시)
 
     // 런 리포트 — 밸런스 측정용. Game.lastRun 으로도 확인 가능
     const rl = this.runLog || { bossStart: this.stageT, phaseTime: [] };
@@ -1665,54 +1666,21 @@ const Game = {
   // 엔딩: 폭풍이 걷힌 여명 바다 — 무지개, 용궁, 친구들의 귀향 행진
   drawEnding() {
     const T = this.endingT;
-    // 여명 하늘-바다
-    const g2 = ctx.createLinearGradient(0, 0, 0, CFG.H);
-    g2.addColorStop(0, '#ffd9a8');
-    g2.addColorStop(0.32, '#e8a8c8');
-    g2.addColorStop(0.68, '#7a6ab8');
-    g2.addColorStop(1, '#3a3a8e');
-    ctx.fillStyle = g2;
-    ctx.fillRect(0, 0, CFG.W, CFG.H);
+    // 완성 일러스트를 월드 픽셀 그대로 2배 확대한다.
+    if (Assets.ready('screen.ending')) {
+      ctx.save();
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(Assets.image('screen.ending'), 0, 0, 480, 270, 0, 0, CFG.W, CFG.H);
+      ctx.restore();
+    } else {
+      const g2 = ctx.createLinearGradient(0, 0, 0, CFG.H);
+      g2.addColorStop(0, '#ffd9a8');
+      g2.addColorStop(0.32, '#e8a8c8');
+      g2.addColorStop(1, '#3a3a8e');
+      ctx.fillStyle = g2;
+      ctx.fillRect(0, 0, CFG.W, CFG.H);
+    }
     const now = performance.now() / 1000;
-
-    // 무지개 (용궁으로 내려앉는)
-    const rain = ['#ff9e9e', '#ffc98f', '#fff3a8', '#b8f0b8', '#a8d8ff', '#b8b8f0', '#e8b8f0'];
-    ctx.save();
-    ctx.globalAlpha = Math.min(0.4, T * 0.08);
-    for (let i = 0; i < rain.length; i++) {
-      ctx.strokeStyle = rain[i];
-      ctx.lineWidth = 10;
-      ctx.beginPath();
-      ctx.arc(CFG.W * 0.55, CFG.H * 1.05, 430 - i * 11, Math.PI * 1.05, Math.PI * 1.95);
-      ctx.stroke();
-    }
-    ctx.restore();
-
-    // 용궁 (우측, 황금빛)
-    ctx.save();
-    ctx.translate(CFG.W * 0.85, CFG.H * 0.62);
-    const glow = ctx.createRadialGradient(0, 0, 20, 0, 0, 200);
-    glow.addColorStop(0, 'rgba(255,220,150,0.5)');
-    glow.addColorStop(1, 'rgba(255,220,150,0)');
-    ctx.fillStyle = glow;
-    ctx.beginPath(); ctx.arc(0, 0, 200, 0, 6.28); ctx.fill();
-    ctx.fillStyle = '#e8b46e';
-    ctx.fillRect(-70, -30, 140, 90);                    // 본관
-    ctx.fillRect(-95, 10, 190, 50);                     // 기단
-    for (const [tx, th] of [[-55, 70], [0, 100], [55, 70]]) {
-      ctx.fillRect(tx - 16, -30 - th, 32, th);          // 탑
-      ctx.beginPath();                                  // 지붕
-      ctx.moveTo(tx - 24, -30 - th);
-      ctx.lineTo(tx, -30 - th - 30);
-      ctx.lineTo(tx + 24, -30 - th);
-      ctx.fill();
-    }
-    ctx.fillStyle = '#ff9ec7';                           // 깃발
-    ctx.fillRect(-2, -160, 3, 22);
-    ctx.beginPath(); ctx.moveTo(1, -160); ctx.lineTo(18, -154); ctx.lineTo(1, -148); ctx.fill();
-    ctx.fillStyle = '#8a5a2e';                           // 문
-    ctx.beginPath(); ctx.arc(0, 40, 20, Math.PI, 0); ctx.closePath(); ctx.fill();
-    ctx.restore();
 
     // 별빛 길 (좌하 → 용궁, 완성된 길)
     for (let i = 0; i < 14; i++) {
@@ -1722,9 +1690,6 @@ const Game = {
       ctx.fillStyle = `rgba(255,240,190,${tw})`;
       ctx.beginPath(); ctx.arc(fx, fy, 4, 0, 6.28); ctx.fill();
     }
-
-    // 바닥
-    this.drawCoralLayer(this.scroll * 0.4, 'rgba(58,58,142,0.8)', 50);
 
     // 친구들의 행진 (인어 뒤로 일곱 친구)
     const p = this.player;

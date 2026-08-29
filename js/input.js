@@ -16,6 +16,7 @@ const Input = {
 
     window.addEventListener('keydown', (e) => {
       if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+      if (document.activeElement && document.activeElement.tagName === 'INPUT') return; // 닉네임 입력 중
       Sound.unlock();   // 브라우저 자동재생 정책: 첫 입력에서 오디오 활성화
       this.keys[e.key.toLowerCase()] = true;
       this.mode = 'keys';

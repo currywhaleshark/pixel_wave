@@ -53,6 +53,7 @@ const Meta = {
       bombSel: 'sonar',                           // 선택한 봄 (bombs.js)
       best: {},                                   // 해역별 최고 점수
       diffSel: 0,                                 // 마지막 선택 난이도 (해역 무관 기억)
+      nick: null,                                 // 랭킹 닉네임
     };
   },
 
