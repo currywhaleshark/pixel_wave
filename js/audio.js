@@ -36,6 +36,11 @@ const Sound = {
       this.applyVol();
     }
     if (this.ctx.state === 'suspended') this.ctx.resume();
+    // 자동재생 차단으로 멈춰 있던 현재 곡 재시도 (boot와 title이 같은 곡이라 블립 없음)
+    const cur = this.currentKey && this.tracks[this.currentKey];
+    if (cur && !cur.dead && cur.el.paused) {
+      try { const p = cur.el.play(); if (p && p.catch) p.catch(() => {}); } catch {}
+    }
     // 잠금 해제 시점에 재생 예약된 BGM이 있으면 그때 시작
     if (this.pendingBgm) {
       // 예약 곡을 그대로 틀지 않는다 — 첫 입력이 화면 전환을 겸하는 경우

@@ -92,7 +92,8 @@ const Game = {
   god: false,            // 디버그 무적 토글
   diff: 0,               // 난이도 인덱스 (DIFFS)
   D: DIFFS[0],
-  state: 'title',        // title | map | play | victory
+  state: 'boot',         // boot | title | map | play | victory | ending
+  bootT: 0,              // 로딩 화면 경과 (에셋이 막혀도 6초 후 입장 허용)
   stageIdx: 0,           // 현재 해역 (STAGES 인덱스)
   player: null,
   enemies: [], shots: [], ebullets: [], pearls: [], fx: [], msgs: [],
@@ -514,7 +515,8 @@ const Game = {
   // 상태에 맞는 BGM을 고른다 (매 프레임 비교 — 바뀔 때만 크로스페이드)
   syncBgm() {
     let want = null;
-    if (this.state === 'title') want = 'title';
+    if (this.state === 'boot') want = 'title';        // 자동재생 허용 환경이면 로딩 중에도 흐른다
+    else if (this.state === 'title') want = 'title';
     else if (this.state === 'map') want = 'map';
     else if (this.state === 'ending') want = 'ending';
     else if (this.state === 'play') {
@@ -629,6 +631,13 @@ const Game = {
   update(dt) {
     this.syncBgm();
     if (this.state !== 'play') {
+      if (this.state === 'boot') {
+        this.bootT += dt;
+        const ready = Assets.progress() >= 1 || this.bootT > 6;
+        if (Input.consumeAny() && ready) this.state = 'title';   // 이 입력이 오디오도 깨운다
+        Input.consumeClicks(); Input.consumeBomb(); Input.consumeKeyPresses();
+        return;
+      }
       if (this.state === 'map') { MapUI.update(dt, this); return; }
       if (this.state === 'ending') {
         this.endingT += dt;
@@ -1011,11 +1020,12 @@ const Game = {
 
   draw() {
     // UI 화면(타이틀·항해도·엔딩)은 풀 해상도로 또렷하게
-    if (this.state === 'title' || this.state === 'map' || this.state === 'ending') {
+    if (this.state === 'boot' || this.state === 'title' || this.state === 'map' || this.state === 'ending') {
       ctx = mainCtx;
       ctx.save();
       this.drawBackground();
-      if (this.state === 'title') this.drawTitle();
+      if (this.state === 'boot') this.drawBoot();
+      else if (this.state === 'title') this.drawTitle();
       else if (this.state === 'map') MapUI.draw(ctx, this);
       else this.drawEnding();
       ErrLog.draw(ctx);
@@ -1850,6 +1860,31 @@ const Game = {
       ctx.fillStyle = '#ffe9a8';
       ctx.font = Fonts.f(14);
       ctx.fillText('아무 키 / 클릭 — 항해도로', CFG.W / 2, CFG.H * 0.94);
+    }
+    ctx.restore();
+  },
+
+  // 로딩 관문: 에셋 로딩바 → "아무 키로 시작".
+  // 이 첫 입력이 브라우저 오디오 잠금을 풀어, 타이틀 화면부터 음악이 나온다.
+  drawBoot() {
+    ctx.save();
+    ctx.fillStyle = '#081536';
+    ctx.fillRect(0, 0, CFG.W, CFG.H);
+    PXUI.text(ctx, '픽셀 파도', CFG.W / 2, CFG.H * 0.4, 30, '#ff9ec7');
+    const prog = Assets.progress();
+    const ready = prog >= 1 || this.bootT > 6;
+    // 로딩바: 20칸
+    const cells = 20, filled = Math.round(prog * cells);
+    const bw = cells * 14 + (cells - 1) * 3;
+    const bx = (CFG.W - bw) / 2, by = CFG.H * 0.52;
+    PXUI.frame(ctx, bx - 8, by - 8, bw + 16, 28, 'rgba(210,225,255,0.4)');
+    PXUI.cells(ctx, bx, by, cells, filled, { cw: 14, ch: 12, gap: 3, color: '#7dffd8' });
+    ctx.textAlign = 'center';
+    if (!ready) {
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = Fonts.f(12);
+      ctx.fillText(`바다를 채우는 중... ${Math.round(prog * 100)}%`, CFG.W / 2, CFG.H * 0.62);
+    } else if (Math.sin(performance.now() / 300) > -0.3) {
+      PXUI.text(ctx, '▶ 아무 키 / 터치 — 시작', CFG.W / 2, CFG.H * 0.64, 16, '#ffe9a8');
     }
     ctx.restore();
   },

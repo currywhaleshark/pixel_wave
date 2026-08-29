@@ -14,6 +14,9 @@ const SHEETS = {
   bossHwii: 'assets/boss-hwii.png?v=1',
   bossHwiiArm: 'assets/boss-hwii-arm.png?v=1',
   'screen.title': 'assets/screens/title-background.png?v=1',
+  'screen.map': 'assets/screens/map-background.png?v=1',
+  'screen.ending': 'assets/screens/ending-background.png?v=1',
+  'map.home': 'assets/map-home.png?v=1',
   'stage5.buuHull': 'assets/backgrounds/stage5-buu-hull.png?v=1',
   'background.stage1.sea': 'assets/backgrounds/stage1-sea-strip.png?v=1',
   'background.stage1.far': 'assets/backgrounds/stage1-far-strip.png?v=8',
@@ -101,11 +104,11 @@ const SPRITES = {
 };
 
 // ---- 항해도 해역 아이콘 (24×24 × 7, 가로 일렬) ----
-// assets/stage-icons.png 가 준비되면 각 항목 on: true 로 켠다. 그 전엔 자리 표시 프레임.
-SHEETS.icons = 'assets/stage-icons.png?v=1';
+SHEETS.icons = 'assets/stage-icons.png?v=2';
 for (let i = 1; i <= 7; i++) {
-  SPRITES[`icon.stage${i}`] = { sheet: 'icons', x: (i - 1) * 24, y: 0, w: 24, h: 24, frames: 1, fps: 0, ax: 12, ay: 12, on: false };
+  SPRITES[`icon.stage${i}`] = { sheet: 'icons', x: (i - 1) * 24, y: 0, w: 24, h: 24, frames: 1, fps: 0, ax: 12, ay: 12, on: true };
 }
+SPRITES['map.home'] = { sheet: 'map.home', x: 0, y: 0, w: 48, h: 40, frames: 1, fps: 0, ax: 24, ay: 20, on: true };
 
 const Assets = {
   images: {},     // sheet id → { img, ok }
@@ -115,15 +118,23 @@ const Assets = {
     for (const [id, path] of Object.entries(SHEETS)) {
       const rec = { img: new Image(), ok: false };
       rec.img.onload = () => {
+        rec.done = true;
         rec.ok = true;
         this.loaded = true;
         console.log(`[assets] ${id} 로드: ${path} (${rec.img.width}×${rec.img.height})`);
       };
       // 파일이 아직 없는 건 정상 — 도형 폴백으로 계속 플레이 가능
-      rec.img.onerror = () => { rec.ok = false; };
+      rec.img.onerror = () => { rec.ok = false; rec.done = true; };
       rec.img.src = path;
       this.images[id] = rec;
     }
+  },
+
+  // 로딩 진행률 0~1 (실패 포함 정착 비율 — 아직 없는 시트가 로딩을 막지 않는다)
+  progress() {
+    const all = Object.values(this.images);
+    if (!all.length) return 1;
+    return all.filter(r => r.done).length / all.length;
   },
 
   ready(sheetId) {
