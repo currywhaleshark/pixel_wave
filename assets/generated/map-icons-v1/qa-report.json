@@ -1,0 +1,117 @@
+{
+  "ok": true,
+  "background": {
+    "candidate": "02-box",
+    "size": [
+      480,
+      270
+    ],
+    "output": "assets/screens/map-background.png"
+  },
+  "stage_atlas": {
+    "size": [
+      168,
+      24
+    ],
+    "output": "assets/stage-icons.png"
+  },
+  "home_output": "assets/map-home.png",
+  "assets": {
+    "stage1-coral": {
+      "candidate": "02-box-14",
+      "size": [
+        24,
+        24
+      ],
+      "opaque_pixels": 361,
+      "alpha_values": [
+        0,
+        255
+      ]
+    },
+    "stage2-jelly": {
+      "candidate": "02-box-14",
+      "size": [
+        24,
+        24
+      ],
+      "opaque_pixels": 226,
+      "alpha_values": [
+        0,
+        255
+      ]
+    },
+    "stage3-current": {
+      "candidate": "02-box-14",
+      "size": [
+        24,
+        24
+      ],
+      "opaque_pixels": 228,
+      "alpha_values": [
+        0,
+        255
+      ]
+    },
+    "stage4-trench": {
+      "candidate": "02-box-14",
+      "size": [
+        24,
+        24
+      ],
+      "opaque_pixels": 319,
+      "alpha_values": [
+        0,
+        255
+      ]
+    },
+    "stage5-wreck": {
+      "candidate": "02-box-14",
+      "size": [
+        24,
+        24
+      ],
+      "opaque_pixels": 302,
+      "alpha_values": [
+        0,
+        255
+      ]
+    },
+    "stage6-storm": {
+      "candidate": "03-lanczos-14",
+      "size": [
+        24,
+        24
+      ],
+      "opaque_pixels": 323,
+      "alpha_values": [
+        0,
+        255
+      ]
+    },
+    "stage7-palace-water": {
+      "candidate": "02-box-14",
+      "size": [
+        24,
+        24
+      ],
+      "opaque_pixels": 248,
+      "alpha_values": [
+        0,
+        255
+      ]
+    },
+    "home-dragon-palace": {
+      "candidate": "03-lanczos-14",
+      "size": [
+        48,
+        40
+      ],
+      "opaque_pixels": 1059,
+      "alpha_values": [
+        0,
+        255
+      ]
+    }
+  }
+}

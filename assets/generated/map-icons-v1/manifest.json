@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "kind": "pixel-wave-map-icon-candidates",
+  "stage_icon_size": [
+    24,
+    24
+  ],
+  "home_size": [
+    48,
+    40
+  ],
+  "default_variant": "02-box-14",
+  "assets": {
+    "stage1-coral": {
+      "01-box-10": "assets/generated/map-icons-v1/candidates/stage1-coral/01-box-10.png",
+      "02-box-14": "assets/generated/map-icons-v1/candidates/stage1-coral/02-box-14.png",
+      "03-lanczos-14": "assets/generated/map-icons-v1/candidates/stage1-coral/03-lanczos-14.png"
+    },
+    "stage2-jelly": {
+      "01-box-10": "assets/generated/map-icons-v1/candidates/stage2-jelly/01-box-10.png",
+      "02-box-14": "assets/generated/map-icons-v1/candidates/stage2-jelly/02-box-14.png",
+      "03-lanczos-14": "assets/generated/map-icons-v1/candidates/stage2-jelly/03-lanczos-14.png"
+    },
+    "stage3-current": {
+      "01-box-10": "assets/generated/map-icons-v1/candidates/stage3-current/01-box-10.png",
+      "02-box-14": "assets/generated/map-icons-v1/candidates/stage3-current/02-box-14.png",
+      "03-lanczos-14": "assets/generated/map-icons-v1/candidates/stage3-current/03-lanczos-14.png"
+    },
+    "stage4-trench": {
+      "01-box-10": "assets/generated/map-icons-v1/candidates/stage4-trench/01-box-10.png",
+      "02-box-14": "assets/generated/map-icons-v1/candidates/stage4-trench/02-box-14.png",
+      "03-lanczos-14": "assets/generated/map-icons-v1/candidates/stage4-trench/03-lanczos-14.png"
+    },
+    "stage5-wreck": {
+      "01-box-10": "assets/generated/map-icons-v1/candidates/stage5-wreck/01-box-10.png",
+      "02-box-14": "assets/generated/map-icons-v1/candidates/stage5-wreck/02-box-14.png",
+      "03-lanczos-14": "assets/generated/map-icons-v1/candidates/stage5-wreck/03-lanczos-14.png"
+    },
+    "stage6-storm": {
+      "01-box-10": "assets/generated/map-icons-v1/candidates/stage6-storm/01-box-10.png",
+      "02-box-14": "assets/generated/map-icons-v1/candidates/stage6-storm/02-box-14.png",
+      "03-lanczos-14": "assets/generated/map-icons-v1/candidates/stage6-storm/03-lanczos-14.png"
+    },
+    "stage7-palace-water": {
+      "01-box-10": "assets/generated/map-icons-v1/candidates/stage7-palace-water/01-box-10.png",
+      "02-box-14": "assets/generated/map-icons-v1/candidates/stage7-palace-water/02-box-14.png",
+      "03-lanczos-14": "assets/generated/map-icons-v1/candidates/stage7-palace-water/03-lanczos-14.png"
+    },
+    "home-dragon-palace": {
+      "01-box-10": "assets/generated/map-icons-v1/candidates/home-dragon-palace/01-box-10.png",
+      "02-box-14": "assets/generated/map-icons-v1/candidates/home-dragon-palace/02-box-14.png",
+      "03-lanczos-14": "assets/generated/map-icons-v1/candidates/home-dragon-palace/03-lanczos-14.png"
+    }
+  },
+  "curation": "curation-run/curation.json",
+  "game_outputs": {
+    "stage_icons": "../../stage-icons.png",
+    "home": "../../map-home.png"
+  }
+}

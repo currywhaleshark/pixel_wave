@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "pixel-wave-screen-candidates",
+  "screen": "navigation-map",
+  "logical_size": [
+    480,
+    270
+  ],
+  "source": "assets/generated/screens/map-screen-v1/source/map-concept-v1.png",
+  "palette_size": 32,
+  "candidates": {
+    "01-nearest": "assets/generated/screens/map-screen-v1/candidates/01-nearest.png",
+    "02-box": "assets/generated/screens/map-screen-v1/candidates/02-box.png",
+    "03-lanczos": "assets/generated/screens/map-screen-v1/candidates/03-lanczos.png"
+  },
+  "curation": "curation-run/curation.json",
+  "selected_candidate": "02-box",
+  "game_input": "../../../screens/map-background.png"
+}

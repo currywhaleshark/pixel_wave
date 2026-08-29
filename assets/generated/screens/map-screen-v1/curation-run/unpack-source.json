@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-unpack-source",
+  "layout_source": "imported-pngs",
+  "cell": {
+    "width": 480,
+    "height": 270
+  },
+  "source_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\screens\\map-screen-v1\\candidates",
+  "files": [
+    "01-nearest.png",
+    "02-box.png",
+    "03-lanczos.png"
+  ],
+  "labels": [
+    "01-nearest",
+    "02-box",
+    "03-lanczos"
+  ],
+  "groups": [
+    "items"
+  ],
+  "base_source": null,
+  "imported_refs": {}
+}

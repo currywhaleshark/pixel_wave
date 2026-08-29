@@ -26,6 +26,10 @@
 | stage7 boss arm | `assets/boss-hwii-arm.png` | 휘이 갈고리형 구름 팔 2프레임 (`144×40`), 중심핵 뒤에서 3회 회전 재사용 |
 | stage5 boss prop | `assets/backgrounds/stage5-buu-hull.png` | 부우전 오른쪽 4구멍 난파선 선체 (`64×250`) |
 | title screen | `assets/screens/title-background.png` | 메인화면 배경 (`480×270`), UI 텍스트 제외 |
+| navigation map | `assets/screens/map-background.png` | 항해도 배경 (`480×270`), 별빛 길·노드·UI 제외 |
+| map stage icons | `assets/stage-icons.png` | 해역 대표 아이콘 7종 (`24×24`, 가로 일렬 `168×24`) |
+| map home | `assets/map-home.png` | 항해도 종착점 용궁 (`48×40`) |
+| ending screen | `assets/screens/ending-background.png` | 폭풍 뒤 여명·무지개·용궁 배경 (`480×270`), 행진·별빛 길·텍스트 제외 |
 
 - 투명 배경 PNG(RGBA).
 - **프레임은 가로로 이어 붙입니다**: 프레임 i의 좌상단 = `(x + i*w, y)`.
@@ -76,6 +80,14 @@
 | `boss.hwiiArm` | 별도 시트 0, 0 | 72×40 | 2 | 4 | 6, 20 | 뿌리는 중심핵 아래에 고정. 3개를 120도 간격으로 회전시키며 프레임 위상을 분산 |
 
 > 보스는 코드에서 부풀기·회전·초롱불·촉수 등을 별도로 그립니다. 스프라이트는 **본체만** 그리고, 이펙트는 코드 쪽에 남겨두는 편이 페이즈 연출과 잘 맞습니다.
+
+### 항해도 자산
+
+- 항해도 배경은 중앙의 좌하단→우상단 별빛 길을 비우고, 산호·해파리·해류·협곡·난파선·폭풍의 환경 암시를 가장자리에 둡니다.
+- 해역 아이콘은 각각 `24×24` 셀 안에 1px 안전 여백을 두며, 화면에서는 보간 없이 정확히 2배 확대합니다.
+- 해역 상징은 순서대로 산호문, 등불 해파리, 거북 해류, 심해 협곡, 난파선, 폭풍 파도, 용궁 월문입니다.
+- 집 용궁은 `48×40` 별도 이미지이며 해역 아이콘보다 크게 보입니다. 항해도에 별도 코드 장식을 덧그리지 않습니다.
+- 배경·아이콘·용궁의 생성 원본, 후보, 큐레이션 편집, QA는 각각 `assets/generated/screens/map-screen-v1/`, `assets/generated/map-icons-v1/`에 보존합니다.
 
 ## 4. 색·톤 가이드
 

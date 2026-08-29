@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-curation",
+  "states": {
+    "items": {
+      "selected": [
+        1
+      ],
+      "order": [
+        1,
+        0,
+        2
+      ],
+      "transforms": {},
+      "revision": [
+        "30fd16eca9a8"
+      ]
+    }
+  },
+  "run_revision": "d89ccea4f7a55969"
+}

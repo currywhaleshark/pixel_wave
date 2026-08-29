@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": ".curation-run.sg-staging",
+    "description": "imported PNG set from C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\map-icons-v1\\candidates\\home-dragon-palace"
+  },
+  "cell": {
+    "shape": "rect",
+    "width": 48,
+    "height": 40,
+    "size": 48,
+    "safe_margin": 0
+  },
+  "chroma_key": {
+    "name": "magenta",
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ]
+  },
+  "states": {
+    "home-dragon-palace": {
+      "frames": 3,
+      "fps": 2,
+      "loop": false,
+      "action": "imported still set"
+    },
+    "stage1-coral": {
+      "frames": 3,
+      "fps": 2,
+      "loop": false,
+      "action": "imported still set"
+    },
+    "stage2-jelly": {
+      "frames": 3,
+      "fps": 2,
+      "loop": false,
+      "action": "imported still set"
+    },
+    "stage3-current": {
+      "frames": 3,
+      "fps": 2,
+      "loop": false,
+      "action": "imported still set"
+    },
+    "stage4-trench": {
+      "frames": 3,
+      "fps": 2,
+      "loop": false,
+      "action": "imported still set"
+    },
+    "stage5-wreck": {
+      "frames": 3,
+      "fps": 2,
+      "loop": false,
+      "action": "imported still set"
+    },
+    "stage6-storm": {
+      "frames": 3,
+      "fps": 2,
+      "loop": false,
+      "action": "imported still set"
+    },
+    "stage7-palace-water": {
+      "frames": 3,
+      "fps": 2,
+      "loop": false,
+      "action": "imported still set"
+    }
+  }
+}

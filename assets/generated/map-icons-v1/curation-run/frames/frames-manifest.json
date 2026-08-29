@@ -1,0 +1,144 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "run_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\map-icons-v1\\.curation-run.sg-staging",
+  "cell": {
+    "shape": "rect",
+    "width": 48,
+    "height": 40,
+    "size": 48,
+    "safe_margin": 0
+  },
+  "rows": [
+    {
+      "state": "home-dragon-palace",
+      "frames": 3,
+      "method": "imported-pngs",
+      "files": [
+        "frames/home-dragon-palace/frame-0.png",
+        "frames/home-dragon-palace/frame-1.png",
+        "frames/home-dragon-palace/frame-2.png"
+      ],
+      "labels": [
+        "01-box-10",
+        "02-box-14",
+        "03-lanczos-14"
+      ],
+      "ok": true
+    },
+    {
+      "state": "stage1-coral",
+      "frames": 3,
+      "method": "imported-pngs",
+      "files": [
+        "frames/stage1-coral/frame-0.png",
+        "frames/stage1-coral/frame-1.png",
+        "frames/stage1-coral/frame-2.png"
+      ],
+      "labels": [
+        "01-box-10",
+        "02-box-14",
+        "03-lanczos-14"
+      ],
+      "ok": true
+    },
+    {
+      "state": "stage2-jelly",
+      "frames": 3,
+      "method": "imported-pngs",
+      "files": [
+        "frames/stage2-jelly/frame-0.png",
+        "frames/stage2-jelly/frame-1.png",
+        "frames/stage2-jelly/frame-2.png"
+      ],
+      "labels": [
+        "01-box-10",
+        "02-box-14",
+        "03-lanczos-14"
+      ],
+      "ok": true
+    },
+    {
+      "state": "stage3-current",
+      "frames": 3,
+      "method": "imported-pngs",
+      "files": [
+        "frames/stage3-current/frame-0.png",
+        "frames/stage3-current/frame-1.png",
+        "frames/stage3-current/frame-2.png"
+      ],
+      "labels": [
+        "01-box-10",
+        "02-box-14",
+        "03-lanczos-14"
+      ],
+      "ok": true
+    },
+    {
+      "state": "stage4-trench",
+      "frames": 3,
+      "method": "imported-pngs",
+      "files": [
+        "frames/stage4-trench/frame-0.png",
+        "frames/stage4-trench/frame-1.png",
+        "frames/stage4-trench/frame-2.png"
+      ],
+      "labels": [
+        "01-box-10",
+        "02-box-14",
+        "03-lanczos-14"
+      ],
+      "ok": true
+    },
+    {
+      "state": "stage5-wreck",
+      "frames": 3,
+      "method": "imported-pngs",
+      "files": [
+        "frames/stage5-wreck/frame-0.png",
+        "frames/stage5-wreck/frame-1.png",
+        "frames/stage5-wreck/frame-2.png"
+      ],
+      "labels": [
+        "01-box-10",
+        "02-box-14",
+        "03-lanczos-14"
+      ],
+      "ok": true
+    },
+    {
+      "state": "stage6-storm",
+      "frames": 3,
+      "method": "imported-pngs",
+      "files": [
+        "frames/stage6-storm/frame-0.png",
+        "frames/stage6-storm/frame-1.png",
+        "frames/stage6-storm/frame-2.png"
+      ],
+      "labels": [
+        "01-box-10",
+        "02-box-14",
+        "03-lanczos-14"
+      ],
+      "ok": true
+    },
+    {
+      "state": "stage7-palace-water",
+      "frames": 3,
+      "method": "imported-pngs",
+      "files": [
+        "frames/stage7-palace-water/frame-0.png",
+        "frames/stage7-palace-water/frame-1.png",
+        "frames/stage7-palace-water/frame-2.png"
+      ],
+      "labels": [
+        "01-box-10",
+        "02-box-14",
+        "03-lanczos-14"
+      ],
+      "ok": true
+    }
+  ],
+  "errors": [],
+  "warnings": []
+}

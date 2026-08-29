@@ -10,3 +10,7 @@ assets/generated/attempts/
 assets/generated/sprites/*/correction-loop/
 assets/generated/sprites/*/curation.stale-*.json
 assets/generated/sprites/*/.pixel-preview/
+assets/generated/**/server.log
+assets/generated/**/server.out.log
+assets/generated/**/server.err.log
+assets/generated/**/.pixel-preview/

@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "kind": "sprite-gen-request",
+  "engine": "component-row",
+  "character": {
+    "id": ".curation-run.sg-staging",
+    "description": "imported PNG set from C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\screens\\title-screen-v2\\candidates"
+  },
+  "cell": {
+    "shape": "rect",
+    "width": 480,
+    "height": 270,
+    "size": 480,
+    "safe_margin": 0
+  },
+  "chroma_key": {
+    "name": "magenta",
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ]
+  },
+  "states": {
+    "items": {
+      "frames": 3,
+      "fps": 2,
+      "loop": false,
+      "action": "imported still set"
+    }
+  }
+}

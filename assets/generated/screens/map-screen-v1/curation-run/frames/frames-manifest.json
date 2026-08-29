@@ -1,0 +1,32 @@
+{
+  "ok": true,
+  "engine": "component-row",
+  "run_dir": "C:\\Users\\yurib\\Documents\\New project\\shooting\\assets\\generated\\screens\\map-screen-v1\\.curation-run.sg-staging",
+  "cell": {
+    "shape": "rect",
+    "width": 480,
+    "height": 270,
+    "size": 480,
+    "safe_margin": 0
+  },
+  "rows": [
+    {
+      "state": "items",
+      "frames": 3,
+      "method": "imported-pngs",
+      "files": [
+        "frames/items/frame-0.png",
+        "frames/items/frame-1.png",
+        "frames/items/frame-2.png"
+      ],
+      "labels": [
+        "01-nearest",
+        "02-box",
+        "03-lanczos"
+      ],
+      "ok": true
+    }
+  ],
+  "errors": [],
+  "warnings": []
+}

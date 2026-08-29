@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "pixel-wave-screen-candidates",
+  "screen": "ending",
+  "logical_size": [
+    480,
+    270
+  ],
+  "source": "assets/generated/screens/ending-screen-v1/source/ending-concept-v1.png",
+  "palette_size": 36,
+  "candidates": {
+    "01-nearest": "assets/generated/screens/ending-screen-v1/candidates/01-nearest.png",
+    "02-box": "assets/generated/screens/ending-screen-v1/candidates/02-box.png",
+    "03-lanczos": "assets/generated/screens/ending-screen-v1/candidates/03-lanczos.png"
+  },
+  "curation": "curation-run/curation.json",
+  "selected_candidate": "01-nearest",
+  "game_input": "../../../screens/ending-background.png"
+}
