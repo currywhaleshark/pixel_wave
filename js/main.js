@@ -1056,10 +1056,7 @@ const Game = {
     for (const m of this.msgs) {
       ctx.save();
       ctx.globalAlpha = Math.min(1, m.life / 0.5);
-      ctx.fillStyle = m.color;
-      ctx.font = Fonts.f(22, true);
-      ctx.textAlign = 'center';
-      ctx.fillText(m.text, CFG.W / 2, my - Math.min(m.t, 0.3) * 30);
+      PXUI.text(ctx, m.text, CFG.W / 2, my - Math.min(m.t, 0.3) * 30, 22, m.color);
       ctx.restore();
       my += 32;
     }
@@ -1528,10 +1525,10 @@ const Game = {
     // 진주
     ctx.fillStyle = '#fff';
     ctx.font = Fonts.f(16, true);
-    const grd = ctx.createRadialGradient(20, 18, 0, 22, 20, 8);
-    grd.addColorStop(0, '#fff'); grd.addColorStop(1, '#d8b4e8');
-    ctx.fillStyle = grd;
+    ctx.fillStyle = '#d8b4e8';
     ctx.beginPath(); ctx.arc(22, 20, 8, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(17, 15, 4, 4);   // 픽셀 하이라이트
     ctx.fillStyle = '#fff';
     ctx.fillText(`× ${this.stats.pearls}`, 36, 26);
 
@@ -1540,11 +1537,8 @@ const Game = {
     ctx.fillStyle = '#7dffd8';
     ctx.fillText(`파워 Lv${this.player.level}`, 16, 50);
     if (this.player.level < 3) {
-      const w = 90, ratio = this.player.gauge / this.player.gaugeMax();
-      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-      ctx.strokeRect(90, 40, w, 10);
-      ctx.fillStyle = '#7dffd8';
-      ctx.fillRect(90, 40, w * ratio, 10);
+      const ratio = this.player.gauge / this.player.gaugeMax();
+      PXUI.cells(ctx, 90, 40, 10, Math.floor(ratio * 10 + 0.0001), { cw: 8, ch: 10, gap: 2 });
     } else {
       ctx.fillText('MAX', 90, 50);
     }
@@ -1563,10 +1557,9 @@ const Game = {
       const bx = 70, by = 61;
       const empty = this.battery === 0;
       const blink = Math.floor(performance.now() / 400) % 2 === 0;
-      ctx.strokeStyle = empty ? (blink ? '#ff5a5a' : 'rgba(255,90,90,0.5)') : 'rgba(255,255,255,0.6)';
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(bx, by, bw, cellH + 6);
-      ctx.fillStyle = ctx.strokeStyle;
+      const bc = empty ? (blink ? '#ff5a5a' : 'rgba(255,90,90,0.5)') : 'rgba(255,255,255,0.6)';
+      PXUI.frame(ctx, bx, by, bw, cellH + 6, bc);
+      ctx.fillStyle = bc;
       ctx.fillRect(bx + bw + 2, by + 5, 3, cellH - 4); // 단자
       for (let i = 0; i < this.battery; i++) {
         ctx.fillStyle = this.battery === 1 ? '#ffd76e' : '#7dffd8'; // 1칸 남으면 노랑
@@ -1777,13 +1770,13 @@ const Game = {
 
   drawTitle() {
     ctx.save();
+    if (Assets.ready('screen.title')) {
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(Assets.image('screen.title'), 0, 0, 480, 270, 0, 0, CFG.W, CFG.H);
+    }
+    PXUI.text(ctx, '픽셀 파도', CFG.W / 2, CFG.H * 0.32, 44, '#ff9ec7');
+    PXUI.text(ctx, '집으로 가는 길', CFG.W / 2, CFG.H * 0.42, 30, '#8ff7ff');
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#ff9ec7';
-    ctx.font = Fonts.f(44, true);
-    ctx.fillText('픽셀 파도', CFG.W / 2, CFG.H * 0.32);
-    ctx.fillStyle = '#8ff7ff';
-    ctx.font = Fonts.f(30, true);
-    ctx.fillText('집으로 가는 길', CFG.W / 2, CFG.H * 0.42);
     ctx.fillStyle = 'rgba(255,255,255,0.85)';
     ctx.font = Fonts.f(15);
     ctx.fillText('별빛 길을 따라 집으로', CFG.W / 2, CFG.H * 0.52);
@@ -1797,7 +1790,7 @@ const Game = {
     ctx.fillStyle = '#ffe9a8';
     ctx.font = Fonts.f(18, true);
     const blink = Math.sin(performance.now() / 300) > -0.3;
-    if (blink) ctx.fillText('아무 키 / 클릭 — 항해도로', CFG.W / 2, CFG.H * 0.82);
+    if (blink) PXUI.text(ctx, '▶ 아무 키 / 클릭 — 항해도로', CFG.W / 2, CFG.H * 0.82, 18, '#ffe9a8');
     ctx.restore();
   },
 
@@ -1806,9 +1799,7 @@ const Game = {
     ctx.fillStyle = 'rgba(5, 15, 45, 0.6)';
     ctx.fillRect(0, 0, CFG.W, CFG.H);
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#ffe9a8';
-    ctx.font = Fonts.f(36, true);
-    ctx.fillText('해역 클리어!', CFG.W / 2, CFG.H * 0.34);
+    PXUI.text(ctx, '해역 클리어!', CFG.W / 2, CFG.H * 0.34, 36, '#ffe9a8');
     ctx.fillStyle = '#a8ffcf';
     ctx.font = Fonts.f(16);
     ctx.fillText(STAGES[this.stageIdx].clearMsg, CFG.W / 2, CFG.H * 0.44);

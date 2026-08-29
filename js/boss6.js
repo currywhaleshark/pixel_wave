@@ -368,10 +368,10 @@ class BossUreu {
     for (let i = 0; i < beads; i++) {
       const bx = x0 + (i + 0.5) * (w / beads);
       if (i < alive) {
-        const g = ctx.createRadialGradient(bx - 2, y - 2, 0, bx, y, 7);
-        g.addColorStop(0, '#fff'); g.addColorStop(1, '#ffd76e');
-        ctx.fillStyle = g;
+        ctx.fillStyle = '#ffd76e';
         ctx.beginPath(); ctx.arc(bx, y, 7, 0, 6.28); ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(bx - 4, y - 4, 3, 3);   // 픽셀 하이라이트
       } else {
         ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1.5;
         ctx.beginPath(); ctx.arc(bx, y, 5, 0, 6.28); ctx.stroke();

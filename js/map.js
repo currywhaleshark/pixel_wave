@@ -274,8 +274,7 @@ const MapUI = {
     [['BGM', 'bgm'], ['SE', 'sfx']].forEach(([label, key], i) => {
       const r = this.volBtn(i);
       const v = Sound.muted ? 0 : Sound.vol[key];
-      ctx.fillStyle = 'rgba(255,255,255,0.07)';
-      ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 6); ctx.fill();
+      PXUI.chip(ctx, r, { border: 'rgba(210,225,255,0.25)', fill: 'rgba(6,14,40,0.65)' });
       ctx.fillStyle = 'rgba(255,255,255,0.55)';
       ctx.font = Fonts.f(11); ctx.textAlign = 'left';
       ctx.fillText(label, r.x + 7, r.y + 15);
@@ -317,15 +316,13 @@ const MapUI = {
       if (unlocked) {
         // 키보드 선택 링 (아이콘 프레임을 감싸는 사각 링)
         if (i === this.sel) {
-          ctx.strokeStyle = `rgba(255,255,255,${0.6 + Math.sin(now * 5) * 0.3})`;
-          ctx.lineWidth = 2.5;
-          ctx.beginPath(); ctx.roundRect(-27, -27, 54, 54, 12); ctx.stroke();
+          PXUI.frame(ctx, -28, -28, 56, 56, `rgba(255,255,255,${0.6 + Math.sin(now * 5) * 0.3})`);
         }
         // 해역 아이콘 (스프라이트 준비 전까지는 자리 표시 프레임)
-        ctx.fillStyle = 'rgba(255,255,255,0.10)';
-        ctx.strokeStyle = i === this.sel ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.35)';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.roundRect(-22, -22, 44, 44, 10); ctx.fill(); ctx.stroke();
+        PXUI.chip(ctx, { x: -22, y: -22, w: 44, h: 44 }, {
+          border: i === this.sel ? 'rgba(255,255,255,0.75)' : 'rgba(210,225,255,0.35)',
+          fill: 'rgba(10, 24, 62, 0.85)',
+        });
         if (!Sprites.draw(ctx, `icon.stage${i + 1}`, 0, 0, {})) {
           // 임시: 해역 상징색 원 + 번호
           ctx.fillStyle = STAGES[i].friendColor;
@@ -392,12 +389,14 @@ const MapUI = {
     // ---- 하단 바 ----
     ctx.fillStyle = 'rgba(6, 18, 55, 0.82)';
     ctx.fillRect(0, 466, CFG.W, CFG.H - 466);
+    ctx.fillStyle = 'rgba(210,225,255,0.3)';
+    ctx.fillRect(0, 466, CFG.W, 2);   // 픽셀 경계선
 
     // 영구 진주 은행
-    const pg = ctx.createRadialGradient(30, 500, 0, 32, 502, 9);
-    pg.addColorStop(0, '#fff'); pg.addColorStop(1, '#d8b4e8');
-    ctx.fillStyle = pg;
+    ctx.fillStyle = '#d8b4e8';
     ctx.beginPath(); ctx.arc(32, 502, 9, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(27, 497, 4, 4);   // 픽셀 하이라이트
     ctx.fillStyle = '#fff';
     ctx.font = Fonts.f(16, true); ctx.textAlign = 'left';
     ctx.fillText(`${Meta.data.bank}`, 48, 508);
@@ -427,12 +426,7 @@ const MapUI = {
   },
 
   button(ctx, r, label, color, big) {
-    ctx.fillStyle = 'rgba(255,255,255,0.08)';
-    ctx.strokeStyle = color; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 10); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = color;
-    ctx.font = Fonts.f(big ? 18 : 14, true); ctx.textAlign = 'center';
-    ctx.fillText(label, r.x + r.w / 2, r.y + r.h / 2 + 6);
+    PXUI.button(ctx, r, label, color, { big });
   },
 
   star(ctx, cx, cy, outer, inner) {
@@ -456,9 +450,7 @@ const MapUI = {
     ctx.fillStyle = 'rgba(4, 12, 40, 0.72)';
     ctx.fillRect(0, 0, CFG.W, CFG.H);
     // 패널
-    ctx.fillStyle = 'rgba(10, 26, 70, 0.96)';
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.roundRect(P.x, P.y, P.w, P.h, 14); ctx.fill(); ctx.stroke();
+    PXUI.panel(ctx, P.x, P.y, P.w, P.h, { border: '#cfe0ff', fill: '#0b1c4e' });
 
     // 제목: 해역명 + 최고 점수
     const stage = STAGES[this.sel];
@@ -473,9 +465,8 @@ const MapUI = {
 
     // 마커 하이라이트 공통
     const marker = (r) => {
-      ctx.strokeStyle = `rgba(255,255,255,${0.75 + Math.sin(now * 6) * 0.25})`;
-      ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.roundRect(r.x - 4, r.y - 4, r.w + 8, r.h + 8, 9); ctx.stroke();
+      PXUI.frame(ctx, r.x - 5, r.y - 5, r.w + 10, r.h + 10,
+        `rgba(255,255,255,${0.75 + Math.sin(now * 6) * 0.25})`);
     };
     const label = (text, y) => {
       ctx.textAlign = 'left';
@@ -489,10 +480,10 @@ const MapUI = {
     for (let d = 0; d < DIFFS.length; d++) {
       const r = this.lpDiff(d);
       const open = d <= maxD, selD = d === this.diffSel;
-      ctx.fillStyle = selD ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.06)';
-      ctx.strokeStyle = open ? (selD ? DIFFS[d].color : 'rgba(255,255,255,0.35)') : 'rgba(255,255,255,0.15)';
-      ctx.lineWidth = selD ? 2 : 1;
-      ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 7); ctx.fill(); ctx.stroke();
+      PXUI.chip(ctx, r, {
+        border: open ? (selD ? DIFFS[d].color : 'rgba(210,225,255,0.35)') : 'rgba(210,225,255,0.14)',
+        fill: selD ? 'rgba(22, 40, 92, 0.95)' : 'rgba(6, 14, 40, 0.9)',
+      });
       ctx.fillStyle = open ? (selD ? DIFFS[d].color : 'rgba(255,255,255,0.6)') : 'rgba(255,255,255,0.25)';
       ctx.font = Fonts.f(12, true); ctx.textAlign = 'center';
       ctx.fillText(open ? DIFFS[d].name : '🔒', r.x + r.w / 2, r.y + 20);
@@ -506,10 +497,10 @@ const MapUI = {
       const t = this.DOLPHIN_TYPES[i];
       const selected = Meta.data.selected === t;
       const unlocked = t === null || Meta.data.dolphinLv[t] > 0;
-      ctx.fillStyle = selected ? 'rgba(125,255,216,0.22)' : 'rgba(255,255,255,0.07)';
-      ctx.strokeStyle = selected ? '#7dffd8' : 'rgba(255,255,255,0.3)';
-      ctx.lineWidth = selected ? 2 : 1;
-      ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 8); ctx.fill(); ctx.stroke();
+      PXUI.chip(ctx, r, {
+        border: selected ? '#7dffd8' : 'rgba(210,225,255,0.3)',
+        fill: selected ? 'rgba(18, 48, 62, 0.95)' : 'rgba(6, 14, 40, 0.9)',
+      });
       ctx.textAlign = 'center';
       if (t === null) {
         ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = Fonts.f(12);
@@ -535,10 +526,10 @@ const MapUI = {
       const def = BOMB_DEFS[id];
       const open = bombUnlocked(id);
       const on = bombSel === id;
-      ctx.fillStyle = on ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.06)';
-      ctx.strokeStyle = on ? def.color : (open ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)');
-      ctx.lineWidth = on ? 2 : 1;
-      ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 6); ctx.fill(); ctx.stroke();
+      PXUI.chip(ctx, r, {
+        border: on ? def.color : (open ? 'rgba(210,225,255,0.3)' : 'rgba(210,225,255,0.12)'),
+        fill: on ? 'rgba(22, 40, 92, 0.95)' : 'rgba(6, 14, 40, 0.9)',
+      });
       ctx.textAlign = 'center';
       if (open) {
         ctx.fillStyle = def.color;
@@ -571,10 +562,7 @@ const MapUI = {
 
   drawShop(ctx) {
     ctx.save();
-    ctx.fillStyle = 'rgba(4, 10, 35, 0.88)';
-    ctx.beginPath(); ctx.roundRect(70, 34, 820, 460, 14); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,176,200,0.5)'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.roundRect(70, 34, 820, 460, 14); ctx.stroke();
+    PXUI.panel(ctx, 70, 34, 820, 460, { border: '#ffb0c8', fill: 'rgba(6, 12, 38, 0.96)' });
 
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffb0c8';
@@ -589,8 +577,7 @@ const MapUI = {
 
     // 닫기
     const c = this.BTN.close;
-    ctx.fillStyle = 'rgba(255,255,255,0.12)';
-    ctx.beginPath(); ctx.roundRect(c.x, c.y, c.w, c.h, 6); ctx.fill();
+    PXUI.chip(ctx, c, { border: 'rgba(255,176,200,0.5)', fill: 'rgba(6,14,40,0.9)' });
     ctx.fillStyle = '#fff'; ctx.font = Fonts.f(13, true);
     ctx.fillText('✕', c.x + c.w / 2, c.y + 18);
 
@@ -607,13 +594,10 @@ const MapUI = {
       const it = row.item;
       const owned = Meta.has(it.id);
       const can = Meta.canBuy(it);
-      ctx.fillStyle = owned ? 'rgba(125,255,216,0.10)' : can.ok ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.03)';
-      ctx.beginPath(); ctx.roundRect(row.x, row.y, row.w, row.h, 7); ctx.fill();
-      // 키보드 커서
-      if (ri === this.shopCursor) {
-        ctx.strokeStyle = '#ffe9a8'; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.roundRect(row.x, row.y, row.w, row.h, 7); ctx.stroke();
-      }
+      PXUI.chip(ctx, row, {
+        border: ri === this.shopCursor ? '#ffe9a8' : 'rgba(210,225,255,0.18)',
+        fill: owned ? 'rgba(16, 44, 52, 0.9)' : can.ok ? 'rgba(12, 24, 60, 0.9)' : 'rgba(6, 12, 34, 0.9)',
+      });
 
       ctx.fillStyle = owned ? '#7dffd8' : can.ok ? '#fff' : 'rgba(255,255,255,0.45)';
       ctx.font = Fonts.f(13, true); ctx.textAlign = 'left';
