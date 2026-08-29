@@ -12,8 +12,8 @@
 // - anon 키는 공개용 키다(RLS + RPC로만 쓰기 가능). 커밋해도 된다.
 // ============================================================
 const BOARD_CFG = {
-  url: '',      // 예: 'https://abcd1234.supabase.co'
-  anonKey: '',  // Supabase 프로젝트의 anon public 키
+  url: 'https://zrwqwsnzbnicxjguyctv.supabase.co',      // 예: 'https://abcd1234.supabase.co'
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpyd3F3c256Ym5pY3hqZ3V5Y3R2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMDk5MzYsImV4cCI6MjEwMzU4NTkzNn0.yyNUtWV1oufbLlULzx6-VkmOG5DUxvgTUnFXMQM0cp4',  // Supabase 프로젝트의 anon public 키
 };
 
 const Board = {
