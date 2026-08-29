@@ -1020,25 +1020,12 @@ const Game = {
     const p = this.player;
     const t = performance.now() / 1000;
 
-    // 몽실: 놓인 등불 — 터질 범위를 점선 원으로 미리 보여준다
+    // 몽실: 놓인 등불 (터지기 직전 빠르게 깜빡)
+    // 폭발 예정 반경을 미리 그려봤지만 큰 원이 화면을 덮어 오히려 헷갈렸다 —
+    // 터질 때 퍼지는 링만으로 충분하다.
     for (const L of this.bombLanterns) {
       const urgent = L.t < 0.35;
       const blink = urgent && Math.floor(L.t * 14) % 2 === 0;
-      // 폭발 예정 반경 (심지가 탈수록 또렷해지고, 안쪽 원이 차오른다)
-      const prog = 1 - Math.max(0, Math.min(1, L.t / 1.4));
-      ctx.save();
-      ctx.strokeStyle = `rgba(201,163,255,${0.25 + prog * 0.5})`;
-      ctx.lineWidth = 2;
-      ctx.setLineDash([8, 7]);
-      ctx.lineDashOffset = -t * 22;
-      ctx.beginPath(); ctx.arc(L.x, L.y, L.r, 0, 6.28); ctx.stroke();
-      ctx.setLineDash([]);
-      // 채워지는 안쪽 원 = 남은 시간
-      ctx.strokeStyle = `rgba(255,214,110,${0.5 + prog * 0.4})`;
-      ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(L.x, L.y, L.r * prog, 0, 6.28); ctx.stroke();
-      ctx.restore();
-      // 등불 본체
       const g = ctx.createRadialGradient(L.x, L.y, 0, L.x, L.y, 26);
       g.addColorStop(0, `rgba(255,214,110,${blink ? 0.95 : 0.6})`);
       g.addColorStop(1, 'rgba(201,163,255,0)');
