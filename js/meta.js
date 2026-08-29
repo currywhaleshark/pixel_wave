@@ -50,6 +50,7 @@ const Meta = {
       selected: null,                             // 출격 돌고래
       cleared: {},                                // 클리어한 해역
       audio: null,                                // 볼륨·음소거 (Sound가 관리)
+      bombSel: 'sonar',                           // 선택한 봄 (bombs.js)
     };
   },
 

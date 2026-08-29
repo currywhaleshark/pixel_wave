@@ -100,6 +100,8 @@ const Game = {
   battery: 0, batteryMax: 2,
   slowT: 0,              // 유도 Lv3 자동 슬로우 타이머
   dark: 0, targetDark: 0, // 어둠 오버레이 (심해 스테이지)
+  bombId: 'sonar',       // 선택된 봄 (bombs.js)
+  bombLanterns: [], bombDash: null, bombLure: null, bombGhost: 0, bombThunder: null,
   perf: { fps: 60, worst: 60, samples: 0, acc: 0 }, // 디버그 통계
   runLog: null,          // 런 기록 (잡몹 구간·보스전·페이즈별 시간)
   storm: false, stormScale: 1, curX: 0, curY: 0, surfaceY: 20, // 폭풍 해류 (폭풍 수면)
@@ -119,6 +121,10 @@ const Game = {
     this.slowT = 0;
     this.battery = Meta.batteryStart();
     this.batteryMax = Meta.batteryMax();
+    const bsel = Meta.data.bombSel || 'sonar';
+    this.bombId = bombUnlocked(bsel) ? bsel : 'sonar';
+    this.bombLanterns = []; this.bombDash = null; this.bombLure = null;
+    this.bombGhost = 0; this.bombThunder = null;
     const sel = Meta.data.selected;
     this.dolphin = sel && Meta.data.dolphinLv[sel] > 0
       ? new Dolphin(sel, Meta.data.dolphinLv[sel]) : null;
@@ -299,18 +305,97 @@ const Game = {
     this.boss.hp = this.boss.maxHp;
   },
 
+  // 반경 안의 적탄만 진주로 (기본 봄은 전 화면이 아니라 국소 소거)
+  clearBulletsRadius(x, y, r, toPearls) {
+    const r2 = r * r;
+    this.ebullets = this.ebullets.filter(b => {
+      if ((b.x - x) ** 2 + (b.y - y) ** 2 > r2) return true;
+      if (toPearls) this.pearls.push(new Pearl(b.x, b.y, { life: 10 }));
+      else this.addFx(b.x, b.y, '#bfe8ff', 1);
+      return false;
+    });
+  },
+
   useBomb() {
     const p = this.player;
     if (this.battery <= 0 || p.bubble > 0) return;
     this.battery--;
     this.stats.bombs++;
-    p.invuln = Math.max(p.invuln, CFG.bombInvuln);
-    // 소나 펄스: 적탄 전부 → 진주 (위기가 보상으로)
-    for (const b of this.ebullets) this.pearls.push(new Pearl(b.x, b.y, { life: 8 }));
-    this.ebullets = [];
-    this.fx.push({ x: p.x, y: p.y, ring: true, life: 0.7, maxLife: 0.7 });
-    Sound.sfx('sonar');
-    this.message('소나 펄스!', '#7dffd8');
+    const def = BOMB_DEFS[this.bombId] || BOMB_DEFS.sonar;
+    def.use(this);
+  },
+
+  // 지속형 봄 효과 (등불·대시·유인·유령화·낙뢰)
+  updateBombs(dt) {
+    const p = this.player;
+
+    // 몽실: 시간차로 터지는 등불
+    for (const L of this.bombLanterns) {
+      L.t -= dt;
+      if (L.t <= 0 && !L.done) {
+        L.done = true;
+        this.clearBulletsRadius(L.x, L.y, L.r, true);
+        this.fx.push({ x: L.x, y: L.y, ring: true, life: 0.5, maxLife: 0.5, r: L.r, color: '201,163,255' });
+        Sound.sfx('pearlBig');
+      }
+    }
+    this.bombLanterns = this.bombLanterns.filter(L => !L.done);
+
+    // 씽씽: 무적 돌진 — 지나가며 탄 소거 + 적 격돌
+    if (this.bombDash) {
+      this.bombDash.t -= dt;
+      p.invuln = Math.max(p.invuln, 0.3);
+      p.x = Math.min(CFG.W - 20, p.x + 900 * dt);
+      this.clearBulletsRadius(p.x, p.y, 95, true);
+      for (const e of this.enemies) {
+        if (e.kind === 'wreck' || this.bombDash.dmgDone.has(e)) continue;
+        if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 < 70 * 70) {
+          this.bombDash.dmgDone.add(e);
+          e.takeDamage(10, this);
+        }
+      }
+      if (this.boss && !this.boss.dead && this.boss.hittable !== false &&
+          !this.bombDash.hitBoss &&
+          (this.boss.x - p.x) ** 2 + (this.boss.y - p.y) ** 2 < 90 * 90) {
+        this.bombDash.hitBoss = true;
+        this.boss.takeDamage(25);
+      }
+      if (this.bombDash.t <= 0) this.bombDash = null;
+    }
+
+    // 초롱: 적탄을 빛으로 빨아들여 진주로
+    if (this.bombLure) {
+      const L = this.bombLure;
+      L.t -= dt;
+      L.x = p.x; L.y = p.y;
+      const r2 = L.r * L.r;
+      this.ebullets = this.ebullets.filter(b => {
+        const dx = L.x - b.x, dy = L.y - b.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 > r2) return true;
+        const d = Math.sqrt(d2) || 1;
+        b.vx += dx / d * 900 * dt;   // 빨려들어간다
+        b.vy += dy / d * 900 * dt;
+        if (d < 46) {                // 삼킴
+          this.pearls.push(new Pearl(b.x, b.y, { life: 10, auto: true }));
+          return false;
+        }
+        return true;
+      });
+      if (L.t <= 0) this.bombLure = null;
+    }
+
+    // 부우: 유령화 (탄은 그대로, 나만 통과)
+    if (this.bombGhost > 0) {
+      this.bombGhost -= dt;
+      p.invuln = Math.max(p.invuln, 0.2);
+    }
+
+    // 우르릉: 낙뢰 잔광
+    if (this.bombThunder) {
+      this.bombThunder.t -= dt;
+      if (this.bombThunder.t <= 0) this.bombThunder = null;
+    }
   },
 
   // 상태에 맞는 BGM을 고른다 (매 프레임 비교 — 바뀔 때만 크로스페이드)
@@ -524,6 +609,7 @@ const Game = {
       this.runLog.phaseTime[ph] += dt;
     }
 
+    this.updateBombs(dt);
     this.player.update(dt, this);
     if (this.dolphin) this.dolphin.update(dt, this);
     this.spawner.update(this.stageT, dt);
@@ -793,6 +879,7 @@ const Game = {
     this.drawExplosions();
     this.drawEBullets(1);
 
+    this.drawBombFx();
     if (this.ride) this.drawTurtle(this.player.x, this.player.y + 18);
     this.player.draw(ctx);
     if (this.dolphin) this.dolphin.draw(ctx, this);
@@ -807,9 +894,9 @@ const Game = {
     for (const f of this.fx) {
       if (f.ring) {
         const p = 1 - f.life / f.maxLife;
-        ctx.strokeStyle = `rgba(125,255,216,${f.life})`;
+        ctx.strokeStyle = `rgba(${f.color || '125,255,216'},${f.life / (f.maxLife || 1)})`;
         ctx.lineWidth = 4;
-        ctx.beginPath(); ctx.arc(f.x, f.y, p * 620, 0, 6.28); ctx.stroke();
+        ctx.beginPath(); ctx.arc(f.x, f.y, p * (f.r || 620), 0, 6.28); ctx.stroke();
       } else {
         ctx.globalAlpha = Math.max(0, f.life * 2);
         ctx.fillStyle = f.color;
@@ -926,6 +1013,87 @@ const Game = {
       ctx.restore();
     }
 
+  },
+
+  // 봄 지속 효과 렌더
+  drawBombFx() {
+    const p = this.player;
+    const t = performance.now() / 1000;
+
+    // 몽실: 놓인 등불 (터지기 직전 빠르게 깜빡)
+    for (const L of this.bombLanterns) {
+      const urgent = L.t < 0.35;
+      const blink = urgent && Math.floor(L.t * 14) % 2 === 0;
+      const g = ctx.createRadialGradient(L.x, L.y, 0, L.x, L.y, 26);
+      g.addColorStop(0, `rgba(255,214,110,${blink ? 0.95 : 0.6})`);
+      g.addColorStop(1, 'rgba(201,163,255,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(L.x, L.y, 26, 0, 6.28); ctx.fill();
+      ctx.strokeStyle = 'rgba(201,163,255,0.6)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(L.x, L.y, 9, 0, 6.28); ctx.stroke();
+    }
+
+    // 씽씽: 대시 잔상
+    if (this.bombDash) {
+      ctx.save();
+      for (let k = 1; k <= 4; k++) {
+        ctx.globalAlpha = 0.28 - k * 0.05;
+        ctx.fillStyle = '#8fa3e8';
+        ctx.beginPath(); ctx.ellipse(p.x - k * 34, p.y, 20, 9, 0, 0, 6.28); ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // 초롱: 유인 광구
+    if (this.bombLure) {
+      const L = this.bombLure;
+      const pulse = 1 + Math.sin(t * 12) * 0.06;
+      const g = ctx.createRadialGradient(L.x, L.y, 10, L.x, L.y, L.r * 0.55 * pulse);
+      g.addColorStop(0, 'rgba(215,255,250,0.5)');
+      g.addColorStop(0.4, 'rgba(126,232,224,0.18)');
+      g.addColorStop(1, 'rgba(126,232,224,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(L.x, L.y, L.r * 0.55 * pulse, 0, 6.28); ctx.fill();
+      ctx.strokeStyle = `rgba(126,232,224,${0.35 + Math.sin(t * 10) * 0.15})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(L.x, L.y, 46, 0, 6.28); ctx.stroke();
+    }
+
+    // 부우: 유령화 아우라
+    if (this.bombGhost > 0) {
+      ctx.save();
+      ctx.globalAlpha = Math.min(0.75, this.bombGhost);
+      ctx.strokeStyle = '#c8ffd8'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 26 + Math.sin(t * 8) * 3, 0, 6.28); ctx.stroke();
+      ctx.fillStyle = 'rgba(200,255,216,0.14)';
+      ctx.beginPath(); ctx.arc(p.x, p.y, 26, 0, 6.28); ctx.fill();
+      ctx.restore();
+    }
+
+    // 우르릉: 전방 낙뢰 섬광
+    if (this.bombThunder) {
+      const T = this.bombThunder;
+      const a = Math.max(0, T.t / 0.45);
+      ctx.save();
+      const g = ctx.createLinearGradient(0, T.y - 30, 0, T.y + 30);
+      g.addColorStop(0, 'rgba(255,240,150,0)');
+      g.addColorStop(0.5, `rgba(255,250,220,${0.55 * a})`);
+      g.addColorStop(1, 'rgba(255,240,150,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(T.x0, T.y - 30, CFG.W - T.x0, 60);
+      ctx.strokeStyle = `rgba(255,255,255,${0.95 * a})`;
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      let zx = T.x0, zy = T.y;
+      ctx.moveTo(zx, zy);
+      while (zx < CFG.W) {
+        zx += 40 + Math.random() * 26;
+        zy = T.y + (Math.random() - 0.5) * 34;
+        ctx.lineTo(zx, zy);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
   },
 
   drawExplosions() {
@@ -1285,6 +1453,11 @@ const Game = {
     // 조개폰 배터리 (칸이 차오르는 배터리 아이콘)
     ctx.fillStyle = '#ffb0c8';
     ctx.fillText('조개폰', 16, 74);
+    {
+      const bd = BOMB_DEFS[this.bombId] || BOMB_DEFS.sonar;
+      ctx.fillStyle = bd.color; ctx.font = Fonts.f(11); ctx.textAlign = 'left';
+      ctx.fillText(bd.name, 16, 90);
+    }
     {
       const cells = this.batteryMax, cw = 12, cellH = 12, gap = 3;
       const bw = cells * cw + gap * (cells + 1);

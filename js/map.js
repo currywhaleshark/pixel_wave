@@ -35,6 +35,8 @@ const MapUI = {
     close:{ x: 838, y: 52,  w: 34,  h: 26 },
   },
   dolphinSlot(i) { return { x: 118 + i * 82, y: 478, w: 74, h: 52 }; },
+  // 봄 선택 슬롯 (8종, 항해도 우측 세로열)
+  bombSlot(i) { return { x: 118 + i * 36, y: 444, w: 33, h: 26 }; },
   // 볼륨 컨트롤 (우상단) — 클릭하면 0 → 30 → 60 → 100% 순환
   volBtn(i) { return { x: CFG.W - 176 + i * 88, y: 12, w: 80, h: 22 }; },
 
@@ -81,6 +83,21 @@ const MapUI = {
     }
   },
 
+  // 해금된 봄만 순환
+  cycleBomb() {
+    const cur = Meta.data.bombSel || 'sonar';
+    let i = BOMB_ORDER.indexOf(cur);
+    for (let step = 0; step < BOMB_ORDER.length; step++) {
+      i = (i + 1) % BOMB_ORDER.length;
+      if (bombUnlocked(BOMB_ORDER[i])) {
+        Meta.data.bombSel = BOMB_ORDER[i];
+        Meta.save();
+        Sound.sfx('uiMove');
+        return;
+      }
+    }
+  },
+
   update(dt, game) {
     if (this.toastT > 0) this.toastT -= dt;
     this.sel = Math.min(this.sel, this.unlockedCount() - 1);
@@ -116,6 +133,7 @@ const MapUI = {
         else if (k === 'enter' || k === 'z') { Sound.sfx('uiSelect'); game.launchStage(this.sel, this.diffSel); return; }
         else if (k === 's' || k === 'x') { this.shopOpen = true; this.shopCursor = 0; }
         else if (k === 'c') this.cycleDolphin();
+        else if (k === 'b') this.cycleBomb();
       }
     }
 
@@ -141,6 +159,17 @@ const MapUI = {
           else this.showToast('세이브 섬 상점에서 해금하세요', false);
         }
       }
+      // 봄 선택
+      let bombHit = false;
+      for (let i = 0; i < BOMB_ORDER.length; i++) {
+        if (this.inRect(p, this.bombSlot(i))) {
+          bombHit = true;
+          const id = BOMB_ORDER[i];
+          if (bombUnlocked(id)) { Meta.data.bombSel = id; Meta.save(); Sound.sfx('uiSelect'); }
+          else { Sound.sfx('deny'); this.showToast('해당 보스를 잡으면 해금됩니다', false); }
+        }
+      }
+      if (bombHit) continue;
       // 볼륨 컨트롤
       if (this.inRect(p, this.volBtn(0))) { Sound.cycleVol('bgm'); continue; }
       if (this.inRect(p, this.volBtn(1))) { Sound.cycleVol('sfx'); continue; }
@@ -321,6 +350,45 @@ const MapUI = {
     this.button(ctx, this.BTN.shop, '세이브 섬 (상점)', '#ffb0c8', false);
     this.button(ctx, this.BTN.go, `출격!  ▶`, DIFFS[this.diffSel].color, true);
 
+    // 봄 슬롯 (보스 격파로 해금)
+    {
+      const sel = Meta.data.bombSel || 'sonar';
+      ctx.fillStyle = 'rgba(255,255,255,0.45)';
+      ctx.font = Fonts.f(11); ctx.textAlign = 'left';
+      ctx.fillText('봄 (B)', 70, 462);
+      BOMB_ORDER.forEach((id, i) => {
+        const r = this.bombSlot(i);
+        const def = BOMB_DEFS[id];
+        const open = bombUnlocked(id);
+        const on = sel === id;
+        ctx.fillStyle = on ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.06)';
+        ctx.strokeStyle = on ? def.color : (open ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)');
+        ctx.lineWidth = on ? 2 : 1;
+        ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 6); ctx.fill(); ctx.stroke();
+        ctx.textAlign = 'center';
+        if (open) {
+          // 봄 아이콘: 색 원 (선택된 것은 링 추가)
+          ctx.fillStyle = def.color;
+          ctx.beginPath(); ctx.arc(r.x + r.w / 2, r.y + 13, on ? 7 : 5.5, 0, 6.28); ctx.fill();
+          if (on) {
+            ctx.strokeStyle = def.color; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(r.x + r.w / 2, r.y + 13, 11, 0, 6.28); ctx.stroke();
+          }
+        } else {
+          ctx.fillStyle = 'rgba(255,255,255,0.25)';
+          ctx.font = Fonts.f(11);
+          ctx.fillText('🔒', r.x + r.w / 2, r.y + 18);
+        }
+      });
+      // 선택된 봄의 이름·설명
+      const d = BOMB_DEFS[sel];
+      ctx.textAlign = 'left';
+      ctx.fillStyle = d.color; ctx.font = Fonts.f(12, true);
+      ctx.fillText(d.name, 420, 456);
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = Fonts.f(11);
+      ctx.fillText(d.desc, 420, 470);
+    }
+
     // 난이도 칩 (출격 버튼 위)
     const maxD = this.maxDiffFor(this.sel);
     for (let d = 0; d < DIFFS.length; d++) {
@@ -340,7 +408,7 @@ const MapUI = {
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.font = Fonts.f(11);
     ctx.textAlign = 'center';
-    ctx.fillText('←→ 해역 · ↑↓ 난이도 · Enter 출격 · S 상점 · C 돌고래 교체', CFG.W / 2, 460);
+    ctx.fillText('←→ 해역 · ↑↓ 난이도 · Enter 출격 · S 상점 · C 돌고래 · B 봄', CFG.W / 2, 430);
 
     if (this.shopOpen) this.drawShop(ctx);
 
