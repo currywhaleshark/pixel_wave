@@ -35,7 +35,12 @@ const Sound = {
     }
     if (this.ctx.state === 'suspended') this.ctx.resume();
     // 잠금 해제 시점에 재생 예약된 BGM이 있으면 그때 시작
-    if (this.pendingBgm) { const k = this.pendingBgm; this.pendingBgm = null; this.playBgm(k); }
+    if (this.pendingBgm) {
+      const k = this.pendingBgm;
+      this.pendingBgm = null;
+      this.currentKey = null;   // 예약 시 미리 기록해 둔 키를 지워야 재생이 조기 반환되지 않는다
+      this.playBgm(k);
+    }
   },
 
   applyVol() {
