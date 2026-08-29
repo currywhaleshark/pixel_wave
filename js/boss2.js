@@ -89,7 +89,7 @@ class BossMongsil {
       const a = Math.random() * 6.28;
       this.game.pearls.push(new Pearl(this.x, this.y, { vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, big: true, life: 15, auto: true }));
     }
-    this.game.message('"...집? 그래. 등불 하나 들고, 조심히 가~"', '#a8ffcf');
+    this.game.say('"...집? 그래. 등불 하나 들고, 조심히 가~"', '"오늘도 예뻤지? 조심히 가렴~"', '#a8ffcf');
   }
 
   update(dt) {
@@ -113,7 +113,7 @@ class BossMongsil {
         this.x = CFG.W * 0.8;
         this.phase = 1;
         g.message('등불 여왕 「몽실」', '#c9a3ff');
-        g.message('"어머... 우리 초원에 손님이네?"', '#ffd66e');
+        g.say('"어머... 우리 초원에 손님이네?"', '"어머, 또 왔구나. 등불은 켜 뒀단다~"', '#ffd66e');
       }
       return;
     }

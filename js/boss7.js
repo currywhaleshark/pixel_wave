@@ -65,7 +65,7 @@ class BossHwii {
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
     } else if (p === 3) {
-      this.game.message('"...오지 마. 가까이 오면... 다 망가진단 말이야."', '#d8e8f8');
+      this.game.say('"...오지 마. 가까이 오면... 다 망가진단 말이야."', '"...이번에도, 눈 속에서 만나자."', '#d8e8f8');
       this.game.message('(...태풍의 눈 속은 고요하다)', '#ffe9a8');
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
@@ -92,8 +92,8 @@ class BossHwii {
       const a = Math.random() * 6.28;
       this.game.pearls.push(new Pearl(this.x, this.y, { vx: Math.cos(a) * 140, vy: Math.sin(a) * 140, big: true, life: 15, auto: true }));
     }
-    this.game.message('"...눈 속은, 이렇게 조용했구나."', '#d8e8f8');
-    this.game.message('"...집, 데려다줄게. 같이 가."', '#a8ffcf');
+    this.game.say('"...눈 속은, 이렇게 조용했구나."', '"...오늘도 곁에 있어줘서 고마워."', '#d8e8f8');
+    this.game.say('"...집, 데려다줄게. 같이 가."', '"언제든 또 와. 여긴 늘 조용하니까."', '#a8ffcf');
   }
 
   update(dt) {
@@ -115,7 +115,8 @@ class BossHwii {
     if (this.dead) {
       this.deathT += dt;
       this.scale = Math.max(0.2, this.scale - dt * 0.28); // 소용돌이가 풀린다
-      if (this.deathT > 3.4) g.startEnding();
+      // 엔딩은 첫 클리어에서만. 재도전은 일반 클리어 화면으로 (매번 다시 보면 지겹다)
+      if (this.deathT > 3.4) { if (g.replay) g.victory(); else g.startEnding(); }
       return;
     }
 
@@ -125,7 +126,7 @@ class BossHwii {
         this.x = CFG.W * 0.7;
         this.phase = 1;
         g.message('폭풍의 근원 「휘이」', '#b8d8f0');
-        g.message('"...돌아가. 다들 그랬듯이."', '#d8e8f8');
+        g.say('"...돌아가. 다들 그랬듯이."', '"...또 와줬네. 기다리고 있었어."', '#d8e8f8');
       }
       return;
     }

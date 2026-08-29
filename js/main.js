@@ -101,6 +101,7 @@ const Game = {
   slowT: 0,              // 유도 Lv3 자동 슬로우 타이머
   dark: 0, targetDark: 0, // 어둠 오버레이 (심해 스테이지)
   bombId: 'sonar',       // 선택된 봄 (bombs.js)
+  replay: false,         // 이미 클리어한 해역 재도전 중인가
   bombLanterns: [], bombDash: null, bombLure: null, bombGhost: 0, bombThunder: null,
   perf: { fps: 60, worst: 60, samples: 0, acc: 0 }, // 디버그 통계
   runLog: null,          // 런 기록 (잡몹 구간·보스전·페이즈별 시간)
@@ -133,6 +134,9 @@ const Game = {
     this.runLog = { bossStart: null, phaseTime: [0, 0, 0, 0, 0], hitsTaken: 0 };
     this.perf = { fps: 60, worst: 999, samples: 0, acc: 0 };
     const stage = STAGES[this.stageIdx];
+    // 재플레이 = 이미 클리어한 해역. 보스 대사와 엔딩 재생 여부가 갈린다.
+    // (commitRun이 기록을 갱신하므로 반드시 출격 시점에 확정해 둔다)
+    this.replay = Meta.clearedLevel(stage.id) >= 0;
     this.dark = 0;
     this.targetDark = stage.dark ?? 0;  // 어둠은 서서히 내려온다
     this.storm = !!stage.storm;
@@ -162,6 +166,11 @@ const Game = {
     Meta.save();
     this.state = 'map';
     Input.anyPressed = false;
+  },
+
+  // 첫 만남 / 재대결 대사 분기 — 친구가 된 뒤에는 인사가 달라진다
+  say(first, again, color) {
+    this.message(this.replay && again ? again : first, color);
   },
 
   message(text, color) {

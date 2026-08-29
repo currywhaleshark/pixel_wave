@@ -139,7 +139,7 @@ class BossBuu {
       this.game.pearls.push(new Pearl(this.x, this.y, { vx: Math.cos(a) * 130, vy: Math.sin(a) * 130, big: true, life: 15, auto: true }));
     }
     this.game.targetDark = 0;
-    this.game.message('"...너 재밌다. 또 놀러 와! 부우~"', '#a8ffcf');
+    this.game.say('"...너 재밌다. 또 놀러 와! 부우~"', '"에이~ 오늘도 못 놀래켰다. 다음엔 꼭!"', '#a8ffcf');
   }
 
   update(dt) {
@@ -163,7 +163,7 @@ class BossBuu {
       if (this.introT > 1.2) {
         this.phase = 1;
         g.message('유령 곰치 「부우」', '#9fe8b8');
-        g.message('"부우~! ...안 놀랐어? 시시하다."', '#c8ffd8');
+        g.say('"부우~! ...안 놀랐어? 시시하다."', '"또 왔네! 이번엔 진짜로 놀래켜 줄 거야!"', '#c8ffd8');
         this.mode = 'hide'; this.modeT = 1.4;
       }
       return;

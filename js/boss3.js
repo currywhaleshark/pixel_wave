@@ -93,7 +93,7 @@ class BossSsing {
       const a = Math.random() * 6.28;
       this.game.pearls.push(new Pearl(this.x, this.y, { vx: Math.cos(a) * 130, vy: Math.sin(a) * 130, big: true, life: 15, auto: true }));
     }
-    this.game.message('"...집에 가는 길이었어? 그럼 진작 말하지~!"', '#a8ffcf');
+    this.game.say('"...집에 가는 길이었어? 그럼 진작 말하지~!"', '"크윽, 또 졌다! 다음엔 안 봐준다구!"', '#a8ffcf');
   }
 
   update(dt) {
@@ -116,7 +116,7 @@ class BossSsing {
         this.x = CFG.W * 0.82;
         this.phase = 1;
         g.message('특송 가오리 「씽씽」', '#8fa3e8');
-        g.message('"비켜비켜—! 여긴 고속도로라구!"', '#ffd76e');
+        g.say('"비켜비켜—! 여긴 고속도로라구!"', '"오, 단골! 오늘도 한판 달려보자고!"', '#ffd76e');
       }
       return;
     }

@@ -97,7 +97,7 @@ class Boss {
       const a = Math.random() * 6.28;
       this.game.pearls.push(new Pearl(this.x, this.y, { vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, big: true, life: 15, auto: true }));
     }
-    this.game.message('"...집에 가는 길이었어? 미안!"', '#a8ffcf');
+    this.game.say('"...집에 가는 길이었어? 미안!"', '"역시 세네~ 다음엔 내가 이긴다!"', '#a8ffcf');
   }
 
   update(dt) {
@@ -122,7 +122,7 @@ class Boss {
         this.x = CFG.W * 0.78;
         this.phase = 1;
         g.message('뾰족복어 「팡팡」', '#ffd76e');
-        g.message('"저리 가아—!!"', '#ffb0c8');
+        g.say('"저리 가아—!!"', '"또 왔구나! 이번엔 진심으로 놀아줄 거야, 뿌우!"', '#ffb0c8');
       }
       return;
     }

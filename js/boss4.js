@@ -69,7 +69,7 @@ class BossChorong {
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
     } else if (p === 3) {
-      this.game.message('"별... 예쁘지? 나만 아는 곳이야."', '#aef7ee');
+      this.game.say('"별... 예쁘지? 나만 아는 곳이야."', '"별, 또 보여줄게. 이번엔 더 많이!"', '#aef7ee');
       this.game.targetDark = 0.94;  // 가장 깊은 어둠 — 별만 빛난다
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
@@ -95,7 +95,7 @@ class BossChorong {
       const a = Math.random() * 6.28;
       this.game.pearls.push(new Pearl(this.x, this.y, { vx: Math.cos(a) * 130, vy: Math.sin(a) * 130, big: true, life: 15, auto: true }));
     }
-    this.game.message('"...벌써 가? 그, 그럼 초롱불 하나 줄게. 조심히 가..."', '#a8ffcf');
+    this.game.say('"...벌써 가? 그, 그럼 초롱불 하나 줄게. 조심히 가..."', '"오늘도... 놀아줘서 고마워."', '#a8ffcf');
   }
 
   update(dt) {
@@ -121,7 +121,7 @@ class BossChorong {
         this.x = CFG.W * 0.8;
         this.phase = 1;
         g.message('심해 아귀 「초롱」', '#7ee8e0');
-        g.message('"어... 어라. 우리 집에 손님은 처음인데..."', '#aef7ee');
+        g.say('"어... 어라. 우리 집에 손님은 처음인데..."', '"아, 또 와줬구나... 기, 기다리고 있었어."', '#aef7ee');
       }
       return;
     }

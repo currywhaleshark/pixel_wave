@@ -94,7 +94,7 @@ class BossUreu {
       const a = Math.random() * 6.28;
       this.game.pearls.push(new Pearl(this.x, this.y, { vx: Math.cos(a) * 130, vy: Math.sin(a) * 130, big: true, life: 15, auto: true }));
     }
-    this.game.message('"...오, 오늘은 봐준다! 왕은 관대하니까! 조심히 가라구!"', '#a8ffcf');
+    this.game.say('"...오, 오늘은 봐준다! 왕은 관대하니까! 조심히 가라구!"', '"크윽... 오늘도 봐준 거다! 왕은 바쁘니까!"', '#a8ffcf');
   }
 
   update(dt) {
@@ -114,7 +114,7 @@ class BossUreu {
         this.x = CFG.W * 0.82;
         this.phase = 1;
         g.message('천둥 뱀장어 「우르릉」', '#ffd76e');
-        g.message('"우르릉!! 폭풍의 왕님이 나가신다!!"', '#ffe9a8');
+        g.say('"우르릉!! 폭풍의 왕님이 나가신다!!"', '"왔느냐! 왕은 언제나 준비되어 있다!!"', '#ffe9a8');
       }
       return;
     }
