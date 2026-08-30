@@ -506,9 +506,19 @@ Implemented first slice:
 - direct graph manipulation with add/delete/select controls, coalesced undo,
   and base or active-difficulty authoring;
 - initial plugin state-channel metadata for multiplicative scroll and exclusive
-  player-control ownership;
+  player motion ownership;
 - responsive 390×844 inspector coverage and unchanged Stage 3 simulation
   parity hashes.
+
+Implemented second slice:
+
+- metadata-driven inspectors and validation for darkness, storm current, wreck
+  corridor, and lightning clips;
+- Stage 5 and Stage 6 coverage-fixture loading with payload parity across all
+  three difficulties;
+- composable versus exclusive state-channel declarations, deterministic overlap
+  analysis, warning clips, and buttons that select and seek to both owners;
+- millisecond clip timing input for legacy obstacle durations such as 11.579s.
 
 Scope:
 

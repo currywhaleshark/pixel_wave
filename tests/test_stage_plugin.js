@@ -10,6 +10,8 @@ const { Simulation } = require('../js/stage/simulation.js');
 
 const root = path.resolve(__dirname, '..');
 const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/stage3.v1.draft.json'), 'utf8'));
+const coverage5 = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/coverage-stage5-wreck.v1.draft.json'), 'utf8'));
+const coverage6 = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/coverage-stage6-storm.v1.draft.json'), 'utf8'));
 
 {
   const curve = [{ at: 0, value: 1 }, { at: 5, value: 2 }, { at: 10, value: 4 }];
@@ -47,8 +49,10 @@ const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/sta
 }
 
 {
-  assert.deepEqual(StagePlugin.channels('scroll-speed'), [{ id: 'background-scroll', mode: 'multiply' }]);
-  assert.ok(StagePlugin.channels('turtle-ride').some(channel => channel.id === 'player-control' && channel.mode === 'exclusive'));
+  assert.deepEqual(StagePlugin.channels('scroll-speed'), [{ id: 'world.scrollMultiplier', mode: 'multiply' }]);
+  assert.ok(StagePlugin.channels('turtle-ride').some(channel => channel.id === 'player.motionOverride' && channel.mode === 'exclusive'));
+  assert.equal(StagePlugin.definition('wreck-corridor').editor, 'generic');
+  assert.equal(StagePlugin.definition('storm-current').fields.length, 16);
 }
 
 {
@@ -56,6 +60,55 @@ const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/sta
   invalid.items.find(item => item.id === 's3-scroll-base').payload.params.curve[1].at = 119;
   const report = StageCompiler.validate(invalid);
   assert.ok(report.errors.some(error => error.includes('curve 마지막 점은 클립 끝')));
+}
+
+{
+  for (const fixture of [coverage5, coverage6]) {
+    assert.deepEqual(StageCompiler.validate(fixture).errors, [], `${fixture.id} 플러그인 fixture가 검증되어야 한다`);
+    for (const difficulty of ['easy', 'normal', 'hard']) {
+      const compiled = StageCompiler.compile(fixture, { difficulty });
+      for (const sourceItem of fixture.items) {
+        assert.deepEqual(
+          compiled.items.find(item => item.id === sourceItem.id)?.payload,
+          sourceItem.payload,
+          `${fixture.id} ${difficulty} ${sourceItem.id} payload가 원본 값을 보존해야 한다`,
+        );
+      }
+    }
+  }
+}
+
+{
+  const invalid = StageCompiler.clone(coverage6);
+  invalid.items.find(item => item.id === 's6-bolt-01').payload.params.xRatio = 2;
+  assert.ok(StageCompiler.validate(invalid).errors.some(error => error.includes('xRatio은 0–1 범위')));
+}
+
+{
+  const conflictStage = StageCompiler.clone(source);
+  const ride = StageCompiler.clone(conflictStage.items.find(item => item.id === 's3-ride-01'));
+  ride.id = 's3-ride-02';
+  ride.name = '겹친 거북 택시';
+  ride.timing = { domain: 'time', start: 40, duration: 3 };
+  conflictStage.items.push(ride);
+  const conflicts = StagePlugin.findChannelConflicts(conflictStage.items);
+  assert.deepEqual(conflicts.map(conflict => conflict.itemIds), [['s3-ride-01', 's3-ride-02']]);
+  assert.equal(conflicts[0].channelId, 'player.motionOverride');
+  assert.ok(StageCompiler.compile(conflictStage, { difficulty: 'easy' }).validation.warnings.some(warning => (
+    warning.includes("'s3-ride-01', 's3-ride-02'")
+  )));
+
+  ride.timing.start = 57;
+  assert.deepEqual(StagePlugin.findChannelConflicts(conflictStage.items), [], '끝점만 닿는 독점 채널은 충돌하지 않는다');
+}
+
+{
+  const params = { current: { xAmplitude: 70 } };
+  StagePlugin.setPath(params, 'current.xAmplitude', StagePlugin.coerceField(
+    StagePlugin.definition('storm-current').fields.find(field => field.path === 'current.xAmplitude'),
+    900,
+  ));
+  assert.equal(StagePlugin.getPath(params, 'current.xAmplitude'), 500, '범용 필드는 계약 범위로 보정한다');
 }
 
 {

@@ -83,21 +83,139 @@
     return [...new Set(errors)];
   }
 
+  const numberField = (path, label, min, max, step) => Object.freeze({ path, label, type: 'number', min, max, step });
+  const booleanField = (path, label) => Object.freeze({ path, label, type: 'boolean' });
+  const selectField = (path, label, options) => Object.freeze({ path, label, type: 'select', options: Object.freeze(options) });
+  const channel = (id, mode) => Object.freeze({ id, mode });
+
   const definitions = Object.freeze({
     'scroll-speed': Object.freeze({
+      name: '스크롤 속도',
+      description: '클립 안 시간에 따라 배경과 지형의 진행 배율을 바꿉니다.',
       itemTypes: Object.freeze(['environment']),
-      channels: Object.freeze([Object.freeze({ id: 'background-scroll', mode: 'multiply' })]),
+      channels: Object.freeze([channel('world.scrollMultiplier', 'multiply')]),
+      editor: 'curve',
+      fields: Object.freeze([]),
     }),
-    'turtle-ride': Object.freeze({
-      itemTypes: Object.freeze(['gimmick']),
-      channels: Object.freeze([
-        Object.freeze({ id: 'background-scroll', mode: 'multiply' }),
-        Object.freeze({ id: 'player-control', mode: 'exclusive' }),
+    darkness: Object.freeze({
+      name: '암전',
+      description: '배경 암전 목표값과 도달 속도를 조절합니다.',
+      itemTypes: Object.freeze(['environment']),
+      channels: Object.freeze([channel('environment.darkness', 'maximum')]),
+      editor: 'generic',
+      fields: Object.freeze([
+        numberField('target', '암전 강도', 0, 1, 0.01),
+        numberField('responseRate', '반응 속도', 0.01, 10, 0.01),
       ]),
     }),
-    'boss-warning': Object.freeze({ itemTypes: Object.freeze(['cue']), channels: Object.freeze([]) }),
-    'boss-start': Object.freeze({ itemTypes: Object.freeze(['boss']), channels: Object.freeze([]) }),
+    'storm-current': Object.freeze({
+      name: '폭풍 해류',
+      description: '수면과 해류의 세기, 움직임, 대상별 영향 배율을 조절합니다.',
+      itemTypes: Object.freeze(['environment']),
+      channels: Object.freeze([
+        channel('environment.current', 'add'),
+        channel('environment.stormScale', 'maximum'),
+      ]),
+      editor: 'generic',
+      fields: Object.freeze([
+        numberField('scale', '폭풍 세기', 0, 5, 0.05),
+        numberField('surfaceBoundaryY', '수면 경계 Y', 0, 540, 1),
+        booleanField('drawSurfaceWaves', '수면 파도 표시'),
+        booleanField('drawCurrentIndicator', '해류 표시'),
+        numberField('current.xAmplitude', '해류 X 진폭', 0, 500, 1),
+        numberField('current.xAngularFrequency', '해류 X 각주파수', 0, 20, 0.01),
+        numberField('current.yAmplitude', '해류 Y 진폭', 0, 500, 1),
+        numberField('current.yAngularFrequency', '해류 Y 각주파수', 0, 20, 0.01),
+        numberField('influence.player.x', '플레이어 X 영향', 0, 5, 0.05),
+        numberField('influence.player.y', '플레이어 Y 영향', 0, 5, 0.05),
+        numberField('influence.pointerTarget.x', '조준점 X 영향', 0, 5, 0.05),
+        numberField('influence.pointerTarget.y', '조준점 Y 영향', 0, 5, 0.05),
+        numberField('influence.enemyProjectile.x', '적탄 X 영향', 0, 5, 0.05),
+        numberField('influence.enemyProjectile.y', '적탄 Y 영향', 0, 5, 0.05),
+        numberField('influence.currentSurfEnemy.x', '해류 적 X 영향', 0, 5, 0.05),
+        numberField('influence.currentSurfEnemy.y', '해류 적 Y 영향', 0, 5, 0.05),
+      ]),
+    }),
+    'turtle-ride': Object.freeze({
+      name: '거북 택시',
+      description: '플레이어 이동을 거북 택시 주행으로 전환합니다.',
+      itemTypes: Object.freeze(['gimmick']),
+      channels: Object.freeze([
+        channel('world.scrollMultiplier', 'multiply'),
+        channel('player.invulnerable', 'or'),
+        channel('player.motionOverride', 'exclusive'),
+      ]),
+      editor: 'turtle-ride',
+      fields: Object.freeze([]),
+    }),
+    'lightning-strike': Object.freeze({
+      name: '번개',
+      description: '예고 뒤 지정한 화면 X 위치에 번개를 내리칩니다.',
+      itemTypes: Object.freeze(['hazard']),
+      channels: Object.freeze([channel('hazard.lightning', 'stack')]),
+      editor: 'generic',
+      fields: Object.freeze([
+        numberField('xRatio', '화면 X 위치', 0, 1, 0.01),
+        numberField('width', '번개 폭', 1, 960, 1),
+        numberField('telegraphDuration', '예고 시간', 0, 30, 0.05),
+        numberField('strikeDuration', '공격 시간', 0.01, 30, 0.05),
+      ]),
+    }),
+    'wreck-corridor': Object.freeze({
+      name: '난파선 통로',
+      description: '화면 위나 아래에서 진입하는 파괴 불가 난파선 벽입니다.',
+      itemTypes: Object.freeze(['hazard']),
+      channels: Object.freeze([channel('hazard.corridor', 'stack')]),
+      editor: 'generic',
+      fields: Object.freeze([
+        selectField('side', '배치 방향', Object.freeze([
+          Object.freeze({ value: 'top', label: '위쪽' }),
+          Object.freeze({ value: 'bottom', label: '아래쪽' }),
+        ])),
+        numberField('heightFraction', '화면 점유 높이', 0.05, 0.95, 0.01),
+        numberField('speed', '진행 속도', 1, 1000, 1),
+        numberField('width', '벽 너비', 1, 960, 1),
+        booleanField('indestructible', '파괴 불가'),
+      ]),
+    }),
+    'boss-warning': Object.freeze({
+      name: '보스 경고', description: '보스 등장 전 경고를 표시합니다.',
+      itemTypes: Object.freeze(['cue']), channels: Object.freeze([]), editor: 'boss-warning', fields: Object.freeze([]),
+    }),
+    'boss-start': Object.freeze({
+      name: '보스 시작', description: '스테이지 보스를 시작합니다.',
+      itemTypes: Object.freeze(['boss']), channels: Object.freeze([]), editor: null, fields: Object.freeze([]),
+    }),
   });
+
+  function clone(value) {
+    return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+  }
+
+  function getPath(object, path) {
+    return String(path).split('.').reduce((value, key) => value?.[key], object);
+  }
+
+  function setPath(object, path, value) {
+    const keys = String(path).split('.');
+    let target = object;
+    keys.slice(0, -1).forEach(key => {
+      if (!target[key] || typeof target[key] !== 'object' || Array.isArray(target[key])) target[key] = {};
+      target = target[key];
+    });
+    target[keys[keys.length - 1]] = value;
+    return object;
+  }
+
+  function coerceField(field, value) {
+    if (field.type === 'boolean') return !!value;
+    if (field.type === 'number') return clamp(value, field.min, field.max);
+    if (field.type === 'select') {
+      const candidate = String(value ?? '');
+      return field.options.some(option => option.value === candidate) ? candidate : field.options[0]?.value;
+    }
+    return String(value ?? '');
+  }
 
   function definition(pluginId) {
     return definitions[pluginId] || null;
@@ -110,11 +228,55 @@
     const errors = [];
     if (!contract.itemTypes.includes(item.type)) errors.push(`${pluginId} 플러그인은 ${contract.itemTypes.join(', ')} 클립에서만 사용할 수 있습니다.`);
     if (pluginId === 'scroll-speed') errors.push(...validateCurve(item.payload?.params?.curve, item.timing?.duration));
+    for (const field of contract.fields) {
+      const value = getPath(item.payload?.params, field.path);
+      if (field.type === 'number' && (!Number.isFinite(Number(value)) || Number(value) < field.min || Number(value) > field.max)) {
+        errors.push(`${field.path}은 ${field.min}–${field.max} 범위의 수여야 합니다.`);
+      } else if (field.type === 'boolean' && typeof value !== 'boolean') {
+        errors.push(`${field.path}은 boolean이어야 합니다.`);
+      } else if (field.type === 'select' && !field.options.some(option => option.value === value)) {
+        errors.push(`${field.path}은 ${field.options.map(option => option.value).join(', ')} 중 하나여야 합니다.`);
+      }
+    }
     return errors;
   }
 
   function channels(pluginId) {
     return (definition(pluginId)?.channels || []).slice();
+  }
+
+  function findChannelConflicts(items) {
+    const active = (items || []).filter(item => item && item.enabled !== false && finite(item.timing?.duration) > 0);
+    const owners = new Map();
+    active.forEach(item => {
+      channels(item.payload?.pluginId).filter(entry => entry.mode === 'exclusive').forEach(entry => {
+        if (!owners.has(entry.id)) owners.set(entry.id, []);
+        owners.get(entry.id).push(item);
+      });
+    });
+    const conflicts = [];
+    for (const [channelId, channelItems] of owners) {
+      for (let leftIndex = 0; leftIndex < channelItems.length; leftIndex++) {
+        for (let rightIndex = leftIndex + 1; rightIndex < channelItems.length; rightIndex++) {
+          const left = channelItems[leftIndex];
+          const right = channelItems[rightIndex];
+          const start = Math.max(finite(left.timing.start), finite(right.timing.start));
+          const end = Math.min(
+            finite(left.timing.start) + finite(left.timing.duration),
+            finite(right.timing.start) + finite(right.timing.duration),
+          );
+          if (end <= start + EPS) continue;
+          conflicts.push({
+            channelId,
+            itemIds: [left.id, right.id],
+            start,
+            end,
+            message: `${channelId} 독점 채널이 ${start.toFixed(2)}–${end.toFixed(2)}초에 '${left.id}', '${right.id}'에서 겹칩니다.`,
+          });
+        }
+      }
+    }
+    return conflicts.sort((a, b) => (a.start - b.start) || a.channelId.localeCompare(b.channelId) || a.itemIds.join().localeCompare(b.itemIds.join()));
   }
 
   const api = Object.freeze({
@@ -123,6 +285,11 @@
     definitions,
     definition,
     channels,
+    getPath,
+    setPath,
+    coerceField,
+    clone,
+    findChannelConflicts,
     sampleCurve,
     normalizeCurve,
     validateCurve,

@@ -393,6 +393,15 @@ Plugins publish values to channels instead of overwriting game fields.
 | `environment.darkness` | number | maximum active value |
 | `environment.stormScale` | number | maximum active value |
 | `player.invulnerable` | boolean | logical OR |
+| `player.motionOverride` | plugin state | exclusive; overlapping owners warn |
+
+The M4 registry implementation stores these channel declarations beside each
+plugin's editor field metadata in `js/stage/plugin.js`. Additive, maximum,
+multiplicative, OR, and stack channels may overlap. Only `exclusive` channels
+produce overlap warnings; the Sequencer shows both owners and seeks directly to
+either clip. Darkness, storm current, wreck corridor, and lightning currently
+share the metadata-driven inspector while scroll-speed and turtle-ride retain
+their specialized direct-manipulation controls.
 
 The final scroll calculation is:
 

@@ -1,7 +1,13 @@
 (function initStageSequencer() {
   'use strict';
 
-  const STAGE_URL = 'docs/stage-editor/stage3.v1.draft.json';
+  const query = new URLSearchParams(location.search);
+  const STAGE_FIXTURES = Object.freeze({
+    stage3: 'docs/stage-editor/stage3.v1.draft.json',
+    stage5: 'docs/stage-editor/coverage-stage5-wreck.v1.draft.json',
+    stage6: 'docs/stage-editor/coverage-stage6-storm.v1.draft.json',
+  });
+  const STAGE_URL = STAGE_FIXTURES[query.get('stage')] || STAGE_FIXTURES.stage3;
   const PIXELS_PER_SECOND = 8;
   const TRACKS = [
     { id: 'environment', label: '환경', types: ['environment'], color: '#55d9e8' },
@@ -12,7 +18,6 @@
   ];
   const SECTION_COLORS = ['#55d9e8', '#ffd66e', '#ff87bd', '#8fa3e8', '#7dffd8'];
   const DIFFICULTY_IDS = ['easy', 'normal', 'hard'];
-  const query = new URLSearchParams(location.search);
   const barrageReturn = query.get('barrageReturn') === '1' && StageBarrage.ID.test(query.get('pattern') || '') ? {
     patternId: query.get('pattern'),
     itemId: query.get('item') || '',
@@ -29,6 +34,7 @@
   let compiled = null;
   let simulation = null;
   let budgetReport = null;
+  let channelConflicts = [];
   let selectedId = null;
   let playing = false;
   let previewSpeed = 1;
@@ -49,8 +55,8 @@
   let editScope = 'base';
 
   function isEditableItem(item) {
-    return ['wave', 'environment', 'cue'].includes(item?.type)
-      || (item?.type === 'gimmick' && item.payload?.pluginId === 'turtle-ride');
+    if (item?.type === 'wave' || item?.type === 'cue') return true;
+    return !!StagePlugin.definition(item?.payload?.pluginId)?.editor;
   }
 
   function activeDifficulty() {
@@ -254,11 +260,15 @@
     setStatus('컴파일 중', 'loading');
     rawStage = stageDocument?.stage || rawStage;
     compiled = StageCompiler.compile(rawStage, { difficulty });
+    channelConflicts = StagePlugin.findChannelConflicts(compiled.items);
     simulation = new StageSimulation.Simulation(compiled, { fixedStep: 1 / 60, snapshotInterval: 5 });
     const snapshotCount = simulation.buildSnapshotCache();
     simulation.seek(Math.min(preserveTime, compiled.timeline.duration));
     refreshBudgetReport();
-    setStatus(`검증 완료 · 스냅샷 ${snapshotCount}`, '');
+    setStatus(channelConflicts.length
+      ? `채널 충돌 ${channelConflicts.length} · 스냅샷 ${snapshotCount}`
+      : `검증 완료 · 스냅샷 ${snapshotCount}`, channelConflicts.length ? 'warning' : '');
+    renderChannelConflicts();
     renderTimeline();
     selectItem(selectedId, false);
     updateUi();
@@ -285,6 +295,7 @@
       exportedHash = stored?.exportedHash || sourceHash;
       deviceSavedHash = stored?.stage ? stageDocument.stateHash() : sourceHash;
       $('#stageName').textContent = rawStage.name;
+      canvas.setAttribute('aria-label', `${rawStage.name} 미리보기`);
       $('#timeScrub').max = rawStage.timeline.duration;
       range = { id: 'full', name: '전체', start: 0, end: rawStage.timeline.duration };
       compileAtDifficulty($('#previewDifficulty').value, 0);
@@ -426,6 +437,31 @@
     return item;
   }
 
+  function renderChannelConflicts() {
+    const panel = $('#channelConflicts');
+    const list = $('#channelConflictList');
+    if (!panel || !list) return;
+    panel.hidden = channelConflicts.length === 0;
+    $('#channelConflictCount').textContent = `${channelConflicts.length}건`;
+    list.innerHTML = channelConflicts.map(conflict => {
+      const itemNames = conflict.itemIds.map(id => rawStage.items.find(item => item.id === id)?.name || id);
+      return `<article class="channel-conflict-card">
+        <div><strong>${escapeHtml(conflict.channelId)}</strong><span>${formatTime(conflict.start)}–${formatTime(conflict.end)}</span></div>
+        <p>${escapeHtml(itemNames.join(' ↔ '))}</p>
+        <div>${conflict.itemIds.map((id, index) => `<button type="button" data-conflict-item="${escapeHtml(id)}">${escapeHtml(itemNames[index])}</button>`).join('')}</div>
+      </article>`;
+    }).join('');
+    list.querySelectorAll('[data-conflict-item]').forEach(button => button.addEventListener('click', () => {
+      const item = compiled.items.find(entry => entry.id === button.dataset.conflictItem);
+      if (!item) return;
+      selectItem(item.id, true);
+      simulation.seek(item.timing.start);
+      playing = false;
+      updatePlayButton();
+      updateUi(true);
+    }));
+  }
+
   function renderTimeline() {
     if (!compiled) return;
     const width = compiled.timeline.duration * PIXELS_PER_SECOND;
@@ -482,13 +518,14 @@
         const clip = document.createElement('button');
         const durationWidth = item.timing.duration * PIXELS_PER_SECOND;
         clip.type = 'button';
-        clip.className = `timeline-clip difficulty-${item._difficultyState} ${item.timing.duration === 0 ? 'instant' : ''} ${item.id === selectedId ? 'selected' : ''}`;
+        const conflicts = channelConflicts.some(conflict => conflict.itemIds.includes(item.id));
+        clip.className = `timeline-clip difficulty-${item._difficultyState} ${item.timing.duration === 0 ? 'instant' : ''} ${item.id === selectedId ? 'selected' : ''} ${conflicts ? 'channel-conflict' : ''}`;
         clip.dataset.itemId = item.id;
         clip.style.left = `${item.timing.start * PIXELS_PER_SECOND}px`;
         clip.style.top = `${5 + laneIndex * 28}px`;
         clip.style.width = `${Math.max(item.timing.duration === 0 ? 11 : 16, durationWidth)}px`;
         clip.style.setProperty('--clip-color', track.color);
-        clip.title = `${item.name} · ${item.timing.start.toFixed(2)}초 · ${itemSummary(item)} · ${item._difficultyState}`;
+        clip.title = `${item.name} · ${item.timing.start.toFixed(2)}초 · ${itemSummary(item)} · ${item._difficultyState}${conflicts ? ' · 독점 채널 충돌' : ''}`;
         if (item.timing.duration > 0) clip.textContent = item.name;
         clip.addEventListener('pointerdown', event => beginClipDrag(event, item, clip));
         clip.addEventListener('pointermove', moveClipDrag);
@@ -518,6 +555,33 @@
     return StageRegistry.entries(category).map(definition => (
       `<option value="${escapeHtml(definition.id)}" ${definition.id === selected ? 'selected' : ''}>${escapeHtml(definition.name)}</option>`
     )).join('');
+  }
+
+  function pluginFieldName(path) {
+    return `plugin:${path}`;
+  }
+
+  function renderGenericPluginEditor(item) {
+    const definition = StagePlugin.definition(item.payload?.pluginId);
+    if (definition?.editor !== 'generic') return '';
+    const fields = definition.fields.map(field => {
+      const value = StagePlugin.getPath(item.payload?.params, field.path);
+      const name = escapeHtml(pluginFieldName(field.path));
+      if (field.type === 'boolean') {
+        return `<label class="check-label"><input name="${name}" type="checkbox" ${value ? 'checked' : ''}> ${escapeHtml(field.label)}</label>`;
+      }
+      if (field.type === 'select') {
+        return `<label>${escapeHtml(field.label)}<select name="${name}">${field.options.map(option => (
+          `<option value="${escapeHtml(option.value)}" ${option.value === value ? 'selected' : ''}>${escapeHtml(option.label)}</option>`
+        )).join('')}</select></label>`;
+      }
+      return `<label>${escapeHtml(field.label)}<input name="${name}" type="number" min="${field.min}" max="${field.max}" step="${field.step}" value="${escapeHtml(value)}" required></label>`;
+    }).join('');
+    return `<section class="plugin-editor">
+      <div class="plugin-editor-heading"><strong>${escapeHtml(definition.name)}</strong><span>${escapeHtml(item.payload.pluginId)}</span></div>
+      <p>${escapeHtml(definition.description)}</p>
+      <div class="plugin-field-grid">${fields}</div>
+    </section>`;
   }
 
   function barrageOptionList(selected) {
@@ -802,6 +866,14 @@
       params.pearlRing.count = Math.max(1, Math.round(Number(values.get('ringCount')) || 1));
       params.pearlRing.radius = Math.max(0, Number(values.get('ringRadius')) || 0);
       params.pearlRing.speed = Math.max(0, Number(values.get('ringSpeed')) || 0);
+    } else if (StagePlugin.definition(next.payload?.pluginId)?.editor === 'generic') {
+      const definition = StagePlugin.definition(next.payload.pluginId);
+      next.payload.params = StageDocument.clone(next.payload.params || {});
+      for (const field of definition.fields) {
+        const name = pluginFieldName(field.path);
+        const value = field.type === 'boolean' ? values.has(name) : values.get(name);
+        StagePlugin.setPath(next.payload.params, field.path, StagePlugin.coerceField(field, value));
+      }
     }
     next.timing.start = Math.max(0, Math.min(next.timing.start, rawStage.timeline.duration - next.timing.duration));
     if (editScope === 'difficulty') return replaceDifficultyItem(authored.id, next, `${activeDifficulty().name} 덮어쓰기`);
@@ -1260,8 +1332,8 @@
         <form id="clipEditForm" class="inspector-form" data-item-id="${escapeHtml(authored.id)}">
           <label>클립 이름<input name="name" maxlength="80" value="${escapeHtml(formItem.name)}" required></label>
           <div class="form-row two">
-            <label>시작(초)<input name="start" type="number" min="0" max="${rawStage.timeline.duration}" step="0.05" value="${formItem.timing.start}" required></label>
-            <label>길이(초)<input name="duration" type="number" min="0" max="${rawStage.timeline.duration}" step="0.05" value="${formItem.timing.duration}" ${durationReadonly} required></label>
+            <label>시작(초)<input name="start" type="number" min="0" max="${rawStage.timeline.duration}" step="0.001" value="${formItem.timing.start}" required></label>
+            <label>길이(초)<input name="duration" type="number" min="0" max="${rawStage.timeline.duration}" step="0.001" value="${formItem.timing.duration}" ${durationReadonly} required></label>
           </div>
           <div class="nudge-tools" aria-label="클립 시간 이동">
             <button type="button" data-nudge="-1">−1초</button><button type="button" data-nudge="-0.1">−0.1</button>
@@ -1350,6 +1422,7 @@
           ${formItem.type === 'environment' && formItem.payload?.pluginId === 'scroll-speed' ? `
             ${curveEditorMarkup(formItem)}
           ` : ''}
+          ${renderGenericPluginEditor(formItem)}
           ${formItem.type === 'cue' && formItem.payload?.params ? `
             <label>표시 문구<input name="message" value="${escapeHtml(formItem.payload.params.message || '')}"></label>
             <label>표시 색상<input name="color" type="color" value="${escapeHtml(formItem.payload.params.color || '#ff8f8f')}"></label>
@@ -1379,7 +1452,7 @@
           <div class="inspector-actions"><button class="accent" type="submit">${editScope === 'difficulty' ? `${escapeHtml(difficulty.name)}에 적용` : '기본값에 적용'}</button></div>
         </form>`;
     } else {
-      fields = '<div class="readonly-notice">아직 읽기 전용인 클립입니다. 현재는 잡몹·환경·연출과 거북 택시를 편집할 수 있습니다.</div>';
+      fields = '<div class="readonly-notice">이 클립은 아직 읽기 전용입니다. 잡몹과 등록된 환경·특수·위험 플러그인은 편집할 수 있습니다.</div>';
     }
     $('#inspectorBody').innerHTML = `
       <div class="inspector-grid">

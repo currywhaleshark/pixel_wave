@@ -63,6 +63,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .button.accent { color: #2d1023; background: var(--pink); border-color: #ffc2df; }
 .status { padding: 4px 8px; border: 1px solid var(--line); border-radius: 12px; color: var(--green); font-size: 9px; }
 .status.loading { color: var(--gold); }
+.status.warning { color: var(--gold); border-color: #8d7437; background: #2b2516; }
 .status.error { color: var(--danger); }
 
 .workspace {
@@ -274,6 +275,8 @@ input[type='range'] { width: 100%; min-height: 40px; margin: 0; accent-color: va
 .timeline-clip.difficulty-disabled { opacity: 0.38; filter: grayscale(1); text-decoration: line-through; border-style: dashed; }
 .timeline-clip.difficulty-only { border-color: var(--green); box-shadow: inset 2px 0 var(--green), 0 0 7px #7dffd866; }
 .timeline-clip.difficulty-only::before { content: '＋'; color: var(--green); }
+.timeline-clip.channel-conflict { border-color: var(--danger); box-shadow: inset 2px 0 var(--danger), 0 0 8px #ff6e7a99; }
+.timeline-clip.channel-conflict::after { content: '!'; position: absolute; right: 3px; top: 1px; color: #fff; font-weight: bold; }
 .timeline-clip.dragging { z-index: 7; opacity: 0.82; box-shadow: 0 0 12px var(--clip-color); }
 .timeline-clip.instant { border-radius: 50%; padding: 0; width: 11px !important; min-width: 11px; box-shadow: 0 0 7px var(--clip-color); }
 .playhead { position: absolute; z-index: 8; top: 0; bottom: 0; left: var(--timeline-label); width: 1px; background: var(--pink); box-shadow: 0 0 7px var(--pink); pointer-events: none; }
@@ -341,6 +344,18 @@ input[type='range'] { width: 100%; min-height: 40px; margin: 0; accent-color: va
 .path-tools { display: grid; grid-template-columns: 42px 42px 1fr 1fr; gap: 5px; }
 .path-tools button { min-height: 42px; padding: 5px; border: 1px solid #3f6580; border-radius: 6px; color: #d8f5ff; background: #0c2b49; cursor: pointer; }
 .path-tools button:disabled { opacity: 0.35; cursor: default; }
+.channel-conflicts { padding: 10px; border-color: #8d3e4a; background: linear-gradient(180deg, #2b1721, #160f1a); }
+.channel-conflicts-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.channel-conflicts-heading strong { color: #ffb3bb; }
+.channel-conflicts-heading span { padding: 2px 6px; border: 1px solid #9b4b57; border-radius: 10px; color: #ffd5da; font-size: 8px; }
+.channel-conflicts > p { margin: 5px 0 8px; color: #cdaab0; font-size: 8px; }
+.channel-conflict-list { display: grid; gap: 6px; }
+.channel-conflict-card { display: grid; gap: 5px; padding: 7px; border: 1px solid #713942; border-radius: 6px; background: #26131b; }
+.channel-conflict-card > div { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.channel-conflict-card strong { color: #ffc1c8; font-size: 9px; }
+.channel-conflict-card span { color: #c7929a; font-size: 7px; }
+.channel-conflict-card p { margin: 0; color: #e6bdc3; font-size: 8px; }
+.channel-conflict-card button { min-height: 38px; padding: 5px 7px; color: #ffe2e5; border-color: #874751; background: #3a1c25; }
 .curve-editor { display: grid; gap: 8px; padding: 9px; border: 1px solid #32758a; border-radius: 7px; background: #071f32; }
 .curve-editor-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .curve-editor-heading strong { color: var(--cyan); font-size: 10px; }
@@ -371,6 +386,12 @@ input[type='range'] { width: 100%; min-height: 40px; margin: 0; accent-color: va
 .behavior-editor { display: grid; gap: 8px; padding: 9px; border: 1px solid #315c79; border-radius: 7px; background: #091d32; }
 .behavior-editor p { margin: 0; color: #a8bfd0; font-size: 8px; line-height: 1.55; }
 .behavior-empty { color: #6f8ba0; font-size: 8px; }
+.plugin-editor { display: grid; gap: 8px; padding: 9px; border: 1px solid #47708a; border-radius: 7px; background: #0a1d30; }
+.plugin-editor-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.plugin-editor-heading strong { color: var(--cyan); font-size: 10px; }
+.plugin-editor-heading span { color: #7ea4ba; font-size: 7px; }
+.plugin-editor > p { margin: 0; color: #a7bdca; font-size: 8px; line-height: 1.5; }
+.plugin-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
 .weapon-mode-section { display: grid; gap: 8px; }
 .barrage-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .barrage-actions button { min-height: 42px; padding: 7px; border: 1px solid #3f6580; border-radius: 6px; color: #d8f5ff; background: #0c2b49; cursor: pointer; }

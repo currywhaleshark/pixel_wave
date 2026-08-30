@@ -55,6 +55,10 @@ current game runtime has not been replaced; the editor remains isolated under
 12. Timeline clips show inherited, patched, replaced, disabled, and
    active-difficulty-only states. The editor also supports duplicate/delete,
    undo/redo, Stage 3 JSON import, device autosave, and JSON export.
+13. Append `?stage=stage5` or `?stage=stage6` to open the checked-in M4 coverage
+    fixtures. Registered environment and hazard plugins use one metadata-driven
+    inspector. Exclusive state-channel overlaps appear above the timeline; each
+    warning has buttons that select and seek to both conflicting clips.
 
 The simulator uses deterministic fixed steps and 5-second snapshots. The shared
 `js/stage/path.js` module normalizes, validates, and samples custom paths,
@@ -111,5 +115,8 @@ budget tracking completes M3 with shared deterministic peak measurement,
 range-aware analysis, and a compact mobile overlay. M4's first slice adds the
 shared `js/stage/plugin.js` contract for plugin state channels and scroll-curve
 normalization, validation, and sampling. The runtime and the direct-manipulation
-curve inspector now use that one implementation; generic plugin clips and the
-Stage 5/6 special systems remain next.
+curve inspector now use that one implementation. The second M4 slice registers darkness,
+storm current, wreck corridor, and lightning fields, validates the Stage 5/6
+fixtures without changing their payloads, and adds actionable exclusive-channel
+conflict warnings. Their runtime behavior and canvas visualization are the next
+slice.

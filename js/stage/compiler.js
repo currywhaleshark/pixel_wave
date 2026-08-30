@@ -289,6 +289,8 @@
       errors: [...new Set([...sourceReport.errors, ...resolvedReport.errors])],
       warnings: [...new Set([...sourceReport.warnings, ...resolvedReport.warnings])],
     };
+    for (const conflict of PluginApi.findChannelConflicts(stage.items)) report.warnings.push(conflict.message);
+    report.warnings = [...new Set(report.warnings)];
     if (report.errors.length && options.allowInvalid !== true) {
       const error = new Error(`난이도 적용 후 Stage JSON 검증 실패: ${report.errors.join(' / ')}`);
       error.validation = report;

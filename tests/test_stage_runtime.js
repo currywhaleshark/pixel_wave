@@ -101,13 +101,13 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   const required = [
     'js/stage/random.js',
     'js/stage/entry.js',
-    'js/stage/registry.js',
     'js/stage/path.js',
     'js/stage/formation.js',
+    'js/stage/plugin.js',
+    'js/stage/registry.js',
     'js/stage/behavior.js',
     'js/stage/barrage.js',
     'js/stage/budget.js',
-    'js/stage/plugin.js',
     'js/stage/compiler.js',
     'js/stage/simulation.js',
     'js/stage/document.js',
@@ -116,6 +116,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   ];
   for (const script of required) assert.ok(html.includes(script), `${script}가 도구 페이지에 연결되어야 한다`);
   assert.ok(html.indexOf('js/stage/path.js') < html.indexOf('js/stage/compiler.js'));
+  assert.ok(html.indexOf('js/stage/plugin.js') < html.indexOf('js/stage/registry.js'));
   assert.ok(html.indexOf('js/stage/entry.js') < html.indexOf('js/stage/compiler.js'));
   assert.ok(html.indexOf('js/stage/formation.js') < html.indexOf('js/stage/compiler.js'));
   assert.ok(html.indexOf('js/stage/behavior.js') < html.indexOf('js/stage/compiler.js'));
@@ -132,7 +133,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(html.includes('id="importStageFile"'));
   assert.ok(html.includes('class="difficulty-legend"'));
   assert.ok(html.includes('id="activeDifficultyOnlyOption"'));
-  assert.ok(html.includes('tools/stage-sequencer.js?v=10'));
+  assert.ok(html.includes('tools/stage-sequencer.js?v=11'));
   const sequencer = fs.readFileSync(path.join(root, 'tools/stage-sequencer.js'), 'utf8');
   assert.ok(sequencer.includes('data-difficulty-action="disable"'));
   assert.ok(sequencer.includes("pluginId === 'turtle-ride'"));
@@ -155,6 +156,10 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(sequencer.includes('data-curve-editor'));
   assert.ok(sequencer.includes('function beginCurveDrag(event)'));
   assert.ok(sequencer.includes("commitScopedItem(authored, next, '스크롤 곡선 점 추가')"));
+  assert.ok(sequencer.includes('renderGenericPluginEditor(formItem)'));
+  assert.ok(sequencer.includes('function renderChannelConflicts()'));
+  assert.ok(sequencer.includes('step="0.001" value="${formItem.timing.duration}"'));
+  assert.ok(sequencer.includes("stage6: 'docs/stage-editor/coverage-stage6-storm.v1.draft.json'"));
   assert.ok(sequencer.includes('ensureWaveDependencies(candidate'));
   assert.ok(sequencer.includes("drag.coordinate === 'x' ? '진입 X 이동'"));
   assert.ok(sequencer.includes('validateStageCandidate(candidate)'));
@@ -168,7 +173,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(serviceWorker.includes('../js/stage/barrage.js'));
   assert.ok(serviceWorker.includes('../js/stage/budget.js'));
   assert.ok(serviceWorker.includes('../js/stage/plugin.js'));
-  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m4-v1'));
+  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m4-v2'));
 }
 
 console.log('stage runtime: ok', results);

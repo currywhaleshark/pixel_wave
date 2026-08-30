@@ -5,6 +5,8 @@
 (function initStageRegistry(root) {
   'use strict';
 
+  const PluginApi = root.StagePlugin || (typeof require === 'function' ? require('./plugin.js') : null);
+
   const DIFFICULTIES = Object.freeze([
     Object.freeze({ id: 'easy', name: '이지', color: '#7dffd8', fireInt: 1, ebSpd: 1, ringN: 0, bigHp: 1 }),
     Object.freeze({ id: 'normal', name: '노멀', color: '#ffd76e', fireInt: 0.68, ebSpd: 1.1, ringN: 2, bigHp: 1.3 }),
@@ -89,10 +91,10 @@
     movementPresets: new Set(definitions.movementPresets.map(item => item.id)),
     weaponPresets: new Set(definitions.weaponPresets.map(item => item.id)),
     barragePatterns: new Set(),
-    itemPlugins: new Set(['scroll-speed', 'turtle-ride', 'boss-warning', 'boss-start']),
+    itemPlugins: new Set(Object.keys(PluginApi.definitions)),
     terrainObjects: new Set(),
     terrainProfiles: new Set(),
-    bosses: new Set(['ssing']),
+    bosses: new Set(['ssing', 'buu', 'ureu']),
   });
 
   const itemPriority = Object.freeze({
