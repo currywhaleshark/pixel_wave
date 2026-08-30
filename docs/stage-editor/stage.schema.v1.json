@@ -1,0 +1,499 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pixel-wave.local/schema/stage.v1.json",
+  "title": "Pixel Wave Stage JSON v1",
+  "description": "Stage Sequencer authoring and runtime interchange format.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "registryVersion",
+    "id",
+    "name",
+    "seed",
+    "timeline",
+    "viewport",
+    "background",
+    "difficultyProfileId",
+    "sections",
+    "dependencies",
+    "items"
+  ],
+  "properties": {
+    "format": { "const": "pixel-wave-stage" },
+    "schemaVersion": { "const": 1 },
+    "registryVersion": { "const": 1 },
+    "draft": { "type": "boolean" },
+    "id": { "$ref": "#/$defs/id" },
+    "name": { "$ref": "#/$defs/name" },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647
+    },
+    "timeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["duration", "endBehavior"],
+      "properties": {
+        "duration": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 3600
+        },
+        "endBehavior": {
+          "enum": ["clear", "boss-start", "loop", "hold"]
+        }
+      }
+    },
+    "viewport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height"],
+      "properties": {
+        "width": { "const": 960 },
+        "height": { "const": 540 }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "clearMessage": { "type": "string", "maxLength": 500 },
+        "repeatClearMessage": { "type": "string", "maxLength": 500 },
+        "friendColor": { "$ref": "#/$defs/color" }
+      }
+    },
+    "background": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["presetId", "baseScrollSpeed"],
+      "properties": {
+        "presetId": { "$ref": "#/$defs/id" },
+        "baseScrollSpeed": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 500
+        },
+        "scrollScale": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 5
+        },
+        "terrainProfileId": {
+          "anyOf": [
+            { "$ref": "#/$defs/id" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "difficultyProfileId": { "$ref": "#/$defs/id" },
+    "sections": {
+      "type": "array",
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/section" }
+    },
+    "dependencies": { "$ref": "#/$defs/dependencies" },
+    "items": {
+      "type": "array",
+      "maxItems": 2000,
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/waveItem" },
+          { "$ref": "#/$defs/environmentItem" },
+          { "$ref": "#/$defs/gimmickItem" },
+          { "$ref": "#/$defs/hazardItem" },
+          { "$ref": "#/$defs/terrainObjectItem" },
+          { "$ref": "#/$defs/cueItem" },
+          { "$ref": "#/$defs/bossItem" }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "color": {
+      "type": "string",
+      "pattern": "^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$"
+    },
+    "params": {
+      "type": "object"
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["domain", "start", "duration"],
+      "properties": {
+        "domain": { "enum": ["time", "distance"] },
+        "start": { "type": "number", "minimum": 0 },
+        "duration": { "type": "number", "minimum": 0 }
+      }
+    },
+    "timeTiming": {
+      "allOf": [
+        { "$ref": "#/$defs/timing" },
+        {
+          "type": "object",
+          "properties": {
+            "domain": { "const": "time" }
+          }
+        }
+      ]
+    },
+    "distanceTiming": {
+      "allOf": [
+        { "$ref": "#/$defs/timing" },
+        {
+          "type": "object",
+          "properties": {
+            "domain": { "const": "distance" }
+          }
+        }
+      ]
+    },
+    "section": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "start", "end"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "$ref": "#/$defs/name" },
+        "start": { "type": "number", "minimum": 0 },
+        "end": { "type": "number", "minimum": 0 },
+        "color": { "$ref": "#/$defs/color" }
+      }
+    },
+    "dependencyIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/id" }
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enemyKinds",
+        "entryPresets",
+        "formationPresets",
+        "movementPresets",
+        "weaponPresets",
+        "barragePatterns",
+        "itemPlugins",
+        "terrainObjects",
+        "terrainProfiles",
+        "bosses"
+      ],
+      "properties": {
+        "enemyKinds": { "$ref": "#/$defs/dependencyIds" },
+        "entryPresets": { "$ref": "#/$defs/dependencyIds" },
+        "formationPresets": { "$ref": "#/$defs/dependencyIds" },
+        "movementPresets": { "$ref": "#/$defs/dependencyIds" },
+        "weaponPresets": { "$ref": "#/$defs/dependencyIds" },
+        "barragePatterns": { "$ref": "#/$defs/dependencyIds" },
+        "itemPlugins": { "$ref": "#/$defs/dependencyIds" },
+        "terrainObjects": { "$ref": "#/$defs/dependencyIds" },
+        "terrainProfiles": { "$ref": "#/$defs/dependencyIds" },
+        "bosses": { "$ref": "#/$defs/dependencyIds" }
+      }
+    },
+    "difficultyOverride": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "mode": { "enum": ["patch", "replace"] },
+        "patch": { "type": "object" },
+        "payload": { "type": "object" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "mode": { "const": "patch" } },
+            "required": ["mode"]
+          },
+          "then": { "required": ["patch"] }
+        },
+        {
+          "if": {
+            "properties": { "mode": { "const": "replace" } },
+            "required": ["mode"]
+          },
+          "then": { "required": ["payload"] }
+        }
+      ]
+    },
+    "difficultyMap": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "easy": { "$ref": "#/$defs/difficultyOverride" },
+        "normal": { "$ref": "#/$defs/difficultyOverride" },
+        "hard": { "$ref": "#/$defs/difficultyOverride" }
+      }
+    },
+    "itemBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "name", "timing", "payload"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": {
+          "enum": ["wave", "environment", "gimmick", "hazard", "terrain-object", "cue", "boss"]
+        },
+        "name": { "$ref": "#/$defs/name" },
+        "enabled": { "type": "boolean" },
+        "timing": { "$ref": "#/$defs/timing" },
+        "payload": { "type": "object" },
+        "difficulty": { "$ref": "#/$defs/difficultyMap" },
+        "notes": { "type": "string", "maxLength": 1000 }
+      }
+    },
+    "enemy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "hp", "speed"],
+      "properties": {
+        "kind": { "$ref": "#/$defs/id" },
+        "hp": { "type": "number", "exclusiveMinimum": 0, "maximum": 1000000 },
+        "speed": { "type": "number", "minimum": 0, "maximum": 2000 },
+        "rewardPreset": { "$ref": "#/$defs/id" },
+        "params": { "$ref": "#/$defs/params" }
+      }
+    },
+    "spawn": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["interval"],
+      "properties": {
+        "count": { "type": "integer", "minimum": 1, "maximum": 256 },
+        "interval": { "type": "number", "minimum": 0, "maximum": 30 },
+        "seedOffset": { "type": "integer", "minimum": 0, "maximum": 2147483647 }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["presetId"],
+      "properties": {
+        "presetId": { "$ref": "#/$defs/id" },
+        "x": { "type": "number", "minimum": -1, "maximum": 2 },
+        "y": { "type": "number", "minimum": -1, "maximum": 2 },
+        "params": { "$ref": "#/$defs/params" }
+      }
+    },
+    "formation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["presetId"],
+      "properties": {
+        "presetId": { "$ref": "#/$defs/id" },
+        "params": { "$ref": "#/$defs/params" }
+      }
+    },
+    "pathPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["t", "x", "y"],
+      "properties": {
+        "t": { "type": "number", "minimum": 0, "maximum": 300 },
+        "x": { "type": "number", "minimum": -2, "maximum": 3 },
+        "y": { "type": "number", "minimum": -2, "maximum": 3 },
+        "ease": { "enum": ["linear", "smooth", "ease-in", "ease-out", "ease-in-out"] },
+        "hold": { "type": "number", "minimum": 0, "maximum": 120 },
+        "action": { "$ref": "#/$defs/params" }
+      }
+    },
+    "movement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["presetId"],
+      "properties": {
+        "presetId": { "$ref": "#/$defs/id" },
+        "params": { "$ref": "#/$defs/params" },
+        "path": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 64,
+          "items": { "$ref": "#/$defs/pathPoint" }
+        }
+      }
+    },
+    "weapon": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "presetId": { "$ref": "#/$defs/id" },
+        "patternId": { "$ref": "#/$defs/id" },
+        "interval": { "type": "number", "minimum": 0.03, "maximum": 120 },
+        "startDelay": { "type": "number", "minimum": 0, "maximum": 120 },
+        "stopWhenLeaving": { "type": "boolean" },
+        "params": { "$ref": "#/$defs/params" }
+      },
+      "oneOf": [
+        { "required": ["presetId"], "not": { "required": ["patternId"] } },
+        { "required": ["patternId"], "not": { "required": ["presetId"] } }
+      ]
+    },
+    "wavePayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enemy", "spawn", "entry", "formation", "movement", "weapon"],
+      "properties": {
+        "enemy": { "$ref": "#/$defs/enemy" },
+        "spawn": { "$ref": "#/$defs/spawn" },
+        "entry": { "$ref": "#/$defs/entry" },
+        "formation": { "$ref": "#/$defs/formation" },
+        "movement": { "$ref": "#/$defs/movement" },
+        "weapon": { "$ref": "#/$defs/weapon" },
+        "groupRewardPreset": { "$ref": "#/$defs/id" }
+      }
+    },
+    "pluginPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pluginId", "params"],
+      "properties": {
+        "pluginId": { "$ref": "#/$defs/id" },
+        "params": { "$ref": "#/$defs/params" }
+      }
+    },
+    "bossPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pluginId", "bossId"],
+      "properties": {
+        "pluginId": { "$ref": "#/$defs/id" },
+        "bossId": { "$ref": "#/$defs/id" },
+        "params": { "$ref": "#/$defs/params" }
+      }
+    },
+    "terrainAnchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["layer", "surface", "offsetY"],
+      "properties": {
+        "layer": { "enum": ["far", "mid", "near"] },
+        "surface": { "enum": ["floor", "ceiling", "socket"] },
+        "socketId": { "$ref": "#/$defs/id" },
+        "offsetX": { "type": "number", "minimum": -1000, "maximum": 1000 },
+        "offsetY": { "type": "number", "minimum": -1000, "maximum": 1000 }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "surface": { "const": "socket" } },
+            "required": ["surface"]
+          },
+          "then": { "required": ["socketId"] }
+        }
+      ]
+    },
+    "terrainObjectPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objectId", "anchor"],
+      "properties": {
+        "objectId": { "$ref": "#/$defs/id" },
+        "anchor": { "$ref": "#/$defs/terrainAnchor" },
+        "weapon": { "$ref": "#/$defs/weapon" },
+        "hp": { "type": "number", "exclusiveMinimum": 0, "maximum": 1000000 },
+        "params": { "$ref": "#/$defs/params" }
+      }
+    },
+    "waveItem": {
+      "allOf": [
+        { "$ref": "#/$defs/itemBase" },
+        {
+          "properties": {
+            "type": { "const": "wave" },
+            "timing": { "$ref": "#/$defs/timeTiming" },
+            "payload": { "$ref": "#/$defs/wavePayload" }
+          }
+        }
+      ]
+    },
+    "environmentItem": {
+      "allOf": [
+        { "$ref": "#/$defs/itemBase" },
+        {
+          "properties": {
+            "type": { "const": "environment" },
+            "timing": { "$ref": "#/$defs/timeTiming" },
+            "payload": { "$ref": "#/$defs/pluginPayload" }
+          }
+        }
+      ]
+    },
+    "gimmickItem": {
+      "allOf": [
+        { "$ref": "#/$defs/itemBase" },
+        {
+          "properties": {
+            "type": { "const": "gimmick" },
+            "timing": { "$ref": "#/$defs/timeTiming" },
+            "payload": { "$ref": "#/$defs/pluginPayload" }
+          }
+        }
+      ]
+    },
+    "hazardItem": {
+      "allOf": [
+        { "$ref": "#/$defs/itemBase" },
+        {
+          "properties": {
+            "type": { "const": "hazard" },
+            "payload": { "$ref": "#/$defs/pluginPayload" }
+          }
+        }
+      ]
+    },
+    "terrainObjectItem": {
+      "allOf": [
+        { "$ref": "#/$defs/itemBase" },
+        {
+          "properties": {
+            "type": { "const": "terrain-object" },
+            "timing": { "$ref": "#/$defs/distanceTiming" },
+            "payload": { "$ref": "#/$defs/terrainObjectPayload" }
+          }
+        }
+      ]
+    },
+    "cueItem": {
+      "allOf": [
+        { "$ref": "#/$defs/itemBase" },
+        {
+          "properties": {
+            "type": { "const": "cue" },
+            "timing": { "$ref": "#/$defs/timeTiming" },
+            "payload": { "$ref": "#/$defs/pluginPayload" }
+          }
+        }
+      ]
+    },
+    "bossItem": {
+      "allOf": [
+        { "$ref": "#/$defs/itemBase" },
+        {
+          "properties": {
+            "type": { "const": "boss" },
+            "timing": { "$ref": "#/$defs/timeTiming" },
+            "payload": { "$ref": "#/$defs/bossPayload" }
+          }
+        }
+      ]
+    }
+  }
+}

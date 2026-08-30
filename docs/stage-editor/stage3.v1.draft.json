@@ -1,0 +1,682 @@
+{
+  "format": "pixel-wave-stage",
+  "schemaVersion": 1,
+  "registryVersion": 1,
+  "draft": true,
+  "id": "stage3",
+  "name": "거북이 고속도로",
+  "seed": 3003,
+  "timeline": {
+    "duration": 120,
+    "endBehavior": "boss-start"
+  },
+  "viewport": {
+    "width": 960,
+    "height": 540
+  },
+  "result": {
+    "clearMessage": "별빛 길이 한 칸 이어졌다... 씽씽이 친구가 되었다!",
+    "repeatClearMessage": "씽씽과의 리턴 매치 승리! 오늘도 최고 속도 배송.",
+    "friendColor": "#8fa3e8"
+  },
+  "background": {
+    "presetId": "stage3",
+    "baseScrollSpeed": 45,
+    "scrollScale": 1.25
+  },
+  "difficultyProfileId": "legacy-diffs-v1",
+  "sections": [
+    {
+      "id": "approach",
+      "name": "진입로",
+      "start": 0,
+      "end": 35
+    },
+    {
+      "id": "turtle-ride",
+      "name": "거북 택시",
+      "start": 35,
+      "end": 57
+    },
+    {
+      "id": "highway-rush",
+      "name": "하이웨이 러시",
+      "start": 57,
+      "end": 116
+    },
+    {
+      "id": "boss-entry",
+      "name": "보스 진입",
+      "start": 116,
+      "end": 120
+    }
+  ],
+  "dependencies": {
+    "enemyKinds": ["fish", "ray", "big"],
+    "entryPresets": ["right-to-left", "left-to-right"],
+    "formationPresets": ["single", "column", "v", "wall-gap"],
+    "movementPresets": ["straight", "sine", "enter-pause-exit", "u-turn"],
+    "weaponPresets": ["none", "legacy-aimed", "legacy-ring", "legacy-death-shot"],
+    "barragePatterns": [],
+    "itemPlugins": ["scroll-speed", "turtle-ride", "boss-warning", "boss-start"],
+    "terrainObjects": [],
+    "terrainProfiles": [],
+    "bosses": ["ssing"]
+  },
+  "items": [
+    {
+      "id": "s3-scroll-base",
+      "type": "environment",
+      "name": "기본 스크롤",
+      "timing": { "domain": "time", "start": 0, "duration": 120 },
+      "payload": {
+        "pluginId": "scroll-speed",
+        "params": {
+          "curve": [
+            { "at": 0, "value": 1 },
+            { "at": 120, "value": 1 }
+          ]
+        }
+      }
+    },
+    {
+      "id": "s3-w001",
+      "type": "wave",
+      "name": "상단 고속 물고기 종대",
+      "timing": { "domain": "time", "start": 2, "duration": 1.2 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 195 },
+        "spawn": { "count": 6, "interval": 0.24 },
+        "entry": { "presetId": "right-to-left", "y": 0.4 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 20, "frequency": 3.5 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w002",
+      "type": "wave",
+      "name": "하단 고속 물고기 종대",
+      "timing": { "domain": "time", "start": 4, "duration": 1.2 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 195 },
+        "spawn": { "count": 6, "interval": 0.24 },
+        "entry": { "presetId": "right-to-left", "y": 0.6 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 20, "frequency": 3.5 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w003",
+      "type": "wave",
+      "name": "첫 가오리 V편대",
+      "timing": { "domain": "time", "start": 7.5, "duration": 0 },
+      "payload": {
+        "enemy": { "kind": "ray", "hp": 4, "speed": 150 },
+        "spawn": { "count": 3, "interval": 0 },
+        "entry": { "presetId": "right-to-left", "y": 0.5 },
+        "formation": { "presetId": "v" },
+        "movement": { "presetId": "enter-pause-exit", "params": { "targetX": 0.68, "pauseDuration": 2.6 } },
+        "weapon": { "presetId": "legacy-aimed", "interval": 1.5 }
+      }
+    },
+    {
+      "id": "s3-w004",
+      "type": "wave",
+      "name": "후방 추월 물고기",
+      "timing": { "domain": "time", "start": 11.5, "duration": 1.4 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 210 },
+        "spawn": { "count": 6, "interval": 0.28 },
+        "entry": { "presetId": "left-to-right", "y": 0.5 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 25, "frequency": 3 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w005",
+      "type": "wave",
+      "name": "상단 정방향 교행",
+      "timing": { "domain": "time", "start": 12.5, "duration": 1.04 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 200 },
+        "spawn": { "count": 5, "interval": 0.26 },
+        "entry": { "presetId": "right-to-left", "y": 0.25 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 18, "frequency": 3.5 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w006",
+      "type": "wave",
+      "name": "상단 조준 종대",
+      "timing": { "domain": "time", "start": 16.5, "duration": 1.52 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 150 },
+        "spawn": { "count": 5, "interval": 0.38 },
+        "entry": { "presetId": "right-to-left", "y": 0.3 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 22, "frequency": 3 } },
+        "weapon": { "presetId": "legacy-aimed", "interval": 2.2 }
+      }
+    },
+    {
+      "id": "s3-w007",
+      "type": "wave",
+      "name": "첫 유턴 종대",
+      "timing": { "domain": "time", "start": 18, "duration": 1.28 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 160 },
+        "spawn": { "count": 5, "interval": 0.32 },
+        "entry": { "presetId": "right-to-left", "y": 0.55 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "u-turn" },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w008",
+      "type": "wave",
+      "name": "중단 가오리 V편대",
+      "timing": { "domain": "time", "start": 22, "duration": 0 },
+      "payload": {
+        "enemy": { "kind": "ray", "hp": 4, "speed": 150 },
+        "spawn": { "count": 5, "interval": 0 },
+        "entry": { "presetId": "right-to-left", "y": 0.45 },
+        "formation": { "presetId": "v" },
+        "movement": { "presetId": "enter-pause-exit", "params": { "targetX": 0.66, "pauseDuration": 3 } },
+        "weapon": { "presetId": "legacy-aimed", "interval": 1.3 }
+      }
+    },
+    {
+      "id": "s3-w009",
+      "type": "wave",
+      "name": "하단 물고기 셔틀",
+      "timing": { "domain": "time", "start": 23.5, "duration": 1.04 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 200 },
+        "spawn": { "count": 5, "interval": 0.26 },
+        "entry": { "presetId": "right-to-left", "y": 0.8 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 18, "frequency": 3.5 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w010",
+      "type": "wave",
+      "name": "양방향 교행 상단",
+      "timing": { "domain": "time", "start": 27.5, "duration": 1.44 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 200 },
+        "spawn": { "count": 7, "interval": 0.24 },
+        "entry": { "presetId": "right-to-left", "y": 0.3 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 18, "frequency": 3.5 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w011",
+      "type": "wave",
+      "name": "양방향 교행 하단",
+      "timing": { "domain": "time", "start": 28, "duration": 1.44 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 200 },
+        "spawn": { "count": 7, "interval": 0.24 },
+        "entry": { "presetId": "left-to-right", "y": 0.7 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 18, "frequency": 3.5 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w012",
+      "type": "wave",
+      "name": "진입로 마무리 셔틀",
+      "timing": { "domain": "time", "start": 31.5, "duration": 1.4 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 210 },
+        "spawn": { "count": 8, "interval": 0.2 },
+        "entry": { "presetId": "right-to-left", "y": 0.5 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 40, "frequency": 3 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-ride-01",
+      "type": "gimmick",
+      "name": "거북이 택시",
+      "timing": { "domain": "time", "start": 35, "duration": 22 },
+      "payload": {
+        "pluginId": "turtle-ride",
+        "params": {
+          "scrollMultiplier": 5,
+          "playerInvulnerable": true,
+          "drawTurtle": true,
+          "drawSpeedLines": true,
+          "startSoundId": "ride",
+          "bulletClearOnStart": {
+            "enabled": true,
+            "convertToPearls": true,
+            "pearlLifetime": 12,
+            "autoCollect": true
+          },
+          "pearlTrail": {
+            "interval": 0.13,
+            "speed": 330,
+            "lifetime": 6,
+            "centerY": 0.5,
+            "amplitudeY": 0.3,
+            "frequency": 1.6
+          },
+          "pearlRing": {
+            "firstDelay": 2.5,
+            "interval": 4.5,
+            "count": 10,
+            "radius": 55,
+            "centerYRange": [0.3, 0.7],
+            "speed": 330,
+            "lifetime": 6
+          },
+          "startMessages": [
+            { "text": "거북 택시 도착!", "color": "#7dffd8" },
+            { "text": "\"꽉 잡아요~ 밟습니다!\"", "color": "#a8ffcf" }
+          ],
+          "endMessage": {
+            "text": "\"다 왔어요~ 조심히 가세요!\"",
+            "color": "#a8ffcf"
+          }
+        }
+      }
+    },
+    {
+      "id": "s3-w013",
+      "type": "wave",
+      "name": "택시 상단 러시 1",
+      "timing": { "domain": "time", "start": 37, "duration": 1.08 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 230 },
+        "spawn": { "count": 7, "interval": 0.18 },
+        "entry": { "presetId": "right-to-left", "y": 0.3 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 25, "frequency": 3 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w014",
+      "type": "wave",
+      "name": "택시 하단 러시 1",
+      "timing": { "domain": "time", "start": 40, "duration": 1.08 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 230 },
+        "spawn": { "count": 7, "interval": 0.18 },
+        "entry": { "presetId": "right-to-left", "y": 0.7 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 25, "frequency": 3 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w015",
+      "type": "wave",
+      "name": "택시 중앙 러시 1",
+      "timing": { "domain": "time", "start": 43, "duration": 1.12 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 240 },
+        "spawn": { "count": 8, "interval": 0.16 },
+        "entry": { "presetId": "right-to-left", "y": 0.5 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 50, "frequency": 3 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w016",
+      "type": "wave",
+      "name": "택시 상단 러시 2",
+      "timing": { "domain": "time", "start": 46, "duration": 1.08 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 230 },
+        "spawn": { "count": 7, "interval": 0.18 },
+        "entry": { "presetId": "right-to-left", "y": 0.35 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 30, "frequency": 3 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w017",
+      "type": "wave",
+      "name": "택시 하단 러시 2",
+      "timing": { "domain": "time", "start": 49, "duration": 1.08 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 230 },
+        "spawn": { "count": 7, "interval": 0.18 },
+        "entry": { "presetId": "right-to-left", "y": 0.65 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 30, "frequency": 3 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w018",
+      "type": "wave",
+      "name": "택시 중앙 러시 2",
+      "timing": { "domain": "time", "start": 52, "duration": 1.12 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 240 },
+        "spawn": { "count": 8, "interval": 0.16 },
+        "entry": { "presetId": "right-to-left", "y": 0.5 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 45, "frequency": 3 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w019",
+      "type": "wave",
+      "name": "상단 가오리 협공",
+      "timing": { "domain": "time", "start": 62, "duration": 0 },
+      "payload": {
+        "enemy": { "kind": "ray", "hp": 4, "speed": 155 },
+        "spawn": { "count": 5, "interval": 0 },
+        "entry": { "presetId": "right-to-left", "y": 0.3 },
+        "formation": { "presetId": "v" },
+        "movement": { "presetId": "enter-pause-exit", "params": { "targetX": 0.7, "pauseDuration": 3 } },
+        "weapon": { "presetId": "legacy-aimed", "interval": 1.3 }
+      }
+    },
+    {
+      "id": "s3-w020",
+      "type": "wave",
+      "name": "하단 가오리 협공",
+      "timing": { "domain": "time", "start": 63, "duration": 0 },
+      "payload": {
+        "enemy": { "kind": "ray", "hp": 4, "speed": 155 },
+        "spawn": { "count": 5, "interval": 0 },
+        "entry": { "presetId": "right-to-left", "y": 0.7 },
+        "formation": { "presetId": "v" },
+        "movement": { "presetId": "enter-pause-exit", "params": { "targetX": 0.64, "pauseDuration": 3 } },
+        "weapon": { "presetId": "legacy-aimed", "interval": 1.3 }
+      }
+    },
+    {
+      "id": "s3-w021",
+      "type": "wave",
+      "name": "정지 살포 대물",
+      "timing": { "domain": "time", "start": 67.5, "duration": 0 },
+      "payload": {
+        "enemy": { "kind": "big", "hp": 48, "speed": 110 },
+        "spawn": { "count": 1, "interval": 0 },
+        "entry": { "presetId": "right-to-left", "y": 0.5 },
+        "formation": { "presetId": "single" },
+        "movement": { "presetId": "enter-pause-exit", "params": { "targetX": 0.72, "pauseDuration": 6 } },
+        "weapon": { "presetId": "legacy-ring", "interval": 1.7, "params": { "count": 12 } }
+      }
+    },
+    {
+      "id": "s3-w022",
+      "type": "wave",
+      "name": "첫 유언탄 종대",
+      "timing": { "domain": "time", "start": 69, "duration": 1.52 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 150 },
+        "spawn": { "count": 5, "interval": 0.38 },
+        "entry": { "presetId": "right-to-left", "y": 0.25 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 30, "frequency": 3 } },
+        "weapon": { "presetId": "legacy-death-shot" }
+      }
+    },
+    {
+      "id": "s3-w023",
+      "type": "wave",
+      "name": "후방 조준 종대",
+      "timing": { "domain": "time", "start": 73.5, "duration": 1.35 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 165 },
+        "spawn": { "count": 4, "interval": 0.45 },
+        "entry": { "presetId": "left-to-right", "y": 0.55 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 22, "frequency": 3 } },
+        "weapon": { "presetId": "legacy-aimed", "interval": 2.4 }
+      }
+    },
+    {
+      "id": "s3-w024",
+      "type": "wave",
+      "name": "상단 정방향 셔틀",
+      "timing": { "domain": "time", "start": 74.5, "duration": 1.04 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 200 },
+        "spawn": { "count": 5, "interval": 0.26 },
+        "entry": { "presetId": "right-to-left", "y": 0.2 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 18, "frequency": 3.5 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w025",
+      "type": "wave",
+      "name": "유턴 유언탄 종대",
+      "timing": { "domain": "time", "start": 78.5, "duration": 1.28 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 165 },
+        "spawn": { "count": 5, "interval": 0.32 },
+        "entry": { "presetId": "right-to-left", "y": 0.4 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "u-turn" },
+        "weapon": { "presetId": "legacy-death-shot" }
+      }
+    },
+    {
+      "id": "s3-w026",
+      "type": "wave",
+      "name": "하단 조준 종대",
+      "timing": { "domain": "time", "start": 80, "duration": 1.14 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 158 },
+        "spawn": { "count": 4, "interval": 0.38 },
+        "entry": { "presetId": "right-to-left", "y": 0.75 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 22, "frequency": 3 } },
+        "weapon": { "presetId": "legacy-aimed", "interval": 2.2 }
+      }
+    },
+    {
+      "id": "s3-w027",
+      "type": "wave",
+      "name": "중앙 가오리 V편대",
+      "timing": { "domain": "time", "start": 84, "duration": 0 },
+      "payload": {
+        "enemy": { "kind": "ray", "hp": 4, "speed": 155 },
+        "spawn": { "count": 5, "interval": 0 },
+        "entry": { "presetId": "right-to-left", "y": 0.5 },
+        "formation": { "presetId": "v" },
+        "movement": { "presetId": "enter-pause-exit", "params": { "targetX": 0.68, "pauseDuration": 3.2 } },
+        "weapon": { "presetId": "legacy-aimed", "interval": 1.2 }
+      }
+    },
+    {
+      "id": "s3-w028",
+      "type": "wave",
+      "name": "후방 상단 교행",
+      "timing": { "domain": "time", "start": 85.5, "duration": 1.3 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 210 },
+        "spawn": { "count": 6, "interval": 0.26 },
+        "entry": { "presetId": "left-to-right", "y": 0.2 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 20, "frequency": 3.5 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w029",
+      "type": "wave",
+      "name": "틈새 벽",
+      "timing": { "domain": "time", "start": 90, "duration": 0 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 170 },
+        "spawn": { "interval": 0 },
+        "entry": { "presetId": "right-to-left", "y": 0.5 },
+        "formation": {
+          "presetId": "wall-gap",
+          "params": {
+            "slotCount": 10,
+            "gapSlots": 2,
+            "gapStartRange": [1, 7],
+            "topPadding": 40,
+            "bottomPadding": 20
+          }
+        },
+        "movement": { "presetId": "straight" },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w030",
+      "type": "wave",
+      "name": "중앙 조준 종대",
+      "timing": { "domain": "time", "start": 91.5, "duration": 1.28 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 160 },
+        "spawn": { "count": 5, "interval": 0.32 },
+        "entry": { "presetId": "right-to-left", "y": 0.5 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 25, "frequency": 3 } },
+        "weapon": { "presetId": "legacy-aimed", "interval": 2 }
+      }
+    },
+    {
+      "id": "s3-w031",
+      "type": "wave",
+      "name": "고속 횡단 대물",
+      "timing": { "domain": "time", "start": 95.5, "duration": 0 },
+      "payload": {
+        "enemy": { "kind": "big", "hp": 48, "speed": 105 },
+        "spawn": { "count": 1, "interval": 0 },
+        "entry": { "presetId": "right-to-left", "y": 0.45 },
+        "formation": { "presetId": "single" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 35, "frequency": 0.9 } },
+        "weapon": { "presetId": "legacy-ring", "interval": 1.8, "params": { "count": 14 } }
+      }
+    },
+    {
+      "id": "s3-w032",
+      "type": "wave",
+      "name": "상단 조준 협공",
+      "timing": { "domain": "time", "start": 96.5, "duration": 1.28 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 160 },
+        "spawn": { "count": 5, "interval": 0.32 },
+        "entry": { "presetId": "right-to-left", "y": 0.2 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 25, "frequency": 3 } },
+        "weapon": { "presetId": "legacy-aimed", "interval": 2 }
+      }
+    },
+    {
+      "id": "s3-w033",
+      "type": "wave",
+      "name": "하단 조준 협공",
+      "timing": { "domain": "time", "start": 97, "duration": 1.28 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 160 },
+        "spawn": { "count": 5, "interval": 0.32 },
+        "entry": { "presetId": "right-to-left", "y": 0.75 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 25, "frequency": 3 } },
+        "weapon": { "presetId": "legacy-aimed", "interval": 2 }
+      }
+    },
+    {
+      "id": "s3-w034",
+      "type": "wave",
+      "name": "피날레 상단 가오리",
+      "timing": { "domain": "time", "start": 101.5, "duration": 0 },
+      "payload": {
+        "enemy": { "kind": "ray", "hp": 4, "speed": 160 },
+        "spawn": { "count": 5, "interval": 0 },
+        "entry": { "presetId": "right-to-left", "y": 0.35 },
+        "formation": { "presetId": "v" },
+        "movement": { "presetId": "enter-pause-exit", "params": { "targetX": 0.7, "pauseDuration": 3 } },
+        "weapon": { "presetId": "legacy-aimed", "interval": 1.2 }
+      }
+    },
+    {
+      "id": "s3-w035",
+      "type": "wave",
+      "name": "피날레 하단 가오리",
+      "timing": { "domain": "time", "start": 104.5, "duration": 0 },
+      "payload": {
+        "enemy": { "kind": "ray", "hp": 4, "speed": 160 },
+        "spawn": { "count": 5, "interval": 0 },
+        "entry": { "presetId": "right-to-left", "y": 0.65 },
+        "formation": { "presetId": "v" },
+        "movement": { "presetId": "enter-pause-exit", "params": { "targetX": 0.64, "pauseDuration": 3 } },
+        "weapon": { "presetId": "legacy-aimed", "interval": 1.2 }
+      }
+    },
+    {
+      "id": "s3-w036",
+      "type": "wave",
+      "name": "최종 파밍 러시 상단",
+      "timing": { "domain": "time", "start": 109, "duration": 1.4 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 220 },
+        "spawn": { "count": 8, "interval": 0.2 },
+        "entry": { "presetId": "right-to-left", "y": 0.35 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 35, "frequency": 3 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-w037",
+      "type": "wave",
+      "name": "최종 파밍 러시 하단",
+      "timing": { "domain": "time", "start": 110.5, "duration": 1.4 },
+      "payload": {
+        "enemy": { "kind": "fish", "hp": 2, "speed": 220 },
+        "spawn": { "count": 8, "interval": 0.2 },
+        "entry": { "presetId": "right-to-left", "y": 0.65 },
+        "formation": { "presetId": "column" },
+        "movement": { "presetId": "sine", "params": { "amplitude": 35, "frequency": 3 } },
+        "weapon": { "presetId": "none" }
+      }
+    },
+    {
+      "id": "s3-boss-warning",
+      "type": "cue",
+      "name": "보스 경고",
+      "timing": { "domain": "time", "start": 116, "duration": 4 },
+      "payload": {
+        "pluginId": "boss-warning",
+        "params": {
+          "message": "!! 뭔가 다가온다 !!",
+          "color": "#ff8f8f",
+          "screenShake": 0.6,
+          "soundId": "warn"
+        }
+      }
+    },
+    {
+      "id": "s3-boss-start",
+      "type": "boss",
+      "name": "씽씽 등장",
+      "timing": { "domain": "time", "start": 120, "duration": 0 },
+      "payload": {
+        "pluginId": "boss-start",
+        "bossId": "ssing"
+      }
+    }
+  ]
+}

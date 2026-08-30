@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#07172d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="스테이지 시퀀서">
+  <base href="../">
+  <title>픽셀 파도 — 스테이지 시퀀서 M1</title>
+  <link rel="manifest" href="tools/stage-sequencer-manifest.webmanifest">
+  <link rel="icon" href="tools/barrage-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="tools/stage-sequencer.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">≋</span>
+      <div>
+        <strong id="stageName">스테이지 시퀀서</strong>
+        <small>READ-ONLY M1 · ACTUAL STAGE DATA</small>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span id="validationBadge" class="status loading">불러오는 중</span>
+      <button id="exportStage" class="button" type="button" disabled>JSON 내보내기</button>
+      <a class="button accent" href="index.html?debug">게임 열기</a>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="main-column">
+      <div class="preview-card">
+        <canvas id="preview" width="960" height="540" aria-label="Stage 3 미리보기"></canvas>
+        <div class="preview-topline">
+          <span id="sectionLabel">불러오는 중</span>
+          <span id="previewMode">전체 미리보기</span>
+        </div>
+        <div id="loadingOverlay" class="loading-overlay">Stage 3 데이터를 준비하고 있습니다…</div>
+      </div>
+
+      <section class="transport panel" aria-label="미리보기 재생 제어">
+        <button id="restart" class="transport-button" type="button" title="구간 처음부터">↺</button>
+        <button id="playPause" class="transport-button play" type="button" title="재생 또는 일시정지">▶</button>
+        <span id="timeLabel" class="time-label">00:00.00 / 02:00.00</span>
+        <input id="timeScrub" type="range" min="0" max="120" value="0" step="0.01" aria-label="재생 위치">
+        <select id="previewSpeed" aria-label="재생 배속">
+          <option value="0.5">×0.5</option>
+          <option value="1" selected>×1</option>
+          <option value="2">×2</option>
+          <option value="4">×4</option>
+        </select>
+        <select id="previewDifficulty" aria-label="미리보기 난이도">
+          <option value="easy">이지</option>
+          <option value="normal">노멀</option>
+          <option value="hard">하드</option>
+        </select>
+      </section>
+
+      <section class="range-panel panel" aria-label="미리보기 구간">
+        <div class="range-heading">
+          <strong>미리보기 구간</strong>
+          <span id="rangeLabel">전체 0.0–120.0초</span>
+        </div>
+        <div id="sectionButtons" class="section-buttons"></div>
+        <div class="range-tools" aria-label="사용자 구간 설정">
+          <button id="markRangeIn" type="button">IN 찍기</button>
+          <button id="markRangeOut" type="button">OUT 찍기</button>
+          <small>재생 헤드의 현재 시각으로 반복 구간을 만듭니다</small>
+        </div>
+      </section>
+
+      <section class="timeline panel">
+        <div class="timeline-heading">
+          <div>
+            <strong>타임라인</strong>
+            <span>클립을 누르면 해당 시각으로 이동합니다</span>
+          </div>
+          <div id="previewStats" class="stats">-</div>
+        </div>
+        <div id="timelineViewport" class="timeline-viewport">
+          <div id="timelineCanvas" class="timeline-canvas">
+            <div id="timelineRuler" class="timeline-ruler"></div>
+            <div id="timelineSections" class="timeline-sections"></div>
+            <div id="timelineTracks" class="timeline-tracks"></div>
+            <div id="timelinePlayhead" class="playhead" aria-hidden="true"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <aside id="inspector" class="inspector panel" aria-label="선택한 클립 정보">
+      <button id="inspectorToggle" class="inspector-handle" type="button" aria-expanded="false">
+        <span></span>
+        <strong id="selectedName">클립을 선택하세요</strong>
+        <small id="selectedTiming">읽기 전용</small>
+      </button>
+      <div id="inspectorBody" class="inspector-body">
+        <div class="empty-inspector">타임라인의 클립을 선택하면 컴파일된 정보와 원본 JSON 요약을 볼 수 있습니다.</div>
+      </div>
+    </aside>
+  </main>
+
+  <script src="js/config.js?v=3"></script>
+  <script src="js/assets.js?v=30"></script>
+  <script src="js/spriteRenderer.js?v=3"></script>
+  <script src="js/backgroundRenderer.js?v=14"></script>
+  <script src="js/stage/random.js?v=1"></script>
+  <script src="js/stage/registry.js?v=1"></script>
+  <script src="js/stage/compiler.js?v=1"></script>
+  <script src="js/stage/simulation.js?v=1"></script>
+  <script src="tools/stage-sequencer.js?v=1"></script>
+</body>
+</html>

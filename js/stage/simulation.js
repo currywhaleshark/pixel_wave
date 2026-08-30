@@ -1,0 +1,463 @@
+// ============================================================
+// stage/simulation.js — Stage Sequencer M1 결정론 미리보기 시뮬레이션
+// 고정 스텝, snapshot/restore, 구간 seek를 제공한다.
+// ============================================================
+(function initStageSimulation(root) {
+  'use strict';
+
+  const RandomApi = root.StageRandom || (typeof require === 'function' ? require('./random.js') : null);
+  const { Random, hashString, mixSeed } = RandomApi;
+  const EPS = 1e-9;
+
+  function clone(value) {
+    return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+  }
+
+  function round(value, places = 5) {
+    const scale = 10 ** places;
+    return Math.round(value * scale) / scale;
+  }
+
+  function interpolateCurve(points, at) {
+    if (!Array.isArray(points) || !points.length) return 1;
+    if (at <= points[0].at) return Number(points[0].value) || 0;
+    for (let index = 1; index < points.length; index++) {
+      const next = points[index];
+      const previous = points[index - 1];
+      if (at <= next.at) {
+        const span = next.at - previous.at;
+        const ratio = span > 0 ? (at - previous.at) / span : 1;
+        return previous.value + (next.value - previous.value) * ratio;
+      }
+    }
+    return Number(points[points.length - 1].value) || 0;
+  }
+
+  class Simulation {
+    constructor(compiled, options = {}) {
+      this.compiled = compiled;
+      this.fixedStep = options.fixedStep || 1 / 60;
+      this.snapshotInterval = options.snapshotInterval || 5;
+      this.snapshotCache = new Map();
+      this.itemById = new Map(compiled.items.map(item => [item.id, item]));
+      this.reset();
+    }
+
+    reset() {
+      const { width, height } = this.compiled.viewport;
+      this.time = 0;
+      this.scroll = 0;
+      this.pendingDuration = 0;
+      this.eventCursor = 0;
+      this.random = new Random(mixSeed(this.compiled.metadata.seed, `simulation:${this.compiled.difficulty.id}`));
+      this.player = { x: width * 0.2, y: height * 0.5, invulnerable: false };
+      this.enemies = [];
+      this.bullets = [];
+      this.pearls = [];
+      this.activeItems = new Map();
+      this.messages = [];
+      this.ride = null;
+      this.boss = null;
+      this.warningUntil = 0;
+      this.spawnedEnemyCount = 0;
+      this.firedBulletCount = 0;
+      this._processEventsAtCurrentTime();
+      return this;
+    }
+
+    _processEventsAtCurrentTime() {
+      const events = this.compiled.events;
+      while (this.eventCursor < events.length && events[this.eventCursor].at <= this.time + EPS) {
+        this._applyEvent(events[this.eventCursor++]);
+      }
+    }
+
+    _applyEvent(event) {
+      if (event.type === 'spawn-enemy') {
+        const source = clone(event.enemy);
+        const movementParams = source.movement?.params || {};
+        source.id = event.id;
+        source.itemId = event.itemId;
+        source.age = 0;
+        source.y0 = source.y;
+        source.x0 = source.x;
+        source.state = 'enter';
+        source.pauseRemaining = 0;
+        source.fireRemaining = source.weapon?.startDelay ?? 0.6;
+        source.targetX = (movementParams.targetX ?? 0.68) * this.compiled.viewport.width + (source.targetXOffset || 0);
+        source.pauseDuration = movementParams.pauseDuration ?? 2.2;
+        source.vx = null;
+        this.enemies.push(source);
+        this.spawnedEnemyCount++;
+        return;
+      }
+      if (event.type === 'item-start') {
+        this.activeItems.set(event.itemId, { start: event.at, type: event.itemType, payload: clone(event.payload) });
+        if (event.payload?.pluginId === 'turtle-ride') this._startRide(event);
+        return;
+      }
+      if (event.type === 'item-end') {
+        this.activeItems.delete(event.itemId);
+        if (event.payload?.pluginId === 'turtle-ride') this._endRide(event);
+        return;
+      }
+      if (event.type === 'cue' && event.payload?.pluginId === 'boss-warning') {
+        const item = this.itemById.get(event.itemId);
+        this.warningUntil = event.at + (item?.timing?.duration || 0);
+        this.messages.push({
+          text: event.payload.params?.message || '!! 뭔가 다가온다 !!',
+          color: event.payload.params?.color || '#ff8f8f',
+          until: this.warningUntil,
+        });
+        return;
+      }
+      if (event.type === 'boss') {
+        this.boss = {
+          id: event.payload?.bossId || 'ssing',
+          x: this.compiled.viewport.width * 0.81,
+          y: this.compiled.viewport.height * 0.5,
+          age: 0,
+        };
+      }
+    }
+
+    _startRide(event) {
+      const params = event.payload.params || {};
+      this.ride = {
+        itemId: event.itemId,
+        start: event.at,
+        end: event.at + (this.itemById.get(event.itemId)?.timing?.duration || 0),
+        params: clone(params),
+        nextTrail: event.at,
+        nextRing: event.at + (params.pearlRing?.firstDelay ?? 2.5),
+        phase: this.random.range(0, Math.PI * 2),
+      };
+      if (params.bulletClearOnStart?.enabled) {
+        if (params.bulletClearOnStart.convertToPearls) {
+          for (const bullet of this.bullets) {
+            this.pearls.push({
+              x: bullet.x,
+              y: bullet.y,
+              vx: 0,
+              vy: 0,
+              life: params.bulletClearOnStart.pearlLifetime ?? 12,
+              age: 0,
+            });
+          }
+        }
+        this.bullets = [];
+      }
+      this.player.invulnerable = !!params.playerInvulnerable;
+      for (const message of params.startMessages || []) {
+        this.messages.push({ text: message.text, color: message.color, until: event.at + 2.8 });
+      }
+    }
+
+    _endRide(event) {
+      const params = this.ride?.params || event.payload?.params || {};
+      this.ride = null;
+      this.player.invulnerable = false;
+      if (params.endMessage?.text) {
+        this.messages.push({ text: params.endMessage.text, color: params.endMessage.color, until: event.at + 2.8 });
+      }
+    }
+
+    _scrollMultiplier(at) {
+      let multiplier = 1;
+      for (const active of this.activeItems.values()) {
+        if (active.payload?.pluginId === 'scroll-speed') {
+          multiplier *= interpolateCurve(active.payload.params?.curve, at - active.start);
+        }
+        if (active.payload?.pluginId === 'turtle-ride') {
+          multiplier *= Number(active.payload.params?.scrollMultiplier) || 1;
+        }
+      }
+      return Math.max(0, Math.min(5, multiplier));
+    }
+
+    _spawnAimed(enemy, count, spread, speed) {
+      const base = Math.atan2(this.player.y - enemy.y, this.player.x - enemy.x);
+      for (let index = 0; index < count; index++) {
+        const angle = base + (count === 1 ? 0 : (index - (count - 1) / 2) * spread);
+        this.bullets.push({ x: enemy.x, y: enemy.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, radius: 5, kind: 'spike', age: 0 });
+        this.firedBulletCount++;
+      }
+    }
+
+    _spawnRing(enemy, count, speed, offset) {
+      for (let index = 0; index < count; index++) {
+        const angle = offset + index / count * Math.PI * 2;
+        this.bullets.push({ x: enemy.x, y: enemy.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, radius: 5, kind: 'bubble', age: 0 });
+        this.firedBulletCount++;
+      }
+    }
+
+    _fire(enemy) {
+      const weapon = enemy.weapon || { presetId: 'none' };
+      const difficultyIndex = ['easy', 'normal', 'hard'].indexOf(this.compiled.difficulty.id);
+      const speedScale = this.compiled.difficulty.ebSpd;
+      const enemyRandom = this.random;
+      if (weapon.presetId === 'legacy-aimed') {
+        const count = 1 + difficultyIndex;
+        this._spawnAimed(enemy, count, difficultyIndex > 0 ? 0.18 : 0, 145 * speedScale);
+      } else if (weapon.presetId === 'legacy-ring') {
+        this._spawnRing(enemy, weapon.params?.count || 8, 110 * 0.9 * speedScale, enemyRandom.range(0, Math.PI * 2));
+        if (difficultyIndex >= 1) this._spawnAimed(enemy, 1, 0, 145 * 0.95 * speedScale);
+        if (difficultyIndex >= 2) {
+          for (let index = 0; index < 3; index++) {
+            const angle = enemyRandom.range(0, Math.PI * 2);
+            const speed = enemyRandom.range(70, 150) * speedScale;
+            this.bullets.push({ x: enemy.x, y: enemy.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, radius: 5, kind: 'bubble', age: 0 });
+            this.firedBulletCount++;
+          }
+        }
+      }
+    }
+
+    _updateEnemy(enemy, dt) {
+      enemy.age += dt;
+      const movement = enemy.movement?.presetId || 'straight';
+      const params = enemy.movement?.params || {};
+      if (movement === 'straight') {
+        enemy.x += enemy.directionX * enemy.speed * dt;
+      } else if (movement === 'sine') {
+        enemy.x += enemy.directionX * enemy.speed * dt;
+        enemy.y = enemy.y0 + (params.amplitude || 0) * Math.sin(enemy.age * (params.frequency ?? 3) + enemy.phase);
+      } else if (movement === 'u-turn') {
+        if (enemy.vx === null) enemy.vx = -enemy.speed;
+        enemy.vx = Math.min(enemy.speed * 1.15, enemy.vx + enemy.speed * 0.85 * dt);
+        enemy.x += enemy.vx * dt;
+        enemy.y = enemy.y0 + Math.sin(enemy.age * 1.8) * 18;
+      } else if (movement === 'enter-pause-exit') {
+        if (enemy.state === 'enter') {
+          enemy.x -= enemy.speed * dt;
+          if (enemy.x <= enemy.targetX) {
+            enemy.x = enemy.targetX;
+            enemy.state = 'pause';
+            enemy.pauseRemaining = enemy.pauseDuration;
+          }
+        } else if (enemy.state === 'pause') {
+          enemy.pauseRemaining -= dt;
+          enemy.y = enemy.y0 + Math.sin(enemy.age * 2) * 6;
+          if (enemy.pauseRemaining <= 0) enemy.state = 'exit';
+        } else {
+          enemy.x -= enemy.speed * 1.7 * dt;
+        }
+      }
+
+      const onScreen = enemy.x > 30 && enemy.x < this.compiled.viewport.width - 10;
+      const canFire = movement !== 'enter-pause-exit' || enemy.state === 'pause';
+      if (enemy.weapon?.presetId !== 'none' && enemy.weapon?.presetId !== 'legacy-death-shot' && onScreen && canFire) {
+        enemy.fireRemaining -= dt;
+        if (enemy.fireRemaining <= 0) {
+          enemy.fireRemaining += enemy.weapon.interval || 2;
+          this._fire(enemy);
+        }
+      }
+    }
+
+    _updateRide(toTime) {
+      if (!this.ride) return;
+      const params = this.ride.params;
+      const trail = params.pearlTrail || {};
+      const ring = params.pearlRing || {};
+      while (this.ride.nextTrail <= toTime + EPS) {
+        const local = this.ride.nextTrail - this.ride.start;
+        const y = this.compiled.viewport.height * (trail.centerY ?? 0.5)
+          + Math.sin(local * (trail.frequency ?? 1.6) + this.ride.phase) * this.compiled.viewport.height * (trail.amplitudeY ?? 0.3);
+        this.pearls.push({
+          x: this.compiled.viewport.width + 12,
+          y,
+          vx: -(trail.speed ?? 330),
+          vy: 0,
+          life: trail.lifetime ?? 6,
+          age: 0,
+        });
+        this.ride.nextTrail += trail.interval ?? 0.13;
+      }
+      while (this.ride.nextRing <= toTime + EPS) {
+        const count = Math.max(1, Math.round(ring.count ?? 10));
+        const yRange = ring.centerYRange || [0.3, 0.7];
+        const centerY = this.random.range(yRange[0], yRange[1]) * this.compiled.viewport.height;
+        for (let index = 0; index < count; index++) {
+          const angle = index / count * Math.PI * 2;
+          this.pearls.push({
+            x: this.compiled.viewport.width + 40 + Math.cos(angle) * (ring.radius ?? 55),
+            y: centerY + Math.sin(angle) * (ring.radius ?? 55),
+            vx: -(ring.speed ?? 330),
+            vy: 0,
+            life: ring.lifetime ?? 6,
+            age: 0,
+          });
+        }
+        this.ride.nextRing += ring.interval ?? 4.5;
+      }
+    }
+
+    _updateState(dt, fromTime, toTime) {
+      const middle = fromTime + dt * 0.5;
+      this.scroll += (this.compiled.background.baseScrollSpeed || 0) * this._scrollMultiplier(middle) * dt;
+      this._updateRide(toTime);
+      for (const enemy of this.enemies) this._updateEnemy(enemy, dt);
+      const { width, height } = this.compiled.viewport;
+      this.enemies = this.enemies.filter(enemy => enemy.x > -60 && enemy.x < width + 120 && enemy.y > -80 && enemy.y < height + 80);
+      for (const bullet of this.bullets) {
+        bullet.age += dt;
+        bullet.x += bullet.vx * dt;
+        bullet.y += bullet.vy * dt;
+      }
+      this.bullets = this.bullets.filter(bullet => bullet.x > -40 && bullet.x < width + 480 && bullet.y > -20 && bullet.y < height + 20);
+      for (const pearl of this.pearls) {
+        pearl.age += dt;
+        pearl.x += pearl.vx * dt;
+        pearl.y += pearl.vy * dt;
+      }
+      this.pearls = this.pearls.filter(pearl => pearl.age < pearl.life && pearl.x > -40 && pearl.x < width + 100);
+      this.messages = this.messages.filter(message => message.until > toTime);
+      if (this.boss) this.boss.age += dt;
+    }
+
+    _stepTo(targetTime) {
+      const events = this.compiled.events;
+      while (this.time < targetTime - EPS) {
+        const nextEventTime = this.eventCursor < events.length ? events[this.eventCursor].at : Infinity;
+        const segmentEnd = Math.min(targetTime, nextEventTime);
+        if (segmentEnd > this.time + EPS) {
+          const from = this.time;
+          const dt = segmentEnd - from;
+          this._updateState(dt, from, segmentEnd);
+          this.time = segmentEnd;
+        } else {
+          this.time = Math.min(targetTime, nextEventTime);
+        }
+        this._processEventsAtCurrentTime();
+      }
+      if (Math.abs(this.time - targetTime) <= EPS) {
+        this.time = targetTime;
+        this._processEventsAtCurrentTime();
+      }
+    }
+
+    _advanceExactTo(targetTime) {
+      const target = Math.max(this.time, Math.min(this.compiled.timeline.duration, targetTime));
+      while (this.time + this.fixedStep < target - EPS) this._stepTo(this.time + this.fixedStep);
+      if (this.time < target - EPS) this._stepTo(target);
+      this.pendingDuration = 0;
+    }
+
+    advance(duration) {
+      const requested = Math.max(0, Number(duration) || 0);
+      const remaining = Math.max(0, this.compiled.timeline.duration - this.time - this.pendingDuration);
+      this.pendingDuration += Math.min(requested, remaining);
+      while (this.pendingDuration + EPS >= this.fixedStep && this.time < this.compiled.timeline.duration - EPS) {
+        const target = Math.min(this.compiled.timeline.duration, this.time + this.fixedStep);
+        const step = target - this.time;
+        this._stepTo(target);
+        this.pendingDuration = Math.max(0, this.pendingDuration - step);
+      }
+      if (this.time >= this.compiled.timeline.duration - EPS) this.pendingDuration = 0;
+      return this;
+    }
+
+    createSnapshot() {
+      return clone({
+        time: this.time,
+        scroll: this.scroll,
+        pendingDuration: this.pendingDuration,
+        eventCursor: this.eventCursor,
+        random: this.random.snapshot(),
+        player: this.player,
+        enemies: this.enemies,
+        bullets: this.bullets,
+        pearls: this.pearls,
+        activeItems: [...this.activeItems.entries()],
+        messages: this.messages,
+        ride: this.ride,
+        boss: this.boss,
+        warningUntil: this.warningUntil,
+        spawnedEnemyCount: this.spawnedEnemyCount,
+        firedBulletCount: this.firedBulletCount,
+      });
+    }
+
+    restore(snapshot) {
+      const state = clone(snapshot);
+      this.time = state.time;
+      this.scroll = state.scroll;
+      this.pendingDuration = state.pendingDuration || 0;
+      this.eventCursor = state.eventCursor;
+      this.random = new Random(1).restore(state.random);
+      this.player = state.player;
+      this.enemies = state.enemies;
+      this.bullets = state.bullets;
+      this.pearls = state.pearls;
+      this.activeItems = new Map(state.activeItems);
+      this.messages = state.messages;
+      this.ride = state.ride;
+      this.boss = state.boss;
+      this.warningUntil = state.warningUntil;
+      this.spawnedEnemyCount = state.spawnedEnemyCount;
+      this.firedBulletCount = state.firedBulletCount;
+      return this;
+    }
+
+    buildSnapshotCache(interval = this.snapshotInterval) {
+      this.snapshotCache.clear();
+      this.reset();
+      this.snapshotCache.set(0, this.createSnapshot());
+      for (let at = interval; at < this.compiled.timeline.duration - EPS; at += interval) {
+        this._advanceExactTo(at);
+        this.snapshotCache.set(round(at, 6), this.createSnapshot());
+      }
+      this.reset();
+      return this.snapshotCache.size;
+    }
+
+    seek(target) {
+      const time = Math.max(0, Math.min(this.compiled.timeline.duration, Number(target) || 0));
+      let snapshotTime = 0;
+      for (const at of this.snapshotCache.keys()) {
+        if (at <= time + EPS && at >= snapshotTime) snapshotTime = at;
+      }
+      const snapshot = this.snapshotCache.get(snapshotTime);
+      if (snapshot) this.restore(snapshot);
+      else this.reset();
+      this._advanceExactTo(time);
+      return this;
+    }
+
+    stateHash() {
+      const compact = {
+        time: round(this.time),
+        scroll: round(this.scroll),
+        pendingDuration: round(this.pendingDuration),
+        eventCursor: this.eventCursor,
+        enemies: this.enemies.map(enemy => [enemy.id, round(enemy.x), round(enemy.y), round(enemy.age), enemy.state, round(enemy.fireRemaining)]),
+        bullets: this.bullets.map(bullet => [round(bullet.x), round(bullet.y), round(bullet.vx), round(bullet.vy), bullet.kind]),
+        pearls: this.pearls.map(pearl => [round(pearl.x), round(pearl.y), round(pearl.age)]),
+        activeItems: [...this.activeItems.keys()].sort(),
+        ride: this.ride ? [round(this.ride.nextTrail), round(this.ride.nextRing)] : null,
+        boss: this.boss ? [this.boss.id, round(this.boss.x), round(this.boss.y)] : null,
+        random: this.random.snapshot(),
+      };
+      return hashString(JSON.stringify(compact)).toString(16).padStart(8, '0');
+    }
+
+    stats() {
+      return {
+        time: this.time,
+        scroll: this.scroll,
+        enemies: this.enemies.length,
+        bullets: this.bullets.length,
+        pearls: this.pearls.length,
+        spawnedEnemyCount: this.spawnedEnemyCount,
+        firedBulletCount: this.firedBulletCount,
+        stateHash: this.stateHash(),
+      };
+    }
+  }
+
+  const api = Object.freeze({ Simulation, interpolateCurve });
+  root.StageSimulation = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : window);

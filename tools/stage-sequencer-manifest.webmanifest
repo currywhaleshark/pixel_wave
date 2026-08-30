@@ -1,0 +1,17 @@
+{
+  "name": "픽셀 파도 스테이지 시퀀서",
+  "short_name": "스테이지 시퀀서",
+  "description": "Pixel Wave 스테이지 JSON 읽기 전용 미리보기",
+  "start_url": "./stage-sequencer.html",
+  "display": "standalone",
+  "background_color": "#07172d",
+  "theme_color": "#07172d",
+  "icons": [
+    {
+      "src": "./barrage-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
