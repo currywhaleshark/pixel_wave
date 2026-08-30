@@ -43,7 +43,9 @@
   let clipDrag = null;
   let pathDrag = null;
   let formationDrag = null;
+  let curveDrag = null;
   let selectedPathPoint = 0;
+  let selectedCurvePoint = 0;
   let editScope = 'base';
 
   function isEditableItem(item) {
@@ -85,6 +87,56 @@
     if (!authored || authored.type !== 'wave') return null;
     if (formationDrag?.itemId === authored.id) return formationDrag.working;
     return scopedEditableItem(authored);
+  }
+
+  function curveEditorPoint(point, duration) {
+    const width = 320;
+    const top = 12;
+    const height = 112;
+    return {
+      x: duration > 0 ? point.at / duration * width : 0,
+      y: top + (StagePlugin.CURVE_MAX - point.value) / (StagePlugin.CURVE_MAX - StagePlugin.CURVE_MIN) * height,
+    };
+  }
+
+  function curveEditorMarkup(item) {
+    const curve = StagePlugin.normalizeCurve(item.payload?.params?.curve, item.timing.duration);
+    selectedCurvePoint = Math.max(0, Math.min(selectedCurvePoint, curve.length - 1));
+    const points = curve.map(point => {
+      const position = curveEditorPoint(point, item.timing.duration);
+      return `${position.x.toFixed(2)},${position.y.toFixed(2)}`;
+    }).join(' ');
+    const handles = curve.map((point, index) => {
+      const position = curveEditorPoint(point, item.timing.duration);
+      return `<circle class="curve-handle ${index === selectedCurvePoint ? 'selected' : ''}" data-curve-point="${index}" cx="${position.x.toFixed(2)}" cy="${position.y.toFixed(2)}" r="8"><title>${point.at.toFixed(2)}초 · ×${point.value.toFixed(2)}</title></circle>`;
+    }).join('');
+    const point = curve[selectedCurvePoint];
+    const endpoint = selectedCurvePoint === 0 || selectedCurvePoint === curve.length - 1;
+    return `
+      <section class="curve-editor">
+        <div class="curve-editor-heading"><strong>스크롤 속도 곡선</strong><span>점 ${selectedCurvePoint + 1} / ${curve.length}</span></div>
+        <p>점을 끌어 시간과 배율을 바꾸세요. 양 끝점은 클립 시작·끝에 고정됩니다.</p>
+        <div class="curve-chart-wrap">
+          <span class="curve-axis curve-axis-max">×5</span><span class="curve-axis curve-axis-one">×1</span><span class="curve-axis curve-axis-min">×0</span>
+          <svg class="curve-chart" data-curve-editor viewBox="0 0 320 136" preserveAspectRatio="none" aria-label="스크롤 속도 곡선 편집기">
+            <line x1="0" y1="12" x2="320" y2="12"></line>
+            <line class="curve-one-line" x1="0" y1="101.6" x2="320" y2="101.6"></line>
+            <line x1="0" y1="124" x2="320" y2="124"></line>
+            <polyline data-curve-line points="${points}"></polyline>
+            ${handles}
+          </svg>
+        </div>
+        <div class="curve-tools">
+          <button type="button" data-curve-action="previous" ${selectedCurvePoint === 0 ? 'disabled' : ''}>←</button>
+          <button type="button" data-curve-action="next" ${selectedCurvePoint >= curve.length - 1 ? 'disabled' : ''}>→</button>
+          <button type="button" data-curve-action="add">점 추가</button>
+          <button type="button" data-curve-action="delete" ${endpoint ? 'disabled' : ''}>점 삭제</button>
+        </div>
+        <div class="form-row two">
+          <label>클립 안 시간(초)<input name="curvePointAt" type="number" min="${selectedCurvePoint ? +(curve[selectedCurvePoint - 1].at + 0.01).toFixed(2) : 0}" max="${curve[selectedCurvePoint + 1] ? +(curve[selectedCurvePoint + 1].at - 0.01).toFixed(2) : item.timing.duration}" step="0.01" value="${point.at}" ${endpoint ? 'readonly' : ''}></label>
+          <label>스크롤 배율<input name="curvePointValue" type="number" min="0" max="5" step="0.05" value="${point.value}"></label>
+        </div>
+      </section>`;
   }
 
   function objectDiff(base, value) {
@@ -716,8 +768,24 @@
       }
       next.timing.duration = formationId === 'wall-gap' ? 0 : (count - 1) * interval;
     } else if (next.type === 'environment' && next.payload?.pluginId === 'scroll-speed') {
-      const multiplier = Math.max(0, Math.min(5, Number(values.get('scrollMultiplier')) || 0));
-      next.payload.params.curve = next.payload.params.curve.map(point => ({ ...point, value: multiplier }));
+      const previousDuration = editScope === 'difficulty'
+        ? (difficultyItem?.timing?.duration ?? authored.timing.duration)
+        : authored.timing.duration;
+      const curve = StagePlugin.normalizeCurve(next.payload.params.curve, previousDuration);
+      const last = curve[curve.length - 1];
+      if (Math.abs(last.at - previousDuration) < 1e-6) last.at = next.timing.duration;
+      selectedCurvePoint = Math.max(0, Math.min(selectedCurvePoint, curve.length - 1));
+      const point = curve[selectedCurvePoint];
+      if (point) {
+        if (selectedCurvePoint > 0 && selectedCurvePoint < curve.length - 1) {
+          point.at = Math.max(curve[selectedCurvePoint - 1].at + 0.01, Math.min(
+            curve[selectedCurvePoint + 1].at - 0.01,
+            Number(values.get('curvePointAt')) || 0,
+          ));
+        }
+        point.value = Math.max(0, Math.min(5, Number(values.get('curvePointValue')) || 0));
+      }
+      next.payload.params.curve = StagePlugin.normalizeCurve(curve, next.timing.duration);
     } else if (next.type === 'cue' && next.payload?.params) {
       next.payload.params.message = String(values.get('message') || '');
       next.payload.params.color = String(values.get('color') || '#ff8f8f');
@@ -876,6 +944,124 @@
     }
   }
 
+  function refreshCurveChart(svg, item) {
+    const curve = item.payload.params.curve;
+    const points = curve.map(point => {
+      const position = curveEditorPoint(point, item.timing.duration);
+      return `${position.x.toFixed(2)},${position.y.toFixed(2)}`;
+    }).join(' ');
+    svg.querySelector('[data-curve-line]')?.setAttribute('points', points);
+    svg.querySelectorAll('[data-curve-point]').forEach(handle => {
+      const index = Number(handle.dataset.curvePoint);
+      const point = curve[index];
+      if (!point) return;
+      const position = curveEditorPoint(point, item.timing.duration);
+      handle.setAttribute('cx', position.x.toFixed(2));
+      handle.setAttribute('cy', position.y.toFixed(2));
+      handle.classList.toggle('selected', index === selectedCurvePoint);
+    });
+    const form = svg.closest('form');
+    const point = curve[selectedCurvePoint];
+    if (form?.elements?.curvePointAt && point) form.elements.curvePointAt.value = point.at.toFixed(2);
+    if (form?.elements?.curvePointValue && point) form.elements.curvePointValue.value = point.value.toFixed(2);
+  }
+
+  function beginCurveDrag(event) {
+    const handle = event.target.closest('[data-curve-point]');
+    const svg = event.currentTarget;
+    const authored = stageDocument?.findItem(selectedId);
+    if (!handle || !authored || authored.payload?.pluginId !== 'scroll-speed') return;
+    event.preventDefault();
+    playing = false;
+    updatePlayButton();
+    const working = scopedEditableItem(authored);
+    working.payload.params.curve = StagePlugin.normalizeCurve(working.payload.params.curve, working.timing.duration);
+    selectedCurvePoint = Number(handle.dataset.curvePoint);
+    curveDrag = {
+      pointerId: event.pointerId,
+      itemId: authored.id,
+      pointIndex: selectedCurvePoint,
+      scope: editScope,
+      working,
+      svg,
+      moved: false,
+    };
+    svg.setPointerCapture(event.pointerId);
+    refreshCurveChart(svg, working);
+  }
+
+  function moveCurveDrag(event) {
+    if (!curveDrag || curveDrag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    const drag = curveDrag;
+    const rect = drag.svg.getBoundingClientRect();
+    const curve = drag.working.payload.params.curve;
+    const point = curve[drag.pointIndex];
+    const duration = drag.working.timing.duration;
+    if (drag.pointIndex > 0 && drag.pointIndex < curve.length - 1) {
+      const rawAt = (event.clientX - rect.left) / rect.width * duration;
+      point.at = +Math.max(curve[drag.pointIndex - 1].at + 0.01, Math.min(
+        curve[drag.pointIndex + 1].at - 0.01,
+        rawAt,
+      )).toFixed(2);
+    }
+    const rawValue = StagePlugin.CURVE_MAX
+      - ((event.clientY - rect.top) / rect.height * 136 - 12) / 112
+        * (StagePlugin.CURVE_MAX - StagePlugin.CURVE_MIN);
+    point.value = +Math.max(StagePlugin.CURVE_MIN, Math.min(StagePlugin.CURVE_MAX, rawValue)).toFixed(2);
+    drag.moved = true;
+    refreshCurveChart(drag.svg, drag.working);
+  }
+
+  function endCurveDrag(event) {
+    if (!curveDrag || curveDrag.pointerId !== event.pointerId) return;
+    const drag = curveDrag;
+    curveDrag = null;
+    if (drag.svg.hasPointerCapture(event.pointerId)) drag.svg.releasePointerCapture(event.pointerId);
+    if (event.type === 'pointercancel' || !drag.moved) return;
+    const authored = stageDocument.findItem(drag.itemId);
+    const label = `스크롤 곡선 점 ${drag.pointIndex + 1} 이동`;
+    if (drag.scope === 'difficulty') replaceDifficultyItem(authored.id, drag.working, `${activeDifficulty().name} ${label}`);
+    else replaceAuthoredItem(authored.id, drag.working, label);
+  }
+
+  function editSelectedCurve(action) {
+    const authored = stageDocument?.findItem(selectedId);
+    const next = scopedEditableItem(authored);
+    if (!authored || next?.payload?.pluginId !== 'scroll-speed') return;
+    const curve = StagePlugin.normalizeCurve(next.payload.params.curve, next.timing.duration);
+    selectedCurvePoint = Math.max(0, Math.min(selectedCurvePoint, curve.length - 1));
+    if (action === 'previous' || action === 'next') {
+      selectedCurvePoint = Math.max(0, Math.min(curve.length - 1, selectedCurvePoint + (action === 'next' ? 1 : -1)));
+      selectItem(authored.id, false);
+      return;
+    }
+    if (action === 'add') {
+      let leftIndex = selectedCurvePoint;
+      if (leftIndex >= curve.length - 1) leftIndex = curve.length - 2;
+      const left = curve[leftIndex];
+      const right = curve[leftIndex + 1];
+      curve.splice(leftIndex + 1, 0, {
+        at: +((left.at + right.at) * 0.5).toFixed(2),
+        value: +((left.value + right.value) * 0.5).toFixed(2),
+      });
+      next.payload.params.curve = curve;
+      selectedCurvePoint = leftIndex + 1;
+      commitScopedItem(authored, next, '스크롤 곡선 점 추가');
+      return;
+    }
+    if (action === 'delete') {
+      if (selectedCurvePoint === 0 || selectedCurvePoint === curve.length - 1) {
+        toast('곡선의 시작점과 끝점은 삭제할 수 없습니다');
+        return;
+      }
+      curve.splice(selectedCurvePoint, 1);
+      next.payload.params.curve = curve;
+      selectedCurvePoint = Math.min(selectedCurvePoint, curve.length - 1);
+      commitScopedItem(authored, next, '스크롤 곡선 점 삭제');
+    }
+  }
+
   function bindInspectorForm() {
     const form = $('#clipEditForm');
     if (form) form.addEventListener('submit', event => {
@@ -917,6 +1103,16 @@
     document.querySelectorAll('[data-path-action]').forEach(button => button.addEventListener('click', () => {
       editSelectedPath(button.dataset.pathAction);
     }));
+    document.querySelectorAll('[data-curve-action]').forEach(button => button.addEventListener('click', () => {
+      editSelectedCurve(button.dataset.curveAction);
+    }));
+    const curveEditor = form?.querySelector('[data-curve-editor]');
+    if (curveEditor) {
+      curveEditor.addEventListener('pointerdown', beginCurveDrag);
+      curveEditor.addEventListener('pointermove', moveCurveDrag);
+      curveEditor.addEventListener('pointerup', endCurveDrag);
+      curveEditor.addEventListener('pointercancel', endCurveDrag);
+    }
     document.querySelectorAll('[data-barrage-action]').forEach(button => button.addEventListener('click', () => {
       openBarrageLab(form, button.dataset.barrageAction);
     }));
@@ -997,7 +1193,10 @@
   }
 
   function selectItem(id, openInspector = true) {
-    if (selectedId !== id) selectedPathPoint = 0;
+    if (selectedId !== id) {
+      selectedPathPoint = 0;
+      selectedCurvePoint = 0;
+    }
     selectedId = stageDocument?.findItem(id) ? id : null;
     document.querySelectorAll('.timeline-clip').forEach(clip => clip.classList.toggle('selected', clip.dataset.itemId === selectedId));
     const authored = stageDocument?.findItem(selectedId);
@@ -1149,7 +1348,7 @@
             </section>
           ` : ''}
           ${formItem.type === 'environment' && formItem.payload?.pluginId === 'scroll-speed' ? `
-            <label>배경 스크롤 배율<input name="scrollMultiplier" type="number" min="0" max="5" step="0.05" value="${formItem.payload.params.curve[0]?.value ?? 1}"></label>
+            ${curveEditorMarkup(formItem)}
           ` : ''}
           ${formItem.type === 'cue' && formItem.payload?.params ? `
             <label>표시 문구<input name="message" value="${escapeHtml(formItem.payload.params.message || '')}"></label>

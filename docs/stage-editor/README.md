@@ -1,10 +1,11 @@
 # Pixel Wave Stage Sequencer design index
 
-The Stage Sequencer contract now has a complete M3 wave-authoring slice. The
+The Stage Sequencer contract now has a complete M3 wave-authoring slice, and
+M4 environment authoring is underway with editable scroll-speed curves. The
 current game runtime has not been replaced; the editor remains isolated under
 `tools/` until preview parity is proven.
 
-## Run M3
+## Run M4
 
 1. On Windows, double-click `run-stage-sequencer.bat` at the repository root.
    It starts the server and opens the editor. Alternatively run
@@ -46,7 +47,12 @@ current game runtime has not been replaced; the editor remains isolated under
     and peak time. The initial mobile guidance is 24/32 active enemies and
     240/360 active enemy projectiles for warning/critical status. Changing the
     difficulty, section, or custom IN/OUT range recalculates the report.
-11. Timeline clips show inherited, patched, replaced, disabled, and
+11. Select the `기본 스크롤` environment clip to edit its speed curve. Add or
+    remove interior points, select them with the arrow buttons, or drag a point
+    directly in the graph. Endpoint times remain locked to the clip bounds;
+    point values and interior times support the same base/difficulty scope and
+    coalesced undo model as path gestures.
+12. Timeline clips show inherited, patched, replaced, disabled, and
    active-difficulty-only states. The editor also supports duplicate/delete,
    undo/redo, Stage 3 JSON import, device autosave, and JSON export.
 
@@ -102,5 +108,8 @@ patch support, and legacy-fire timing/count controls. Its Barrage Lab slice adds
 existing/new pattern handoff, base or active-difficulty return, atomic dependency
 declaration and undo, and shared-runtime deterministic preview. Projectile/enemy
 budget tracking completes M3 with shared deterministic peak measurement,
-range-aware analysis, and a compact mobile overlay. M4 environment and special
-system authoring is next.
+range-aware analysis, and a compact mobile overlay. M4's first slice adds the
+shared `js/stage/plugin.js` contract for plugin state channels and scroll-curve
+normalization, validation, and sampling. The runtime and the direct-manipulation
+curve inspector now use that one implementation; generic plugin clips and the
+Stage 5/6 special systems remain next.

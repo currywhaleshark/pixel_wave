@@ -12,6 +12,7 @@
   const EntryApi = root.StageEntry || (typeof require === 'function' ? require('./entry.js') : null);
   const BehaviorApi = root.StageBehavior || (typeof require === 'function' ? require('./behavior.js') : null);
   const BarrageApi = root.StageBarrage || (typeof require === 'function' ? require('./barrage.js') : null);
+  const PluginApi = root.StagePlugin || (typeof require === 'function' ? require('./plugin.js') : null);
   const { Random, hashString } = RandomApi;
   const ID = /^[a-z0-9][a-z0-9-]*$/;
   const REQUIRED_DEPENDENCIES = Object.freeze([
@@ -149,6 +150,7 @@
         useDependency('terrainObjects', item.payload?.objectId, label);
       } else if (item?.payload?.pluginId) {
         useDependency('itemPlugins', item.payload.pluginId, label);
+        for (const error of PluginApi.validateItem(item)) errors.push(`${label}: ${error}`);
         if (item.type === 'boss') useDependency('bosses', item.payload.bossId, label);
       }
     }

@@ -1,7 +1,8 @@
 # Pixel Wave Stage Sequencer Roadmap v1
 
 Status: M1 complete; M2 core editing/difficulty/turtle slice complete; M3 wave
-authoring slice complete; M4 environment/special-system authoring is next. This
+authoring slice complete; M4 environment/special-system authoring is underway.
+The shared scroll-curve and plugin-channel foundation is complete. This
 document orders the existing Stage JSON, preset registry, barrage runtime, and
 terrain-profile designs into usable vertical releases. It does not authorize
 changing current stage gameplay yet.
@@ -497,6 +498,17 @@ Acceptance:
 - Barrage JSON executes through the shared runtime.
 
 ### M4 — Environment and special-system authoring
+
+Implemented first slice:
+
+- one shared scroll-curve normalizer, validator, and sampler for compiler,
+  simulation, and editor;
+- direct graph manipulation with add/delete/select controls, coalesced undo,
+  and base or active-difficulty authoring;
+- initial plugin state-channel metadata for multiplicative scroll and exclusive
+  player-control ownership;
+- responsive 390×844 inspector coverage and unchanged Stage 3 simulation
+  parity hashes.
 
 Scope:
 

@@ -10,6 +10,7 @@
   const BehaviorApi = root.StageBehavior || (typeof require === 'function' ? require('./behavior.js') : null);
   const BarrageApi = root.StageBarrage || (typeof require === 'function' ? require('./barrage.js') : null);
   const BudgetApi = root.StageBudget || (typeof require === 'function' ? require('./budget.js') : null);
+  const PluginApi = root.StagePlugin || (typeof require === 'function' ? require('./plugin.js') : null);
   const { Random, hashString, mixSeed } = RandomApi;
   const EPS = 1e-9;
 
@@ -20,21 +21,6 @@
   function round(value, places = 5) {
     const scale = 10 ** places;
     return Math.round(value * scale) / scale;
-  }
-
-  function interpolateCurve(points, at) {
-    if (!Array.isArray(points) || !points.length) return 1;
-    if (at <= points[0].at) return Number(points[0].value) || 0;
-    for (let index = 1; index < points.length; index++) {
-      const next = points[index];
-      const previous = points[index - 1];
-      if (at <= next.at) {
-        const span = next.at - previous.at;
-        const ratio = span > 0 ? (at - previous.at) / span : 1;
-        return previous.value + (next.value - previous.value) * ratio;
-      }
-    }
-    return Number(points[points.length - 1].value) || 0;
   }
 
   class Simulation {
@@ -196,7 +182,7 @@
       let multiplier = 1;
       for (const active of this.activeItems.values()) {
         if (active.payload?.pluginId === 'scroll-speed') {
-          multiplier *= interpolateCurve(active.payload.params?.curve, at - active.start);
+          multiplier *= PluginApi.sampleCurve(active.payload.params?.curve, at - active.start);
         }
         if (active.payload?.pluginId === 'turtle-ride') {
           multiplier *= Number(active.payload.params?.scrollMultiplier) || 1;
@@ -620,7 +606,7 @@
     }
   }
 
-  const api = Object.freeze({ Simulation, interpolateCurve });
+  const api = Object.freeze({ Simulation, interpolateCurve: PluginApi.sampleCurve });
   root.StageSimulation = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);
