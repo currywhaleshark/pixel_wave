@@ -10,6 +10,7 @@
   const PathApi = root.StagePath || (typeof require === 'function' ? require('./path.js') : null);
   const FormationApi = root.StageFormation || (typeof require === 'function' ? require('./formation.js') : null);
   const EntryApi = root.StageEntry || (typeof require === 'function' ? require('./entry.js') : null);
+  const BehaviorApi = root.StageBehavior || (typeof require === 'function' ? require('./behavior.js') : null);
   const { Random, hashString } = RandomApi;
   const ID = /^[a-z0-9][a-z0-9-]*$/;
   const REQUIRED_DEPENDENCIES = Object.freeze([
@@ -126,10 +127,12 @@
         useDependency('formationPresets', payload.formation?.presetId, label);
         for (const error of FormationApi.validate(payload.formation, payload.spawn?.count)) errors.push(`${label}: ${error}`);
         useDependency('movementPresets', payload.movement?.presetId, label);
+        for (const error of BehaviorApi.validateMovement(payload.movement)) errors.push(`${label}: ${error}`);
         if (payload.movement?.presetId === 'custom-path') {
           for (const error of PathApi.validate(payload.movement.path)) errors.push(`${label}: ${error}`);
         }
         if (payload.weapon?.presetId) useDependency('weaponPresets', payload.weapon.presetId, label);
+        for (const error of BehaviorApi.validateWeapon(payload.weapon)) errors.push(`${label}: ${error}`);
         if (payload.weapon?.patternId) useDependency('barragePatterns', payload.weapon.patternId, label);
         if (payload.formation?.presetId !== 'wall-gap') {
           const count = finite(payload.spawn?.count, 0);
@@ -161,13 +164,14 @@
   }
 
   function compileWeapon(raw, difficulty) {
-    const weapon = clone(raw || { presetId: 'none' });
+    const weapon = BehaviorApi.normalizeWeapon(raw || { presetId: 'none' });
     if (weapon.presetId === 'none') return { presetId: 'none' };
-    weapon.interval = clamp((weapon.interval ?? 2) * difficulty.fireInt, 0.03, 120);
-    weapon.startDelay = clamp(weapon.startDelay ?? 0.6, 0, 120);
+    const effective = BehaviorApi.effectiveWeapon(weapon);
+    weapon.interval = clamp((effective.interval ?? 2) * difficulty.fireInt, 0.03, 120);
+    weapon.startDelay = clamp(effective.startDelay ?? 0.6, 0, 120);
     weapon.params = clone(weapon.params || {});
     if (weapon.presetId === 'legacy-ring') {
-      weapon.params.count = Math.round(clamp((weapon.params.count ?? 8) + difficulty.ringN, 1, 256));
+      weapon.params.count = Math.round(clamp(effective.params.count + difficulty.ringN, 1, 256));
     }
     return weapon;
   }
@@ -178,7 +182,7 @@
     const itemRandom = new Random(stage.seed).fork(`${item.id}:${payload.spawn?.seedOffset ?? 0}`);
     const formation = FormationApi.normalize(payload.formation, payload.spawn?.count);
     const entry = EntryApi.normalize(payload.entry);
-    const movement = clone(payload.movement);
+    const movement = BehaviorApi.normalizeMovement(payload.movement);
     if (movement.presetId === 'custom-path') movement.path = PathApi.normalize(movement.path);
     const weapon = compileWeapon(payload.weapon, difficulty);
     const pathStart = movement.presetId === 'custom-path' ? movement.path?.[0] : null;

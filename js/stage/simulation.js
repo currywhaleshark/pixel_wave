@@ -7,6 +7,7 @@
 
   const RandomApi = root.StageRandom || (typeof require === 'function' ? require('./random.js') : null);
   const PathApi = root.StagePath || (typeof require === 'function' ? require('./path.js') : null);
+  const BehaviorApi = root.StageBehavior || (typeof require === 'function' ? require('./behavior.js') : null);
   const { Random, hashString, mixSeed } = RandomApi;
   const EPS = 1e-9;
 
@@ -76,6 +77,9 @@
     _applyEvent(event) {
       if (event.type === 'spawn-enemy') {
         const source = clone(event.enemy);
+        if (source.movement?.presetId === 'u-turn') {
+          source.movement = BehaviorApi.effectiveMovement(source.movement);
+        }
         const movementParams = source.movement?.params || {};
         source.id = event.id;
         source.itemId = event.itemId;
@@ -255,9 +259,9 @@
         enemy.waveOffset = waveOffset;
       } else if (movement === 'u-turn') {
         if (enemy.vx === null) enemy.vx = -enemy.speed;
-        enemy.vx = Math.min(enemy.speed * 1.15, enemy.vx + enemy.speed * 0.85 * dt);
+        enemy.vx = Math.min(enemy.speed * params.maxSpeedMultiplier, enemy.vx + enemy.speed * params.acceleration * dt);
         enemy.x += enemy.vx * dt;
-        enemy.y = enemy.y0 + Math.sin(enemy.age * 1.8) * 18;
+        enemy.y = enemy.y0 + Math.sin(enemy.age * params.verticalFrequency) * params.verticalAmplitude;
       } else if (movement === 'enter-pause-exit') {
         if (enemy.state === 'enter') {
           enemy.x += directionX * enemy.speed * dt;
@@ -276,8 +280,9 @@
           enemy.y = enemy.targetY + sideY * wobble;
           if (enemy.pauseRemaining <= 0) enemy.state = 'exit';
         } else {
-          enemy.x += directionX * enemy.speed * 1.7 * dt;
-          enemy.y += directionY * enemy.speed * 1.7 * dt;
+          const exitMultiplier = params.exitMultiplier ?? 1.7;
+          enemy.x += directionX * enemy.speed * exitMultiplier * dt;
+          enemy.y += directionY * enemy.speed * exitMultiplier * dt;
         }
       } else if (movement === 'custom-path') {
         const point = PathApi.sample(enemy.movement.path, enemy.age, this.compiled.viewport);

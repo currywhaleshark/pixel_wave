@@ -441,7 +441,7 @@ Scope:
 - open a barrage pattern in Barrage Lab and return its ID;
 - projectile/enemy budget overlay.
 
-Implemented path, formation, and enemy/entry library slices:
+Implemented path, formation, library, and movement/weapon metadata slices:
 
 - `custom-path` movement with native normalized Stage JSON points;
 - shared path normalization, validation, easing, hold, and deterministic
@@ -465,9 +465,19 @@ Implemented path, formation, and enemy/entry library slices:
   entries, with X/Y-aware direct entry handles;
 - automatic dependency declarations grouped into the same undo command as the
   wave edit or insertion.
+- Korean registry metadata and contextual inspector fields for all five Stage 3
+  movement presets and all four Stage 3 weapon presets;
+- shared movement/weapon normalization and validation in
+  `js/stage/behavior.js`;
+- editable sine, enter/pause/exit, and U-turn parameters, including travel-axis
+  pause targets and runtime-backed U-turn/exit motion;
+- editable aimed/ring fire interval and first-shot delay plus ring base count;
+- base and active-difficulty behavior authoring through the existing patch
+  model, with atomic dependency declarations and undo;
+- explicit death-shot preview limits because M3 does not simulate player
+  collision, damage, or enemy death.
 
-Still pending in M3: movement and weapon metadata, Barrage Lab round-trip, and
-budget overlays.
+Still pending in M3: Barrage Lab round-trip and budget overlays.
 
 Acceptance:
 

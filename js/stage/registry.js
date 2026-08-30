@@ -29,14 +29,65 @@
       Object.freeze({ id: 'bottom-to-top', name: '아래 → 위', description: '화면 아래에서 떠오름', coordinate: 'x' }),
       Object.freeze({ id: 'diagonal', name: '대각선', description: '위나 아래에서 비스듬히 진입', coordinate: 'x' }),
     ]),
+    movementPresets: Object.freeze([
+      Object.freeze({ id: 'straight', name: '직선', description: '진입 방향과 속도를 유지해 곧게 이동', fields: Object.freeze([]) }),
+      Object.freeze({
+        id: 'sine', name: '물결', description: '진행 방향의 옆축으로 부드럽게 물결치며 이동',
+        fields: Object.freeze([
+          Object.freeze({ key: 'amplitude', target: 'params', label: '물결 폭', min: 0, max: 300, step: 1, default: 0 }),
+          Object.freeze({ key: 'frequency', target: 'params', label: '물결 속도', min: 0, max: 20, step: 0.1, default: 3 }),
+        ]),
+      }),
+      Object.freeze({
+        id: 'enter-pause-exit', name: '진입 · 정지 · 퇴장', description: '화면 안 목표점에서 잠시 멈춰 공격한 뒤 빠르게 퇴장',
+        fields: Object.freeze([
+          Object.freeze({ key: 'targetX', target: 'params', label: '정지 X 위치', min: 0, max: 1, step: 0.01, default: 0.68, defaults: Object.freeze({ 'left-to-right': 0.32 }), entryAxis: 'x' }),
+          Object.freeze({ key: 'targetY', target: 'params', label: '정지 Y 위치', min: 0, max: 1, step: 0.01, default: 0.3, defaults: Object.freeze({ 'bottom-to-top': 0.7, 'diagonal-up': 0.7 }), entryAxis: 'y' }),
+          Object.freeze({ key: 'pauseDuration', target: 'params', label: '정지 시간', min: 0, max: 60, step: 0.1, default: 2.2 }),
+          Object.freeze({ key: 'exitMultiplier', target: 'params', label: '퇴장 속도 배율', min: 0.1, max: 10, step: 0.05, default: 1.7 }),
+        ]),
+      }),
+      Object.freeze({
+        id: 'u-turn', name: '유턴', description: '반대 방향으로 진입한 뒤 가속해 되돌아가는 곡선 이동',
+        fields: Object.freeze([
+          Object.freeze({ key: 'acceleration', target: 'params', label: '유턴 가속', min: 0, max: 5, step: 0.05, default: 0.85 }),
+          Object.freeze({ key: 'maxSpeedMultiplier', target: 'params', label: '최대 속도 배율', min: 0.1, max: 5, step: 0.05, default: 1.15 }),
+          Object.freeze({ key: 'verticalAmplitude', target: 'params', label: '곡선 높이', min: 0, max: 300, step: 1, default: 18 }),
+          Object.freeze({ key: 'verticalFrequency', target: 'params', label: '곡선 속도', min: 0, max: 20, step: 0.1, default: 1.8 }),
+        ]),
+      }),
+      Object.freeze({ id: 'custom-path', name: '직접 경로', description: '미리보기 위의 번호 점을 직접 움직여 경로를 작성', fields: Object.freeze([]) }),
+    ]),
+    weaponPresets: Object.freeze([
+      Object.freeze({ id: 'none', name: '사격 없음', description: '이 웨이브에서는 탄을 발사하지 않음', fields: Object.freeze([]) }),
+      Object.freeze({
+        id: 'legacy-aimed', name: '조준탄', description: '플레이어를 향해 발사하며 난이도에 따라 탄 수와 속도가 증가',
+        fields: Object.freeze([
+          Object.freeze({ key: 'interval', target: 'root', label: '발사 간격', min: 0.03, max: 120, step: 0.01, default: 2 }),
+          Object.freeze({ key: 'startDelay', target: 'root', label: '첫 발 지연', min: 0, max: 120, step: 0.05, default: 0.6 }),
+        ]),
+      }),
+      Object.freeze({
+        id: 'legacy-ring', name: '원형탄', description: '원형 탄막을 발사하며 난이도 보정 전에 쓸 기본 탄 수를 지정',
+        fields: Object.freeze([
+          Object.freeze({ key: 'interval', target: 'root', label: '발사 간격', min: 0.03, max: 120, step: 0.01, default: 2 }),
+          Object.freeze({ key: 'startDelay', target: 'root', label: '첫 발 지연', min: 0, max: 120, step: 0.05, default: 0.6 }),
+          Object.freeze({ key: 'count', target: 'params', label: '기본 탄 수', min: 1, max: 256, step: 1, default: 8, integer: true }),
+        ]),
+      }),
+      Object.freeze({
+        id: 'legacy-death-shot', name: '유언탄', description: '적이 격파될 때 난이도별 탄을 발사. 무피격 시퀀서 미리보기에서는 발생하지 않음',
+        fields: Object.freeze([]),
+      }),
+    ]),
   });
 
   const categories = Object.freeze({
     enemyKinds: new Set(definitions.enemyKinds.map(item => item.id)),
     entryPresets: new Set(definitions.entryPresets.map(item => item.id)),
     formationPresets: new Set(['single', 'column', 'v', 'wall-gap']),
-    movementPresets: new Set(['straight', 'sine', 'enter-pause-exit', 'u-turn', 'custom-path']),
-    weaponPresets: new Set(['none', 'legacy-aimed', 'legacy-ring', 'legacy-death-shot']),
+    movementPresets: new Set(definitions.movementPresets.map(item => item.id)),
+    weaponPresets: new Set(definitions.weaponPresets.map(item => item.id)),
     barragePatterns: new Set(),
     itemPlugins: new Set(['scroll-speed', 'turtle-ride', 'boss-warning', 'boss-start']),
     terrainObjects: new Set(),

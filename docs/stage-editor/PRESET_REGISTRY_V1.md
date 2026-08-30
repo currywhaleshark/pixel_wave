@@ -215,8 +215,8 @@ Registry v1 movements:
 |---|---|---|
 | `straight` | M1 | none |
 | `sine` | M2 | `amplitude`, `frequency` |
-| `enter-pause-exit` | M3 | `targetX`, `pauseDuration`, optional exit multiplier |
-| `u-turn` | M4 | acceleration, turn rate, vertical amplitude |
+| `enter-pause-exit` | M3 | `targetX`/`targetY`, `pauseDuration`, `exitMultiplier` |
+| `u-turn` | M4 | `acceleration`, `maxSpeedMultiplier`, `verticalAmplitude`, `verticalFrequency` |
 | `soft-homing` | M5 | tracking duration, maximum turn rate |
 | `terrain-scroll` | M6 | terrain layer and anchor; legacy migration only |
 | `current-surf` | M7 | amplitude, frequency, current influence |
@@ -295,6 +295,11 @@ Registry v1 weapons:
 
 The `legacy-*` IDs preserve current behavior during migration. They may later
 be replaced by Barrage JSON references after parity tests pass.
+
+The Stage 3 M3 inspector currently exposes `interval` and `startDelay` for
+`legacy-aimed` and `legacy-ring`, plus the pre-difficulty `params.count` for
+`legacy-ring`. `legacy-death-shot` has no timed inspector fields because it is
+triggered by enemy death rather than the ordinary update timer.
 
 ## 8. Item plugin
 

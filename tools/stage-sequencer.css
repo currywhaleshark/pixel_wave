@@ -317,6 +317,9 @@ input[type='range'] { width: 100%; min-height: 40px; margin: 0; accent-color: va
 .formation-editor-heading b { color: #fff4c4; font-size: 11px; }
 .formation-editor p { margin: 0; color: #b8ad87; font-size: 8px; line-height: 1.55; }
 .library-hint { min-height: 1.25em; margin: -2px 0 2px; color: var(--muted); font-size: 8px; line-height: 1.45; }
+.behavior-editor { display: grid; gap: 8px; padding: 9px; border: 1px solid #315c79; border-radius: 7px; background: #091d32; }
+.behavior-editor p { margin: 0; color: #a8bfd0; font-size: 8px; line-height: 1.55; }
+.behavior-empty { color: #6f8ba0; font-size: 8px; }
 .inspector-form [hidden], .editor-dialog [hidden] { display: none !important; }
 .inspector-form label.check-label { min-height: 42px; padding: 7px 8px; display: flex; align-items: center; gap: 7px; border: 1px solid #2b587e; border-radius: 6px; background: #061a31; }
 .inspector-form .check-label input { width: 18px; height: 18px; min-height: 18px; margin: 0; padding: 0; border: 0; accent-color: var(--pink); }

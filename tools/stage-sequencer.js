@@ -442,6 +442,55 @@
     )).join('');
   }
 
+  function behaviorFieldName(prefix, presetId, field) {
+    return `${prefix}_${presetId}_${field.key}`;
+  }
+
+  function renderBehaviorSections(category, currentPreset, prefix, entryDefinition = null, entry = null) {
+    const currentId = currentPreset?.presetId;
+    const targetAxis = entryDefinition?.coordinate === 'x' ? 'y' : 'x';
+    const context = { entryPresetId: entryDefinition?.id, entryVertical: entry?.params?.vertical };
+    return StageRegistry.entries(category).map(definition => {
+      const active = definition.id === currentId;
+      const effective = category === 'movementPresets'
+        ? StageBehavior.effectiveMovement(active ? currentPreset : { presetId: definition.id }, context)
+        : StageBehavior.effectiveWeapon(active ? currentPreset : { presetId: definition.id });
+      const fields = (definition.fields || []).map(field => {
+        const axisActive = !field.entryAxis || field.entryAxis === targetAxis;
+        const disabled = !active || !axisActive;
+        const authoredValue = active ? StageBehavior.rawFieldValue(currentPreset, field) : undefined;
+        const value = StageBehavior.rawFieldValue(effective, field);
+        return `<label data-entry-axis="${field.entryAxis || ''}" ${axisActive ? '' : 'hidden'}>${escapeHtml(field.label)}<input name="${escapeHtml(behaviorFieldName(prefix, definition.id, field))}" data-behavior-key="${escapeHtml(field.key)}" data-authored="${authoredValue === undefined ? 'false' : 'true'}" type="number" min="${field.min}" max="${field.max}" step="${field.step}" value="${escapeHtml(value)}" ${disabled ? 'disabled' : ''}></label>`;
+      }).join('');
+      return `<section class="behavior-editor" data-behavior-section="${prefix}" data-preset-id="${escapeHtml(definition.id)}" ${active ? '' : 'hidden'}>
+        <p>${escapeHtml(definition.description || '')}</p>
+        ${fields ? `<div class="form-row two">${fields}</div>` : '<span class="behavior-empty">추가 파라미터가 없습니다.</span>'}
+      </section>`;
+    }).join('');
+  }
+
+  function readBehaviorPreset(values, category, prefix, presetId, previous) {
+    const output = previous?.presetId === presetId ? StageDocument.clone(previous) : { presetId };
+    output.presetId = presetId;
+    const definition = StageRegistry.get(category, presetId);
+    for (const field of definition?.fields || []) {
+      const name = behaviorFieldName(prefix, presetId, field);
+      if (!values.has(name)) continue;
+      const fallback = field.default;
+      const raw = Number(values.get(name));
+      const bounded = Math.max(field.min, Math.min(field.max, Number.isFinite(raw) ? raw : fallback));
+      const value = field.integer ? Math.round(bounded) : bounded;
+      if (field.target === 'root') output[field.key] = value;
+      else {
+        output.params = StageDocument.clone(output.params || {});
+        output.params[field.key] = value;
+      }
+    }
+    return category === 'movementPresets'
+      ? StageBehavior.normalizeMovement(output)
+      : StageBehavior.normalizeWeapon(output);
+  }
+
   function ensureDependency(candidate, category, id) {
     if (!id || !StageRegistry.knows(category, id)) return;
     const values = candidate.dependencies?.[category];
@@ -591,7 +640,9 @@
         next.payload.formation = { presetId: formationId };
       }
       const movementId = String(values.get('movement'));
-      next.payload.movement.presetId = movementId;
+      next.payload.movement = readBehaviorPreset(
+        values, 'movementPresets', 'movement', movementId, next.payload.movement,
+      );
       if (movementId === 'custom-path') {
         if (!Array.isArray(next.payload.movement.path) || next.payload.movement.path.length < 2) {
           next.payload.movement.path = StagePath.defaultForWave(next, rawStage.viewport);
@@ -609,7 +660,10 @@
       } else {
         delete next.payload.movement.path;
       }
-      next.payload.weapon.presetId = String(values.get('weapon'));
+      const weaponId = String(values.get('weapon'));
+      next.payload.weapon = readBehaviorPreset(
+        values, 'weaponPresets', 'weapon', weaponId, next.payload.weapon,
+      );
       next.timing.duration = formationId === 'wall-gap' ? 0 : (count - 1) * interval;
     } else if (next.type === 'environment' && next.payload?.pluginId === 'scroll-speed') {
       const multiplier = Math.max(0, Math.min(5, Number(values.get('scrollMultiplier')) || 0));
@@ -667,6 +721,31 @@
     if (coordinateLabel) coordinateLabel.textContent = entryDefinition?.coordinate === 'x' ? '진입 X 위치' : '진입 높이';
     const diagonalControl = form?.querySelector('[data-entry-diagonal]');
     if (diagonalControl) diagonalControl.hidden = entrySelect?.value !== 'diagonal';
+
+    const targetAxis = entryDefinition?.coordinate === 'x' ? 'y' : 'x';
+    const behaviorContext = {
+      entryPresetId: entryDefinition?.id,
+      entryVertical: form?.elements?.entryVertical?.value,
+    };
+    for (const prefix of ['movement', 'weapon']) {
+      const select = form?.elements?.[prefix];
+      if (!select) continue;
+      form.querySelectorAll(`[data-behavior-section="${prefix}"]`).forEach(section => {
+        const active = section.dataset.presetId === select.value;
+        section.hidden = !active;
+        section.querySelectorAll('input, select').forEach(input => {
+          const axis = input.closest('[data-entry-axis]')?.dataset.entryAxis;
+          const axisActive = !axis || axis === targetAxis;
+          input.closest('[data-entry-axis]')?.toggleAttribute('hidden', !axisActive);
+          input.disabled = !active || !axisActive;
+          if (prefix === 'movement' && input.dataset.authored === 'false') {
+            const definition = StageRegistry.get('movementPresets', section.dataset.presetId);
+            const field = definition?.fields?.find(item => item.key === input.dataset.behaviorKey);
+            if (field) input.value = StageBehavior.fieldDefault(field, behaviorContext);
+          }
+        });
+      });
+    }
   }
 
   function bindInspectorForm() {
@@ -678,6 +757,12 @@
     if (form?.elements?.enemyKind) {
       form.elements.enemyKind.addEventListener('change', () => updateLibraryHints(form, true));
       form.elements.entryPreset.addEventListener('change', () => updateLibraryHints(form));
+      form.elements.entryVertical.addEventListener('change', () => updateLibraryHints(form));
+      form.elements.movement.addEventListener('change', () => updateLibraryHints(form));
+      form.elements.weapon.addEventListener('change', () => updateLibraryHints(form));
+      form.querySelectorAll('[data-behavior-key]').forEach(input => input.addEventListener('input', () => {
+        input.dataset.authored = 'true';
+      }));
       updateLibraryHints(form);
     }
     document.querySelectorAll('[data-nudge]').forEach(button => button.addEventListener('click', () => nudgeSelected(Number(button.dataset.nudge))));
@@ -889,7 +974,8 @@
                 </div>
               ` : ''}
             </section>
-            <label>이동<select name="movement">${optionList(rawStage.dependencies.movementPresets, formItem.payload.movement.presetId)}</select></label>
+            <label>이동<select name="movement">${definitionOptionList('movementPresets', formItem.payload.movement.presetId)}</select></label>
+            ${renderBehaviorSections('movementPresets', formItem.payload.movement, 'movement', formEntryDefinition, formEntry)}
             ${pathPoint ? `
               <section class="path-editor">
                 <div class="path-editor-heading"><strong>이동 궤적</strong><span>점 ${selectedPathPoint + 1} / ${formPath.length}</span></div>
@@ -907,7 +993,8 @@
                 </div>
               </section>
             ` : ''}
-            <label>사격<select name="weapon">${optionList(rawStage.dependencies.weaponPresets, formItem.payload.weapon.presetId)}</select></label>
+            <label>사격<select name="weapon">${definitionOptionList('weaponPresets', formItem.payload.weapon.presetId)}</select></label>
+            ${renderBehaviorSections('weaponPresets', formItem.payload.weapon, 'weapon', formEntryDefinition)}
           ` : ''}
           ${formItem.type === 'environment' && formItem.payload?.pluginId === 'scroll-speed' ? `
             <label>배경 스크롤 배율<input name="scrollMultiplier" type="number" min="0" max="5" step="0.05" value="${formItem.payload.params.curve[0]?.value ?? 1}"></label>

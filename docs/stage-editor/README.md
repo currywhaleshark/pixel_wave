@@ -31,7 +31,12 @@ until preview parity is proven.
    enemy kinds and all five legacy entry directions are available with Korean
    names, descriptions, and enemy defaults. Choosing a dependency not yet used
    by the stage adds its declaration in the same undoable command.
-8. Timeline clips show inherited, patched, replaced, disabled, and
+8. Movement and weapon selectors use shared Korean registry metadata. The
+   inspector exposes only the parameters used by the selected preset: sine,
+   enter/pause/exit, U-turn, aimed fire, and ring fire. Entry/pause target
+   controls follow the wave's travel axis. Death-shot explains that it needs a
+   kill event and therefore does not fire in the collision-free preview.
+9. Timeline clips show inherited, patched, replaced, disabled, and
    active-difficulty-only states. The editor also supports duplicate/delete,
    undo/redo, Stage 3 JSON import, device autosave, and JSON export.
 
@@ -39,7 +44,8 @@ The simulator uses deterministic fixed steps and 5-second snapshots. The shared
 `js/stage/path.js` module normalizes, validates, and samples custom paths,
 `js/stage/entry.js` resolves the five screen-edge entry presets, and
 `js/stage/formation.js` resolves direction-aware V spacing, wall gaps, and enemy
-counts for both the compiler and editor. It previews spawns, movement, legacy
+counts for both the compiler and editor. `js/stage/behavior.js` normalizes and
+validates movement/weapon fields from the shared registry metadata. It previews spawns, movement, legacy
 enemy fire, Stage 3's turtle ride, background scroll changes, warning, and boss
 entry. Player input, collision, damage, and live game-runtime replacement
 remain intentionally outside this slice.
@@ -79,5 +85,7 @@ formation slice adds entry-direction authoring, shared V/wall layout rules,
 resolved-count feedback, and direct desktop/touch formation handles. The enemy
 and entry library slice adds eight ordinary enemy definitions, all five legacy
 entry directions, direction-aware formation rotation, and atomic dependency
-declarations. Movement/weapon metadata, Barrage Lab handoff, and budget overlays
-are still pending.
+declarations. The movement/weapon slice adds parameter-aware Korean inspectors,
+shared validation, axis-aware pause targets, editable U-turn motion, difficulty
+patch support, and legacy-fire timing/count controls. Barrage Lab handoff and
+budget overlays are still pending.

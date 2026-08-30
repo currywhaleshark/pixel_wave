@@ -104,6 +104,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
     'js/stage/registry.js',
     'js/stage/path.js',
     'js/stage/formation.js',
+    'js/stage/behavior.js',
     'js/stage/compiler.js',
     'js/stage/simulation.js',
     'js/stage/document.js',
@@ -114,6 +115,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(html.indexOf('js/stage/path.js') < html.indexOf('js/stage/compiler.js'));
   assert.ok(html.indexOf('js/stage/entry.js') < html.indexOf('js/stage/compiler.js'));
   assert.ok(html.indexOf('js/stage/formation.js') < html.indexOf('js/stage/compiler.js'));
+  assert.ok(html.indexOf('js/stage/behavior.js') < html.indexOf('js/stage/compiler.js'));
   assert.ok(html.indexOf('js/stage/compiler.js') < html.indexOf('tools/stage-sequencer.js'));
   assert.ok(html.includes('<title>픽셀 파도 — 스테이지 시퀀서 M3</title>'));
   assert.ok(html.includes('id="markRangeIn"'));
@@ -123,7 +125,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(html.includes('id="importStageFile"'));
   assert.ok(html.includes('class="difficulty-legend"'));
   assert.ok(html.includes('id="activeDifficultyOnlyOption"'));
-  assert.ok(html.includes('tools/stage-sequencer.js?v=6'));
+  assert.ok(html.includes('tools/stage-sequencer.js?v=7'));
   const sequencer = fs.readFileSync(path.join(root, 'tools/stage-sequencer.js'), 'utf8');
   assert.ok(sequencer.includes('data-difficulty-action="disable"'));
   assert.ok(sequencer.includes("pluginId === 'turtle-ride'"));
@@ -137,6 +139,9 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(sequencer.includes("canvas.addEventListener('pointerdown', beginFormationDrag)"));
   assert.ok(sequencer.includes("'v-spread': 'V 편대 간격 조정'"));
   assert.ok(sequencer.includes("definitionOptionList('enemyKinds'"));
+  assert.ok(sequencer.includes("definitionOptionList('movementPresets'"));
+  assert.ok(sequencer.includes("definitionOptionList('weaponPresets'"));
+  assert.ok(sequencer.includes('data-behavior-section'));
   assert.ok(sequencer.includes('ensureWaveDependencies(candidate'));
   assert.ok(sequencer.includes("drag.coordinate === 'x' ? '진입 X 이동'"));
   assert.ok(sequencer.includes('validateStageCandidate(candidate)'));
@@ -146,7 +151,8 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(serviceWorker.includes('../js/stage/path.js'));
   assert.ok(serviceWorker.includes('../js/stage/entry.js'));
   assert.ok(serviceWorker.includes('../js/stage/formation.js'));
-  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m3-v3'));
+  assert.ok(serviceWorker.includes('../js/stage/behavior.js'));
+  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m3-v4'));
 }
 
 console.log('stage runtime: ok', results);
