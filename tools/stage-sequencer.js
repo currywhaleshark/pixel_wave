@@ -28,6 +28,7 @@
   let stageDocument = null;
   let compiled = null;
   let simulation = null;
+  let budgetReport = null;
   let selectedId = null;
   let playing = false;
   let previewSpeed = 1;
@@ -189,6 +190,14 @@
     }, 500);
   }
 
+  function refreshBudgetReport() {
+    if (!simulation || !compiled) return;
+    const fullRange = range.start <= 0 && range.end >= compiled.timeline.duration;
+    budgetReport = fullRange
+      ? simulation.budgetAnalysis
+      : simulation.analyzeBudget(range.start, range.end);
+  }
+
   function compileAtDifficulty(difficulty, preserveTime = 0) {
     setStatus('컴파일 중', 'loading');
     rawStage = stageDocument?.stage || rawStage;
@@ -196,6 +205,7 @@
     simulation = new StageSimulation.Simulation(compiled, { fixedStep: 1 / 60, snapshotInterval: 5 });
     const snapshotCount = simulation.buildSnapshotCache();
     simulation.seek(Math.min(preserveTime, compiled.timeline.duration));
+    refreshBudgetReport();
     setStatus(`검증 완료 · 스냅샷 ${snapshotCount}`, '');
     renderTimeline();
     selectItem(selectedId, false);
@@ -258,6 +268,7 @@
   function setRange(section) {
     range = { id: section.id, name: section.name, start: section.start, end: section.end };
     simulation.seek(range.start);
+    refreshBudgetReport();
     renderSectionButtons();
     updateUi(true);
   }
@@ -276,6 +287,7 @@
       if (start >= end - 0.1) start = Math.max(0, end - 5);
     }
     range = { id: 'custom', name: '사용자 구간', start, end };
+    refreshBudgetReport();
     renderSectionButtons();
     updateUi(false);
   }
@@ -1201,6 +1213,27 @@
       || compiled.sections[compiled.sections.length - 1];
   }
 
+  function updateBudgetOverlay(stats) {
+    const overlay = $('#budgetOverlay');
+    const live = stats.budget?.current;
+    const report = budgetReport || stats.budgetAnalysis || stats.budget;
+    if (!overlay || !live || !report) return;
+    const labels = { ok: '안정', warning: '주의', critical: '상한 초과' };
+    const level = report.peakSeverity || 'ok';
+    const enemyPeak = report.peaks.enemies;
+    const projectilePeak = report.peaks.projectiles;
+    overlay.dataset.level = level;
+    overlay.setAttribute('aria-label', `${range.name} 성능 예산 ${labels[level]}. 현재 적 ${live.enemies.value}, 탄 ${live.projectiles.value}.`);
+    $('#budgetStatus').textContent = labels[level];
+    $('#budgetEnemyCurrent').textContent = live.enemies.value;
+    $('#budgetProjectileCurrent').textContent = live.projectiles.value;
+    $('#budgetEnemyPeak').textContent = `최고 ${enemyPeak.value} @${formatTime(enemyPeak.time)} / 권장 ${enemyPeak.warning}`;
+    $('#budgetProjectilePeak').textContent = `최고 ${projectilePeak.value} @${formatTime(projectilePeak.time)} / 권장 ${projectilePeak.warning}`;
+    $('#budgetEnemyMeter').style.setProperty('--budget-fill', `${Math.min(100, enemyPeak.ratio * 100).toFixed(1)}%`);
+    $('#budgetProjectileMeter').style.setProperty('--budget-fill', `${Math.min(100, projectilePeak.ratio * 100).toFixed(1)}%`);
+    $('#budgetRange').textContent = `${range.name} · 상한 적 ${enemyPeak.critical} / 탄 ${projectilePeak.critical}`;
+  }
+
   function updateUi(follow = false) {
     if (!simulation) return;
     const stats = simulation.stats();
@@ -1211,6 +1244,7 @@
     $('#previewMode').textContent = range.id === 'full' ? '전체 미리보기' : '구간 반복';
     $('#sectionLabel').textContent = currentSection()?.name || compiled.metadata.name;
     $('#previewStats').textContent = `적 ${stats.enemies} · 탄 ${stats.bullets} · 누적 ${stats.spawnedEnemyCount}/${compiled.resolvedEnemyCount} · ${stats.stateHash}`;
+    updateBudgetOverlay(stats);
     if (follow && performance.now() - lastFollow > 180) {
       const viewport = $('#timelineViewport');
       const x = simulation.time * PIXELS_PER_SECOND;

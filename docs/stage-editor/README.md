@@ -1,8 +1,8 @@
 # Pixel Wave Stage Sequencer design index
 
-The Stage Sequencer contract now has an M3 wave-authoring slice. The current game
-runtime has not been replaced; the editor remains isolated under `tools/`
-until preview parity is proven.
+The Stage Sequencer contract now has a complete M3 wave-authoring slice. The
+current game runtime has not been replaced; the editor remains isolated under
+`tools/` until preview parity is proven.
 
 ## Run M3
 
@@ -41,7 +41,12 @@ until preview parity is proven.
    return to the same wave, edit scope, and difficulty. The returned change is
    one undoable command and the preview runs it through the shared
    `BarrageRuntime`, including deterministic snapshot seeking.
-10. Timeline clips show inherited, patched, replaced, disabled, and
+10. The preview's active-budget overlay reads actual fixed-step simulation
+    counts. It shows current enemies/projectiles plus the selected range's peak
+    and peak time. The initial mobile guidance is 24/32 active enemies and
+    240/360 active enemy projectiles for warning/critical status. Changing the
+    difficulty, section, or custom IN/OUT range recalculates the report.
+11. Timeline clips show inherited, patched, replaced, disabled, and
    active-difficulty-only states. The editor also supports duplicate/delete,
    undo/redo, Stage 3 JSON import, device autosave, and JSON export.
 
@@ -96,4 +101,6 @@ shared validation, axis-aware pause targets, editable U-turn motion, difficulty
 patch support, and legacy-fire timing/count controls. Its Barrage Lab slice adds
 existing/new pattern handoff, base or active-difficulty return, atomic dependency
 declaration and undo, and shared-runtime deterministic preview. Projectile/enemy
-budget overlays are the remaining M3 slice.
+budget tracking completes M3 with shared deterministic peak measurement,
+range-aware analysis, and a compact mobile overlay. M4 environment and special
+system authoring is next.

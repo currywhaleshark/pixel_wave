@@ -5,7 +5,21 @@ require('../js/barragePatterns.generated.js');
 require('../js/barrage.js');
 
 const catalog = globalThis.BARRAGE_PATTERN_DATA;
-assert.equal(Object.keys(catalog).length, 11, '기본 탄막 프리셋 11종이 번들되어야 한다');
+const baselineIds = [
+  'bait-and-harpoon',
+  'constellation-pulse',
+  'crossing-rain',
+  'curve-seeder',
+  'laser-sweep',
+  'mine-bloom-garden',
+  'needle-pendulum',
+  'pangpang-needle-fan',
+  'stop-and-turn',
+  'twin-current-spiral',
+  'wandering-gates',
+];
+assert.ok(Object.keys(catalog).length >= baselineIds.length, '기본 탄막 프리셋 11종 이상이 번들되어야 한다');
+for (const id of baselineIds) assert.ok(catalog[id], `기본 탄막 '${id}'이 번들에 있어야 한다`);
 
 for (const [id, raw] of Object.entries(catalog)) {
   assert.equal(raw.id, id, `${id}: 레지스트리 키와 패턴 id가 같아야 한다`);

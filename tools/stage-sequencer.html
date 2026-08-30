@@ -37,6 +37,20 @@
           <span id="sectionLabel">불러오는 중</span>
           <span id="previewMode">전체 미리보기</span>
         </div>
+        <aside id="budgetOverlay" class="budget-overlay" data-level="ok" aria-label="적과 적탄 성능 예산">
+          <div class="budget-heading"><span>활성 예산</span><strong id="budgetStatus">계산 중</strong></div>
+          <div class="budget-row">
+            <span>적</span><strong id="budgetEnemyCurrent">0</strong>
+            <span class="budget-meter"><i id="budgetEnemyMeter"></i></span>
+            <small id="budgetEnemyPeak">최고 - / 권장 24</small>
+          </div>
+          <div class="budget-row">
+            <span>탄</span><strong id="budgetProjectileCurrent">0</strong>
+            <span class="budget-meter"><i id="budgetProjectileMeter"></i></span>
+            <small id="budgetProjectilePeak">최고 - / 권장 240</small>
+          </div>
+          <small id="budgetRange" class="budget-range">전체 구간</small>
+        </aside>
         <div id="loadingOverlay" class="loading-overlay">Stage 3 데이터를 준비하고 있습니다…</div>
       </div>
 
@@ -178,10 +192,11 @@
   <script src="js/stage/registry.js?v=1"></script>
   <script src="js/stage/behavior.js?v=1"></script>
   <script src="js/stage/barrage.js?v=1"></script>
+  <script src="js/stage/budget.js?v=1"></script>
   <script src="js/stage/compiler.js?v=1"></script>
   <script src="js/stage/simulation.js?v=1"></script>
   <script src="js/stage/document.js?v=2"></script>
   <script src="js/stage/persistence.js?v=1"></script>
-  <script src="tools/stage-sequencer.js?v=8"></script>
+  <script src="tools/stage-sequencer.js?v=9"></script>
 </body>
 </html>

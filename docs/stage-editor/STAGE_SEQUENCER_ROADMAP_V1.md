@@ -1,7 +1,7 @@
 # Pixel Wave Stage Sequencer Roadmap v1
 
 Status: M1 complete; M2 core editing/difficulty/turtle slice complete; M3 wave
-authoring slice in progress. This
+authoring slice complete; M4 environment/special-system authoring is next. This
 document orders the existing Stage JSON, preset registry, barrage runtime, and
 terrain-profile designs into usable vertical releases. It does not authorize
 changing current stage gameplay yet.
@@ -441,8 +441,8 @@ Scope:
 - open a barrage pattern in Barrage Lab and return its ID;
 - projectile/enemy budget overlay.
 
-Implemented path, formation, library, movement/weapon metadata, and Barrage Lab
-round-trip slices:
+Implemented path, formation, library, movement/weapon metadata, Barrage Lab
+round-trip, and active-budget slices:
 
 - `custom-path` movement with native normalized Stage JSON points;
 - shared path normalization, validation, easing, hold, and deterministic
@@ -482,9 +482,12 @@ round-trip slices:
 - one-command pattern application with automatic `barragePatterns` dependency
   declaration and undo;
 - shared `BarrageRuntime.Runner` execution, projectile updates, and serialized
-  runner state in deterministic seek snapshots.
-
-Still pending in M3: projectile/enemy budget overlays.
+  runner state in deterministic seek snapshots;
+- shared fixed-step active enemy/projectile tracking with snapshot/restore;
+- current and selected-range peak counts with their peak times, recalculated for
+  difficulty, section, and custom IN/OUT changes;
+- compact desktop/mobile overlay using initial warning/critical guidance of
+  24/32 active enemies and 240/360 active enemy projectiles.
 
 Acceptance:
 

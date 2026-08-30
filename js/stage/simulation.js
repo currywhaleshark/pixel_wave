@@ -9,6 +9,7 @@
   const PathApi = root.StagePath || (typeof require === 'function' ? require('./path.js') : null);
   const BehaviorApi = root.StageBehavior || (typeof require === 'function' ? require('./behavior.js') : null);
   const BarrageApi = root.StageBarrage || (typeof require === 'function' ? require('./barrage.js') : null);
+  const BudgetApi = root.StageBudget || (typeof require === 'function' ? require('./budget.js') : null);
   const { Random, hashString, mixSeed } = RandomApi;
   const EPS = 1e-9;
 
@@ -43,6 +44,8 @@
       this.snapshotInterval = options.snapshotInterval || 5;
       this.snapshotCache = new Map();
       this.itemById = new Map(compiled.items.map(item => [item.id, item]));
+      this.budgetLimits = BudgetApi.normalizeLimits(options.budgetLimits);
+      this.budgetAnalysis = null;
       this.reset();
     }
 
@@ -65,7 +68,9 @@
       this.warningUntil = 0;
       this.spawnedEnemyCount = 0;
       this.firedBulletCount = 0;
+      this.budgetTracker = new BudgetApi.Tracker(this.budgetLimits);
       this._processEventsAtCurrentTime();
+      this.budgetTracker.observe(this.time, { enemies: this.enemies.length, projectiles: this.bullets.length });
       return this;
     }
 
@@ -455,6 +460,7 @@
         this.time = targetTime;
         this._processEventsAtCurrentTime();
       }
+      this.budgetTracker.observe(this.time, { enemies: this.enemies.length, projectiles: this.bullets.length });
     }
 
     _advanceExactTo(targetTime) {
@@ -503,6 +509,7 @@
         warningUntil: this.warningUntil,
         spawnedEnemyCount: this.spawnedEnemyCount,
         firedBulletCount: this.firedBulletCount,
+        budget: this.budgetTracker.snapshot(),
       });
     }
 
@@ -529,6 +536,7 @@
       this.warningUntil = state.warningUntil;
       this.spawnedEnemyCount = state.spawnedEnemyCount;
       this.firedBulletCount = state.firedBulletCount;
+      this.budgetTracker = new BudgetApi.Tracker(this.budgetLimits).restore(state.budget);
       return this;
     }
 
@@ -541,7 +549,24 @@
         this.snapshotCache.set(round(at, 6), this.createSnapshot());
       }
       this.reset();
+      this.budgetAnalysis = this.analyzeBudget(0, this.compiled.timeline.duration);
       return this.snapshotCache.size;
+    }
+
+    analyzeBudget(start = 0, end = this.compiled.timeline.duration) {
+      const duration = this.compiled.timeline.duration;
+      const from = Math.max(0, Math.min(duration, Number(start) || 0));
+      const requestedEnd = Number(end);
+      const to = Math.max(from, Math.min(duration, Number.isFinite(requestedEnd) ? requestedEnd : duration));
+      const preserved = this.createSnapshot();
+      this.seek(from);
+      this.budgetTracker = new BudgetApi.Tracker(this.budgetLimits);
+      this.budgetTracker.observe(this.time, { enemies: this.enemies.length, projectiles: this.bullets.length });
+      this._advanceExactTo(to);
+      const report = this.budgetTracker.report();
+      report.range = { start: from, end: to };
+      this.restore(preserved);
+      return report;
     }
 
     seek(target) {
@@ -588,6 +613,8 @@
         pearls: this.pearls.length,
         spawnedEnemyCount: this.spawnedEnemyCount,
         firedBulletCount: this.firedBulletCount,
+        budget: this.budgetTracker.report(),
+        budgetAnalysis: this.budgetAnalysis,
         stateHash: this.stateHash(),
       };
     }

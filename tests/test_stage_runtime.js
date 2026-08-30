@@ -106,6 +106,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
     'js/stage/formation.js',
     'js/stage/behavior.js',
     'js/stage/barrage.js',
+    'js/stage/budget.js',
     'js/stage/compiler.js',
     'js/stage/simulation.js',
     'js/stage/document.js',
@@ -118,6 +119,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(html.indexOf('js/stage/formation.js') < html.indexOf('js/stage/compiler.js'));
   assert.ok(html.indexOf('js/stage/behavior.js') < html.indexOf('js/stage/compiler.js'));
   assert.ok(html.indexOf('js/stage/barrage.js') < html.indexOf('js/stage/compiler.js'));
+  assert.ok(html.indexOf('js/stage/budget.js') < html.indexOf('js/stage/simulation.js'));
   assert.ok(html.indexOf('js/stage/compiler.js') < html.indexOf('tools/stage-sequencer.js'));
   assert.ok(html.includes('<title>픽셀 파도 — 스테이지 시퀀서 M3</title>'));
   assert.ok(html.includes('id="markRangeIn"'));
@@ -127,7 +129,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(html.includes('id="importStageFile"'));
   assert.ok(html.includes('class="difficulty-legend"'));
   assert.ok(html.includes('id="activeDifficultyOnlyOption"'));
-  assert.ok(html.includes('tools/stage-sequencer.js?v=8'));
+  assert.ok(html.includes('tools/stage-sequencer.js?v=9'));
   const sequencer = fs.readFileSync(path.join(root, 'tools/stage-sequencer.js'), 'utf8');
   assert.ok(sequencer.includes('data-difficulty-action="disable"'));
   assert.ok(sequencer.includes("pluginId === 'turtle-ride'"));
@@ -146,6 +148,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(sequencer.includes('data-behavior-section'));
   assert.ok(sequencer.includes('data-barrage-action="edit"'));
   assert.ok(sequencer.includes('applyBarrageReturn()'));
+  assert.ok(sequencer.includes('updateBudgetOverlay(stats)'));
   assert.ok(sequencer.includes('ensureWaveDependencies(candidate'));
   assert.ok(sequencer.includes("drag.coordinate === 'x' ? '진입 X 이동'"));
   assert.ok(sequencer.includes('validateStageCandidate(candidate)'));
@@ -157,7 +160,8 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(serviceWorker.includes('../js/stage/formation.js'));
   assert.ok(serviceWorker.includes('../js/stage/behavior.js'));
   assert.ok(serviceWorker.includes('../js/stage/barrage.js'));
-  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m3-v5'));
+  assert.ok(serviceWorker.includes('../js/stage/budget.js'));
+  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m3-v6'));
 }
 
 console.log('stage runtime: ok', results);

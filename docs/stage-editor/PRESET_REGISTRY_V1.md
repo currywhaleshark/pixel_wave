@@ -477,6 +477,15 @@ All arrays are sorted deterministically by:
 - Estimated active enemy or projectile budget exceeded
 - Difficulty override has no visible effect
 
+M3 measures this warning from the same fixed-step Stage simulation used by the
+preview, not from authored spawn totals. `js/stage/budget.js` tracks current and
+peak active counts with snapshot/restore support. The initial mobile guidance is
+24 active enemies or 240 enemy projectiles for a warning, and 32 enemies or 360
+projectiles for a critical overlay. These values are performance guidance rather
+than gameplay caps: the simulator never drops entities to satisfy them. The
+selected section or custom IN/OUT interval is analyzed independently, and the
+overlay reports both the peak count and its simulation time.
+
 ## 14. Stage 3 parity requirements
 
 Before Stage 3 can switch from `waves.js` to Stage JSON, tests must prove:

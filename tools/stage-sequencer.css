@@ -106,6 +106,37 @@ button, a { -webkit-tap-highlight-color: transparent; }
   font-size: 9px;
   text-shadow: 0 1px #000;
 }
+.budget-overlay {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: min(238px, calc(100% - 16px));
+  padding: 7px 8px 6px;
+  border: 1px solid rgba(91, 221, 196, 0.5);
+  border-radius: 7px;
+  color: #d9efff;
+  background: rgba(3, 17, 35, 0.86);
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+.budget-heading, .budget-row { display: grid; align-items: center; gap: 5px; }
+.budget-heading { grid-template-columns: 1fr auto; margin-bottom: 4px; font-size: 8px; }
+.budget-heading span { color: #9abbd2; }
+.budget-heading strong { color: #7dffd8; }
+.budget-row { grid-template-columns: 14px 24px minmax(42px, 1fr) auto; min-height: 16px; font-size: 8px; }
+.budget-row > span:first-child { color: #9abbd2; }
+.budget-row > strong { font-size: 9px; text-align: right; }
+.budget-row small, .budget-range { color: #aec8d9; font-size: 7px; white-space: nowrap; }
+.budget-meter { position: relative; height: 4px; overflow: hidden; border-radius: 3px; background: #142e47; }
+.budget-meter::after { content: ''; position: absolute; left: 66.667%; top: 0; bottom: 0; width: 1px; background: rgba(255, 214, 110, 0.8); }
+.budget-meter i { display: block; width: var(--budget-fill, 0%); height: 100%; border-radius: inherit; background: #55d9b6; }
+.budget-range { display: block; margin-top: 3px; text-align: right; }
+.budget-overlay[data-level='warning'] { border-color: rgba(255, 214, 110, 0.72); }
+.budget-overlay[data-level='warning'] .budget-heading strong { color: var(--gold); }
+.budget-overlay[data-level='warning'] .budget-meter i { background: var(--gold); }
+.budget-overlay[data-level='critical'] { border-color: rgba(255, 112, 140, 0.82); }
+.budget-overlay[data-level='critical'] .budget-heading strong { color: #ff8fa8; }
+.budget-overlay[data-level='critical'] .budget-meter i { background: #ff718f; }
 .loading-overlay {
   position: absolute;
   inset: 0;
@@ -404,6 +435,11 @@ input[type='range'] { width: 100%; min-height: 40px; margin: 0; accent-color: va
   .preview-card { border-radius: 8px; }
   .preview-topline { top: 5px; left: 5px; right: 5px; }
   .preview-topline span { padding: 3px 5px; font-size: 7px; }
+  .budget-overlay { right: 5px; bottom: 5px; width: min(208px, calc(100% - 10px)); padding: 5px 6px 4px; }
+  .budget-heading { margin-bottom: 2px; font-size: 7px; }
+  .budget-row { grid-template-columns: 11px 20px minmax(34px, 1fr) auto; min-height: 14px; gap: 3px; font-size: 7px; }
+  .budget-row > strong { font-size: 8px; }
+  .budget-row small, .budget-range { font-size: 6px; }
   .transport {
     grid-template-columns: 44px 44px 1fr 72px 80px;
     grid-template-areas:
