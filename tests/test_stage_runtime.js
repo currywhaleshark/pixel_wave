@@ -103,12 +103,21 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
     'js/stage/registry.js',
     'js/stage/compiler.js',
     'js/stage/simulation.js',
+    'js/stage/document.js',
+    'js/stage/persistence.js',
     'tools/stage-sequencer.js',
   ];
   for (const script of required) assert.ok(html.includes(script), `${script}가 도구 페이지에 연결되어야 한다`);
   assert.ok(html.indexOf('js/stage/compiler.js') < html.indexOf('tools/stage-sequencer.js'));
+  assert.ok(html.includes('<title>픽셀 파도 — 스테이지 시퀀서 M2</title>'));
   assert.ok(html.includes('id="markRangeIn"'));
   assert.ok(html.includes('id="markRangeOut"'));
+  assert.ok(html.includes('id="addWave"'));
+  assert.ok(html.includes('id="undoEdit"'));
+  assert.ok(html.includes('id="importStageFile"'));
+  const serviceWorker = fs.readFileSync(path.join(root, 'tools/stage-sequencer-sw.js'), 'utf8');
+  assert.ok(serviceWorker.includes('../js/stage/document.js'));
+  assert.ok(serviceWorker.includes('../js/stage/persistence.js'));
 }
 
 console.log('stage runtime: ok', results);

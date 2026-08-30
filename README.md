@@ -17,8 +17,9 @@ python server.py
 같은 주소를 휴대폰으로 열면 기기 자동저장·JSON 공유를 사용하는 모바일 화면으로 바뀐다. 정적 호스팅에서도 서버 없이 제작·미리보기·내보내기가 가능하다.
 
 스테이지 전체 흐름은 `http://localhost:8321/tools/stage-sequencer.html`에서 확인한다.
-현재 M1은 Stage 3을 읽기 전용으로 컴파일해 전체·구간 반복 재생, 난이도 전환,
-타임라인 클립 검사, Stage JSON 내보내기를 지원한다.
+현재 M2 편집기는 Stage 3을 컴파일해 전체·구간 반복 재생, 난이도 전환,
+잡몹·환경·연출 클립 수정, 추가·복제·삭제, undo/redo, 기기 자동저장,
+Stage JSON 가져오기·내보내기를 지원한다.
 
 | 입력 | 이동 | 봄 |
 |---|---|---|
@@ -55,7 +56,7 @@ js/meta.js          영구 저장 · 상점 카탈로그
 js/entities.js      플레이어 · 잡몹 · 진주
 js/dolphin.js       옵션 돌고래 3종
 js/waves.js         잡몹 문법(5축) + 스테이지 타임라인
-js/stage/            Stage JSON 검증·컴파일·결정론 미리보기
+js/stage/            Stage JSON 검증·컴파일·편집 문서·결정론 미리보기
 js/barrage.js        데이터 기반 탄막 실행기 (게임·탄막 공방 공용)
 js/boss*.js         보스 1~7
 js/map.js           항해도 · 상점 · 랭킹 UI

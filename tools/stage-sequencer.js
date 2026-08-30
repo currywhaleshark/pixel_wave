@@ -11,11 +11,14 @@
     { id: 'boss', label: '보스', types: ['boss'], color: '#8fa3e8' },
   ];
   const SECTION_COLORS = ['#55d9e8', '#ffd66e', '#ff87bd', '#8fa3e8', '#7dffd8'];
+  const EDITABLE_TYPES = new Set(['wave', 'environment', 'cue']);
   const $ = selector => document.querySelector(selector);
   const canvas = $('#preview');
   const ctx = canvas.getContext('2d');
 
   let rawStage = null;
+  let sourceStage = null;
+  let stageDocument = null;
   let compiled = null;
   let simulation = null;
   let selectedId = null;
@@ -24,6 +27,12 @@
   let range = { id: 'full', name: '전체', start: 0, end: 120 };
   let lastFrame = performance.now();
   let lastFollow = 0;
+  let sourceHash = null;
+  let exportedHash = null;
+  let deviceSavedHash = null;
+  let autosaveTimer = 0;
+  let toastTimer = 0;
+  let clipDrag = null;
 
   function escapeHtml(value) {
     return String(value ?? '')
@@ -59,8 +68,54 @@
     badge.className = `status ${kind}`;
   }
 
+  function stageHash(stage = rawStage) {
+    return StageRandom.hashString(JSON.stringify(stage)).toString(16).padStart(8, '0');
+  }
+
+  function toast(message) {
+    const element = $('#editorToast');
+    element.textContent = message;
+    element.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => element.classList.remove('show'), 2200);
+  }
+
+  function updateEditorUi() {
+    const item = stageDocument?.findItem(selectedId);
+    $('#undoEdit').disabled = !stageDocument?.canUndo;
+    $('#redoEdit').disabled = !stageDocument?.canRedo;
+    $('#duplicateItem').disabled = !item || !EDITABLE_TYPES.has(item.type);
+    $('#deleteItem').disabled = !item || !EDITABLE_TYPES.has(item.type) || item.id === 's3-scroll-base';
+    if (!stageDocument) return;
+    const hash = stageDocument.stateHash();
+    const state = $('#draftState');
+    const unexported = hash !== exportedHash;
+    state.classList.toggle('unexported', unexported);
+    if (hash === sourceHash) state.textContent = '원본';
+    else if (hash !== deviceSavedHash) state.textContent = '저장 중';
+    else state.textContent = unexported ? '기기 저장 · 미내보냄' : '내보냄 완료';
+  }
+
+  function scheduleAutosave() {
+    if (!stageDocument) return;
+    clearTimeout(autosaveTimer);
+    updateEditorUi();
+    autosaveTimer = setTimeout(async () => {
+      const expectedHash = stageDocument.stateHash();
+      try {
+        await StagePersistence.saveDraft(stageDocument.stage, { exportedHash });
+        if (stageDocument.stateHash() === expectedHash) deviceSavedHash = expectedHash;
+        updateEditorUi();
+      } catch (error) {
+        console.error(error);
+        toast('기기 자동저장에 실패했습니다');
+      }
+    }, 500);
+  }
+
   function compileAtDifficulty(difficulty, preserveTime = 0) {
     setStatus('컴파일 중', 'loading');
+    rawStage = stageDocument?.stage || rawStage;
     compiled = StageCompiler.compile(rawStage, { difficulty });
     simulation = new StageSimulation.Simulation(compiled, { fixedStep: 1 / 60, snapshotInterval: 5 });
     const snapshotCount = simulation.buildSnapshotCache();
@@ -69,15 +124,27 @@
     renderTimeline();
     selectItem(selectedId, false);
     updateUi();
+    updateEditorUi();
   }
 
   async function loadStage() {
     try {
       const response = await fetch(STAGE_URL, { cache: 'no-cache' });
       if (!response.ok) throw new Error(`Stage JSON HTTP ${response.status}`);
-      rawStage = await response.json();
-      const report = StageCompiler.validate(rawStage);
+      sourceStage = await response.json();
+      const report = StageCompiler.validate(sourceStage);
       if (report.errors.length) throw new Error(report.errors.join('\n'));
+      const stored = await StagePersistence.loadDraft(sourceStage.id);
+      let initialStage = sourceStage;
+      if (stored?.stage) {
+        const storedReport = StageCompiler.validate(stored.stage);
+        if (!storedReport.errors.length) initialStage = stored.stage;
+      }
+      stageDocument = new StageDocument.DocumentSession(initialStage);
+      rawStage = stageDocument.stage;
+      sourceHash = stageHash(sourceStage);
+      exportedHash = stored?.exportedHash || sourceHash;
+      deviceSavedHash = stored?.stage ? stageDocument.stateHash() : sourceHash;
       $('#stageName').textContent = rawStage.name;
       $('#timeScrub').max = rawStage.timeline.duration;
       range = { id: 'full', name: '전체', start: 0, end: rawStage.timeline.duration };
@@ -87,6 +154,8 @@
       $('#loadingOverlay').classList.add('hidden');
       playing = true;
       updatePlayButton();
+      updateEditorUi();
+      if (stored?.stage && initialStage === stored.stage) toast('기기에 저장된 초안을 복구했습니다');
     } catch (error) {
       console.error(error);
       setStatus('불러오기 실패', 'error');
@@ -142,6 +211,62 @@
       laneEnds[lane] = item.timing.start + visualDuration;
       return { item, lane };
     });
+  }
+
+  function beginClipDrag(event, item, clip) {
+    const authored = stageDocument?.findItem(item.id);
+    if (!authored || !EDITABLE_TYPES.has(authored.type) || event.button !== 0) return;
+    clipDrag = {
+      pointerId: event.pointerId,
+      clip,
+      itemId: item.id,
+      startX: event.clientX,
+      originalStart: authored.timing.start,
+      nextStart: authored.timing.start,
+      duration: authored.timing.duration,
+      moved: false,
+    };
+    clip.setPointerCapture(event.pointerId);
+    selectItem(item.id, false);
+    playing = false;
+    updatePlayButton();
+  }
+
+  function moveClipDrag(event) {
+    if (!clipDrag || clipDrag.pointerId !== event.pointerId) return;
+    const pixels = event.clientX - clipDrag.startX;
+    if (!clipDrag.moved && Math.abs(pixels) < 6) return;
+    event.preventDefault();
+    clipDrag.moved = true;
+    const delta = Math.round(pixels / PIXELS_PER_SECOND * 10) / 10;
+    clipDrag.nextStart = Math.max(0, Math.min(
+      rawStage.timeline.duration - clipDrag.duration,
+      clipDrag.originalStart + delta,
+    ));
+    clipDrag.clip.classList.add('dragging');
+    clipDrag.clip.style.left = `${clipDrag.nextStart * PIXELS_PER_SECOND}px`;
+  }
+
+  function endClipDrag(event) {
+    if (!clipDrag || clipDrag.pointerId !== event.pointerId) return;
+    const drag = clipDrag;
+    clipDrag = null;
+    drag.clip.classList.remove('dragging');
+    if (event.type === 'pointercancel') {
+      renderTimeline();
+      return;
+    }
+    if (!drag.moved) return;
+    drag.clip.dataset.dragged = 'true';
+    setTimeout(() => { delete drag.clip.dataset.dragged; }, 0);
+    const item = stageDocument.findItem(drag.itemId);
+    if (!item || Math.abs(drag.nextStart - drag.originalStart) < 1e-9) {
+      renderTimeline();
+      return;
+    }
+    const next = StageDocument.clone(item);
+    next.timing.start = drag.nextStart;
+    replaceAuthoredItem(item.id, next, '클립 시간 이동');
   }
 
   function renderTimeline() {
@@ -206,8 +331,13 @@
         clip.style.setProperty('--clip-color', track.color);
         clip.title = `${item.name} · ${item.timing.start.toFixed(2)}초 · ${itemSummary(item)}`;
         if (item.timing.duration > 0) clip.textContent = item.name;
+        clip.addEventListener('pointerdown', event => beginClipDrag(event, item, clip));
+        clip.addEventListener('pointermove', moveClipDrag);
+        clip.addEventListener('pointerup', endClipDrag);
+        clip.addEventListener('pointercancel', endClipDrag);
         clip.addEventListener('click', event => {
           event.stopPropagation();
+          if (clip.dataset.dragged) return;
           selectItem(item.id, true);
           simulation.seek(item.timing.start);
           playing = false;
@@ -221,18 +351,156 @@
     }
   }
 
+  function optionList(values, selected) {
+    return (values || []).map(value => `<option value="${escapeHtml(value)}" ${value === selected ? 'selected' : ''}>${escapeHtml(value)}</option>`).join('');
+  }
+
+  function validateReplacement(id, nextItem) {
+    const candidate = stageDocument.snapshot();
+    const index = candidate.items.findIndex(item => item.id === id);
+    if (index < 0) throw new Error(`클립 '${id}'을 찾을 수 없습니다.`);
+    candidate.items[index] = nextItem;
+    const report = StageCompiler.validate(candidate);
+    if (report.errors.length) throw new Error(report.errors[0]);
+    StageCompiler.compile(candidate, { difficulty: $('#previewDifficulty').value });
+  }
+
+  function afterDocumentChange(label, focusId = selectedId, seekAt = simulation?.time || 0) {
+    rawStage = stageDocument.stage;
+    selectedId = stageDocument.findItem(focusId) ? focusId : null;
+    $('#stageName').textContent = rawStage.name;
+    $('#timeScrub').max = rawStage.timeline.duration;
+    compileAtDifficulty($('#previewDifficulty').value, seekAt);
+    renderSectionButtons();
+    scheduleAutosave();
+    toast(label);
+  }
+
+  function replaceAuthoredItem(id, nextItem, label) {
+    try {
+      validateReplacement(id, nextItem);
+      if (stageDocument.replaceItem(id, nextItem, label)) {
+        afterDocumentChange(label, nextItem.id, nextItem.timing.start);
+        return true;
+      }
+    } catch (error) {
+      console.error(error);
+      toast(`수정할 수 없습니다: ${error.message}`);
+    }
+    return false;
+  }
+
+  function commitInspectorForm(form) {
+    const item = stageDocument.findItem(form.dataset.itemId);
+    if (!item) return;
+    const values = new FormData(form);
+    const next = StageDocument.clone(item);
+    next.name = String(values.get('name') || next.name).trim() || next.name;
+    next.timing.start = Math.max(0, Number(values.get('start')) || 0);
+    next.timing.duration = Math.max(0, Number(values.get('duration')) || 0);
+
+    if (next.type === 'wave') {
+      const count = Math.max(1, Math.round(Number(values.get('count')) || 1));
+      let interval = Math.max(0, Number(values.get('interval')) || 0);
+      const formationId = String(values.get('formation'));
+      if (formationId === 'v' || formationId === 'wall-gap') interval = 0;
+      next.payload.enemy.kind = String(values.get('enemyKind'));
+      next.payload.enemy.hp = Math.max(0.1, Number(values.get('hp')) || 1);
+      next.payload.enemy.speed = Math.max(0, Number(values.get('speed')) || 0);
+      next.payload.spawn.count = count;
+      next.payload.spawn.interval = interval;
+      next.payload.entry.y = Math.max(0, Math.min(1, Number(values.get('y')) || 0));
+      next.payload.formation.presetId = formationId;
+      next.payload.movement.presetId = String(values.get('movement'));
+      next.payload.weapon.presetId = String(values.get('weapon'));
+      next.timing.duration = formationId === 'wall-gap' ? 0 : (count - 1) * interval;
+    } else if (next.type === 'environment' && next.payload?.pluginId === 'scroll-speed') {
+      const multiplier = Math.max(0, Math.min(5, Number(values.get('scrollMultiplier')) || 0));
+      next.payload.params.curve = next.payload.params.curve.map(point => ({ ...point, value: multiplier }));
+    } else if (next.type === 'cue' && next.payload?.params) {
+      next.payload.params.message = String(values.get('message') || '');
+      next.payload.params.color = String(values.get('color') || '#ff8f8f');
+    }
+    next.timing.start = Math.max(0, Math.min(next.timing.start, rawStage.timeline.duration - next.timing.duration));
+    replaceAuthoredItem(item.id, next, '클립 수정');
+  }
+
+  function nudgeSelected(delta) {
+    const item = stageDocument?.findItem(selectedId);
+    if (!item || !EDITABLE_TYPES.has(item.type)) return;
+    const next = StageDocument.clone(item);
+    next.timing.start = Math.max(0, Math.min(
+      rawStage.timeline.duration - next.timing.duration,
+      next.timing.start + delta,
+    ));
+    replaceAuthoredItem(item.id, next, `${delta > 0 ? '+' : ''}${delta}초 이동`);
+  }
+
+  function bindInspectorForm() {
+    const form = $('#clipEditForm');
+    if (form) form.addEventListener('submit', event => {
+      event.preventDefault();
+      commitInspectorForm(form);
+    });
+    document.querySelectorAll('[data-nudge]').forEach(button => button.addEventListener('click', () => nudgeSelected(Number(button.dataset.nudge))));
+  }
+
   function selectItem(id, openInspector = true) {
     selectedId = compiled?.items.some(item => item.id === id) ? id : null;
     document.querySelectorAll('.timeline-clip').forEach(clip => clip.classList.toggle('selected', clip.dataset.itemId === selectedId));
     const item = compiled?.items.find(entry => entry.id === selectedId);
     if (!item) {
       $('#selectedName').textContent = '클립을 선택하세요';
-      $('#selectedTiming').textContent = '읽기 전용';
-      $('#inspectorBody').innerHTML = '<div class="empty-inspector">타임라인의 클립을 선택하면 컴파일된 정보와 원본 JSON 요약을 볼 수 있습니다.</div>';
+      $('#selectedTiming').textContent = '클립을 선택하세요';
+      $('#inspectorBody').innerHTML = '<div class="empty-inspector">타임라인 클립을 선택하면 시간을 옮기고 속성을 편집할 수 있습니다.</div>';
+      updateEditorUi();
       return;
     }
+    const authored = stageDocument.findItem(item.id);
+    const editable = !!authored && EDITABLE_TYPES.has(authored.type);
     $('#selectedName').textContent = item.name;
     $('#selectedTiming').textContent = `${item.timing.start.toFixed(2)}초 · ${item.type}`;
+    let fields = '';
+    if (editable) {
+      const durationReadonly = authored.type === 'wave' ? 'readonly' : '';
+      fields = `
+        <form id="clipEditForm" class="inspector-form" data-item-id="${escapeHtml(authored.id)}">
+          <label>클립 이름<input name="name" maxlength="80" value="${escapeHtml(authored.name)}" required></label>
+          <div class="form-row two">
+            <label>시작(초)<input name="start" type="number" min="0" max="${rawStage.timeline.duration}" step="0.05" value="${authored.timing.start}" required></label>
+            <label>길이(초)<input name="duration" type="number" min="0" max="${rawStage.timeline.duration}" step="0.05" value="${authored.timing.duration}" ${durationReadonly} required></label>
+          </div>
+          <div class="nudge-tools" aria-label="클립 시간 이동">
+            <button type="button" data-nudge="-1">−1초</button><button type="button" data-nudge="-0.1">−0.1</button>
+            <button type="button" data-nudge="0.1">+0.1</button><button type="button" data-nudge="1">+1초</button>
+          </div>
+          ${authored.type === 'wave' ? `
+            <div class="form-row three">
+              <label>적<select name="enemyKind">${optionList(rawStage.dependencies.enemyKinds, authored.payload.enemy.kind)}</select></label>
+              <label>체력<input name="hp" type="number" min="0.1" max="1000000" step="1" value="${authored.payload.enemy.hp}"></label>
+              <label>속도<input name="speed" type="number" min="0" max="2000" step="1" value="${authored.payload.enemy.speed}"></label>
+            </div>
+            <div class="form-row three">
+              <label>마릿수<input name="count" type="number" min="1" max="256" step="1" value="${authored.resolvedCount ?? authored.payload.spawn.count ?? 1}"></label>
+              <label>간격<input name="interval" type="number" min="0" max="30" step="0.05" value="${authored.payload.spawn.interval ?? 0}"></label>
+              <label>높이<input name="y" type="number" min="0" max="1" step="0.05" value="${authored.payload.entry.y ?? 0.5}"></label>
+            </div>
+            <label>편대<select name="formation">${optionList(rawStage.dependencies.formationPresets, authored.payload.formation.presetId)}</select></label>
+            <label>이동<select name="movement">${optionList(rawStage.dependencies.movementPresets, authored.payload.movement.presetId)}</select></label>
+            <label>사격<select name="weapon">${optionList(rawStage.dependencies.weaponPresets, authored.payload.weapon.presetId)}</select></label>
+          ` : ''}
+          ${authored.type === 'environment' && authored.payload?.pluginId === 'scroll-speed' ? `
+            <label>배경 스크롤 배율<input name="scrollMultiplier" type="number" min="0" max="5" step="0.05" value="${authored.payload.params.curve[0]?.value ?? 1}"></label>
+          ` : ''}
+          ${authored.type === 'cue' && authored.payload?.params ? `
+            <label>표시 문구<input name="message" value="${escapeHtml(authored.payload.params.message || '')}"></label>
+            <label>표시 색상<input name="color" type="color" value="${escapeHtml(authored.payload.params.color || '#ff8f8f')}"></label>
+          ` : ''}
+          <div class="inspector-actions"><button class="accent" type="submit">수정 적용</button></div>
+        </form>`;
+    } else {
+      fields = '<div class="readonly-notice">이 클립은 M2 첫 단계에서 읽기 전용입니다. 잡몹·환경·연출 클립부터 편집을 엽니다.</div>';
+    }
     $('#inspectorBody').innerHTML = `
       <div class="inspector-grid">
         <div class="info-card"><small>종류</small><strong>${escapeHtml(item.type)}</strong></div>
@@ -240,7 +508,10 @@
         <div class="info-card"><small>난이도</small><strong>${escapeHtml(compiled.difficulty.name)}</strong></div>
         <div class="info-card"><small>컴파일 결과</small><strong>${escapeHtml(itemSummary(item))}</strong></div>
       </div>
-      <pre class="payload-summary">${escapeHtml(JSON.stringify(item.payload, null, 2))}</pre>`;
+      ${fields}
+      <details><summary>원본 payload JSON</summary><pre class="payload-summary">${escapeHtml(JSON.stringify(authored?.payload || item.payload, null, 2))}</pre></details>`;
+    bindInspectorForm();
+    updateEditorUi();
     if (openInspector && matchMedia('(max-width: 980px)').matches) setInspectorOpen(true);
   }
 
@@ -421,25 +692,143 @@
     requestAnimationFrame(tick);
   }
 
+  function createWaveFromForm(form) {
+    const values = new FormData(form);
+    const count = Math.max(1, Math.round(Number(values.get('count')) || 1));
+    const interval = Math.max(0, Number(values.get('interval')) || 0);
+    const duration = (count - 1) * interval;
+    const start = Math.max(0, Math.min(rawStage.timeline.duration - duration, Number(values.get('start')) || 0));
+    const enemyKind = String(values.get('enemyKind'));
+    const defaults = {
+      fish: { hp: 2, speed: 150 },
+      ray: { hp: 4, speed: 150 },
+      big: { hp: 48, speed: 105 },
+    }[enemyKind] || { hp: 2, speed: 150 };
+    return {
+      id: stageDocument.uniqueId(`${rawStage.id}-wave`),
+      type: 'wave',
+      name: String(values.get('name') || '새 잡몹 웨이브').trim() || '새 잡몹 웨이브',
+      enabled: true,
+      timing: { domain: 'time', start, duration },
+      payload: {
+        enemy: { kind: enemyKind, hp: defaults.hp, speed: defaults.speed },
+        spawn: { count, interval },
+        entry: { presetId: 'right-to-left', y: Math.max(0, Math.min(1, Number(values.get('y')) || 0.5)) },
+        formation: { presetId: 'column' },
+        movement: { presetId: 'straight' },
+        weapon: { presetId: 'none' },
+      },
+    };
+  }
+
+  function addWaveFromDialog(form) {
+    try {
+      const item = createWaveFromForm(form);
+      const candidate = stageDocument.snapshot();
+      candidate.items.push(item);
+      const report = StageCompiler.validate(candidate);
+      if (report.errors.length) throw new Error(report.errors[0]);
+      StageCompiler.compile(candidate, { difficulty: $('#previewDifficulty').value });
+      const inserted = stageDocument.insertItem(item, stageDocument.stage.items.length, '잡몹 웨이브 추가');
+      $('#addWaveDialog').close();
+      afterDocumentChange('잡몹 웨이브를 추가했습니다', inserted.id, inserted.timing.start);
+    } catch (error) {
+      console.error(error);
+      toast(`추가할 수 없습니다: ${error.message}`);
+    }
+  }
+
+  function duplicateSelected() {
+    const item = stageDocument?.findItem(selectedId);
+    if (!item || !EDITABLE_TYPES.has(item.type)) return;
+    try {
+      const copy = stageDocument.duplicateItem(item.id, { startOffset: 1 });
+      afterDocumentChange('클립을 복제했습니다', copy.id, copy.timing.start);
+    } catch (error) {
+      console.error(error);
+      toast(`복제할 수 없습니다: ${error.message}`);
+    }
+  }
+
+  function deleteSelected() {
+    const item = stageDocument?.findItem(selectedId);
+    if (!item || !EDITABLE_TYPES.has(item.type) || item.id === 's3-scroll-base') return;
+    const removedName = item.name;
+    stageDocument.removeItem(item.id);
+    selectedId = null;
+    afterDocumentChange(`'${removedName}' 삭제 · undo 가능`, null, simulation?.time || 0);
+  }
+
+  function undoEdit() {
+    const label = stageDocument?.undo();
+    if (label) afterDocumentChange(`실행 취소: ${label}`, selectedId, simulation?.time || 0);
+  }
+
+  function redoEdit() {
+    const label = stageDocument?.redo();
+    if (label) afterDocumentChange(`다시 실행: ${label}`, selectedId, simulation?.time || 0);
+  }
+
+  async function importStageFile(file) {
+    if (!file) return;
+    try {
+      const imported = JSON.parse(await file.text());
+      const report = StageCompiler.validate(imported);
+      if (report.errors.length) throw new Error(report.errors[0]);
+      if (sourceStage && imported.id !== sourceStage.id) throw new Error(`M2는 아직 '${sourceStage.id}' 문서만 편집합니다.`);
+      StageCompiler.compile(imported, { difficulty: $('#previewDifficulty').value });
+      stageDocument = new StageDocument.DocumentSession(imported);
+      rawStage = stageDocument.stage;
+      sourceStage = StageDocument.clone(imported);
+      sourceHash = stageDocument.stateHash();
+      exportedHash = sourceHash;
+      deviceSavedHash = sourceHash;
+      selectedId = null;
+      range = { id: 'full', name: '전체', start: 0, end: rawStage.timeline.duration };
+      $('#stageName').textContent = rawStage.name;
+      $('#timeScrub').max = rawStage.timeline.duration;
+      compileAtDifficulty($('#previewDifficulty').value, 0);
+      renderSectionButtons();
+      await StagePersistence.saveDraft(rawStage, { exportedHash });
+      toast(`${file.name}을 가져왔습니다`);
+    } catch (error) {
+      console.error(error);
+      toast(`JSON을 가져올 수 없습니다: ${error.message}`);
+    } finally {
+      $('#importStageFile').value = '';
+    }
+  }
+
   async function exportStage() {
     if (!rawStage) return;
     const text = JSON.stringify(rawStage, null, 2) + '\n';
     const filename = `pixel-wave-${rawStage.id}.v1.json`;
     const file = new File([text], filename, { type: 'application/json' });
+    let completed = false;
     if (navigator.share && navigator.canShare?.({ files: [file] })) {
       try {
         await navigator.share({ title: rawStage.name, files: [file] });
-        return;
+        completed = true;
       } catch (error) {
         if (error.name === 'AbortError') return;
       }
     }
-    const url = URL.createObjectURL(file);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    if (!completed) {
+      const url = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      completed = true;
+    }
+    if (completed) {
+      exportedHash = stageDocument.stateHash();
+      const saved = await StagePersistence.saveDraft(rawStage, { exportedHash });
+      deviceSavedHash = stageHash(saved.stage);
+      updateEditorUi();
+      toast('Stage JSON을 내보냈습니다');
+    }
   }
 
   $('#restart').addEventListener('click', () => {
@@ -466,8 +855,33 @@
   });
   $('#markRangeIn').addEventListener('click', () => markCustomRange('in'));
   $('#markRangeOut').addEventListener('click', () => markCustomRange('out'));
+  $('#addWave').addEventListener('click', () => {
+    if (!simulation) return;
+    const form = $('#addWaveForm');
+    form.elements.start.value = Math.min(rawStage.timeline.duration, simulation.time).toFixed(2);
+    $('#addWaveDialog').showModal();
+  });
+  $('#addWaveForm').addEventListener('submit', event => {
+    event.preventDefault();
+    addWaveFromDialog(event.currentTarget);
+  });
+  document.querySelectorAll('[data-dialog-close]').forEach(button => button.addEventListener('click', () => $('#addWaveDialog').close()));
+  $('#duplicateItem').addEventListener('click', duplicateSelected);
+  $('#deleteItem').addEventListener('click', deleteSelected);
+  $('#undoEdit').addEventListener('click', undoEdit);
+  $('#redoEdit').addEventListener('click', redoEdit);
+  $('#importStage').addEventListener('click', () => $('#importStageFile').click());
+  $('#importStageFile').addEventListener('change', event => importStageFile(event.target.files?.[0]));
   $('#inspectorToggle').addEventListener('click', () => setInspectorOpen(!$('#inspector').classList.contains('open')));
   $('#exportStage').addEventListener('click', exportStage);
+  document.addEventListener('keydown', event => {
+    const typing = event.target instanceof Element && event.target.closest('input, select, textarea');
+    if (!(event.ctrlKey || event.metaKey) || typing) return;
+    if (event.key.toLowerCase() !== 'z') return;
+    event.preventDefault();
+    if (event.shiftKey) redoEdit();
+    else undoEdit();
+  });
 
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('tools/stage-sequencer-sw.js').catch(() => {});
   loadStage();

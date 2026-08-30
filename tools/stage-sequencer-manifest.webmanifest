@@ -1,7 +1,7 @@
 {
   "name": "픽셀 파도 스테이지 시퀀서",
   "short_name": "스테이지 시퀀서",
-  "description": "Pixel Wave 스테이지 JSON 읽기 전용 미리보기",
+  "description": "Pixel Wave 모바일 스테이지 타임라인 편집기와 결정론 미리보기",
   "start_url": "./stage-sequencer.html",
   "display": "standalone",
   "background_color": "#07172d",
