@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="스테이지 시퀀서">
   <base href="../">
-  <title>픽셀 파도 — 스테이지 시퀀서 M1</title>
+  <title>픽셀 파도 — 스테이지 시퀀서 M2</title>
   <link rel="manifest" href="tools/stage-sequencer-manifest.webmanifest">
   <link rel="icon" href="tools/barrage-icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="tools/stage-sequencer.css">
@@ -19,7 +19,7 @@
       <span class="brand-mark">≋</span>
       <div>
         <strong id="stageName">스테이지 시퀀서</strong>
-        <small>READ-ONLY M1 · ACTUAL STAGE DATA</small>
+        <small>EDITABLE M2 · DEVICE DRAFT</small>
       </div>
     </div>
     <div class="top-actions">
@@ -58,6 +58,23 @@
         </select>
       </section>
 
+      <section class="editor-toolbar panel" aria-label="스테이지 편집 도구">
+        <div class="toolbar-group primary-tools">
+          <button id="addWave" type="button">＋ 잡몹</button>
+          <button id="duplicateItem" type="button" disabled>복제</button>
+          <button id="deleteItem" class="danger" type="button" disabled>삭제</button>
+        </div>
+        <div class="toolbar-group history-tools">
+          <button id="undoEdit" type="button" title="실행 취소" disabled>↶</button>
+          <button id="redoEdit" type="button" title="다시 실행" disabled>↷</button>
+        </div>
+        <div class="toolbar-group file-tools">
+          <button id="importStage" type="button">JSON 가져오기</button>
+          <input id="importStageFile" type="file" accept="application/json,.json" hidden>
+        </div>
+        <span id="draftState" class="draft-state">원본</span>
+      </section>
+
       <section class="range-panel panel" aria-label="미리보기 구간">
         <div class="range-heading">
           <strong>미리보기 구간</strong>
@@ -75,7 +92,7 @@
         <div class="timeline-heading">
           <div>
             <strong>타임라인</strong>
-            <span>클립을 누르면 해당 시각으로 이동합니다</span>
+            <span>클립을 선택한 뒤 인스펙터에서 수정합니다</span>
           </div>
           <div id="previewStats" class="stats">-</div>
         </div>
@@ -102,6 +119,40 @@
     </aside>
   </main>
 
+  <dialog id="addWaveDialog" class="editor-dialog">
+    <form id="addWaveForm">
+      <div class="dialog-heading">
+        <div>
+          <strong>잡몹 웨이브 추가</strong>
+          <small>현재 재생 헤드에 기본 웨이브를 만듭니다</small>
+        </div>
+        <button class="dialog-close" type="button" data-dialog-close aria-label="닫기">×</button>
+      </div>
+      <label>이름<input name="name" value="새 잡몹 웨이브" maxlength="80" required></label>
+      <div class="form-row three">
+        <label>시작(초)<input name="start" type="number" min="0" max="120" step="0.1" required></label>
+        <label>적
+          <select name="enemyKind">
+            <option value="fish">물고기</option>
+            <option value="ray">가오리</option>
+            <option value="big">대물</option>
+          </select>
+        </label>
+        <label>마릿수<input name="count" type="number" min="1" max="64" step="1" value="6" required></label>
+      </div>
+      <div class="form-row two">
+        <label>간격(초)<input name="interval" type="number" min="0" max="10" step="0.05" value="0.3" required></label>
+        <label>높이(0–1)<input name="y" type="number" min="0" max="1" step="0.05" value="0.5" required></label>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" data-dialog-close>취소</button>
+        <button class="accent" type="submit">웨이브 추가</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="editorToast" class="editor-toast" role="status" aria-live="polite"></div>
+
   <script src="js/config.js?v=3"></script>
   <script src="js/assets.js?v=30"></script>
   <script src="js/spriteRenderer.js?v=3"></script>
@@ -110,6 +161,8 @@
   <script src="js/stage/registry.js?v=1"></script>
   <script src="js/stage/compiler.js?v=1"></script>
   <script src="js/stage/simulation.js?v=1"></script>
-  <script src="tools/stage-sequencer.js?v=1"></script>
+  <script src="js/stage/document.js?v=1"></script>
+  <script src="js/stage/persistence.js?v=1"></script>
+  <script src="tools/stage-sequencer.js?v=2"></script>
 </body>
 </html>

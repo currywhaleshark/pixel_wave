@@ -1,6 +1,6 @@
 # Pixel Wave Stage Sequencer Roadmap v1
 
-Status: M1 read-only slice implemented; parity review remains before M2. This
+Status: M1 complete; M2 core editing slice in progress. This
 document orders the existing Stage JSON, preset registry, barrage runtime, and
 terrain-profile designs into usable vertical releases. It does not authorize
 changing current stage gameplay yet.
