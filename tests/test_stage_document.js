@@ -30,6 +30,20 @@ const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/sta
 
 {
   const document = new DocumentSession(source);
+  const edited = JSON.parse(JSON.stringify(document.findItem('s3-w001')));
+  edited.payload.enemy.kind = 'jelly';
+  const dependencies = JSON.parse(JSON.stringify(document.stage.dependencies));
+  dependencies.enemyKinds.push('jelly');
+  assert.equal(document.replaceItemWithDependencies(edited.id, edited, dependencies, '적 라이브러리 변경'), true);
+  assert.equal(document.findItem(edited.id).payload.enemy.kind, 'jelly');
+  assert.ok(document.stage.dependencies.enemyKinds.includes('jelly'));
+  assert.equal(document.undo(), '적 라이브러리 변경');
+  assert.equal(document.findItem(edited.id).payload.enemy.kind, 'fish');
+  assert.ok(!document.stage.dependencies.enemyKinds.includes('jelly'));
+}
+
+{
+  const document = new DocumentSession(source);
   const count = document.stage.items.length;
   const copy = document.duplicateItem('s3-w001', { startOffset: 1 });
   assert.equal(document.stage.items.length, count + 1);

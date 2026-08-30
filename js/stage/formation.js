@@ -107,18 +107,35 @@
     const baseY = finite(options.baseY);
     const width = Math.max(1, finite(options.width, 960));
     const height = Math.max(1, finite(options.height, 540));
+    const rawDirectionX = finite(options.directionX, -1);
+    const rawDirectionY = finite(options.directionY, 0);
+    const directionLength = Math.hypot(rawDirectionX, rawDirectionY) || 1;
+    const directionX = rawDirectionX / directionLength;
+    const directionY = rawDirectionY / directionLength;
+    const backwardX = -directionX;
+    const backwardY = -directionY;
+    const sideX = directionY;
+    const sideY = -directionX;
     if (normalized.presetId === 'wall-gap') {
       const params = normalized.params;
       const maxStart = params.slotCount - params.gapSlots;
       const gapStart = integer(options.gapStart, 0, maxStart, params.gapStartRange[0]);
-      const usableHeight = Math.max(0, height - params.topPadding - params.bottomPadding);
-      const spacing = params.slotCount > 1 ? usableHeight / (params.slotCount - 1) : 0;
+      const verticalWall = Math.abs(directionX) >= Math.abs(directionY);
+      const span = verticalWall ? height : width;
+      const usableSpan = Math.max(0, span - params.topPadding - params.bottomPadding);
+      const spacing = params.slotCount > 1 ? usableSpan / (params.slotCount - 1) : 0;
       const points = [];
       for (let slot = 0; slot < params.slotCount; slot++) {
         if (slot >= gapStart && slot < gapStart + params.gapSlots) continue;
-        points.push({ x: baseX, y: params.topPadding + slot * spacing, wallSlot: slot, rank: slot });
+        const position = params.topPadding + slot * spacing;
+        points.push({
+          x: verticalWall ? baseX : position,
+          y: verticalWall ? position : baseY,
+          wallSlot: slot,
+          rank: slot,
+        });
       }
-      return { formation: normalized, points, resolvedCount: points.length, gapStart, spacing, width, height };
+      return { formation: normalized, points, resolvedCount: points.length, gapStart, spacing, verticalWall, width, height };
     }
     const count = resolvedCount(normalized, spawnCount);
     if (normalized.presetId === 'v') {
@@ -126,12 +143,15 @@
       for (let index = 0; index < count; index++) {
         const rank = index === 0 ? 0 : Math.ceil(index / 2);
         const side = index === 0 ? 0 : (index % 2 === 1 ? -1 : 1);
+        const backward = rank * normalized.params.spacingX;
+        const spread = side * rank * normalized.params.spacingY;
         points.push({
-          x: baseX + rank * normalized.params.spacingX,
-          y: baseY + side * rank * normalized.params.spacingY,
+          x: baseX + backwardX * backward + sideX * spread,
+          y: baseY + backwardY * backward + sideY * spread,
           rank,
           side,
-          targetXOffset: rank * normalized.params.spacingX,
+          targetXOffset: backwardX * backward + sideX * spread,
+          targetYOffset: backwardY * backward + sideY * spread,
         });
       }
       return { formation: normalized, points, resolvedCount: count, width, height };

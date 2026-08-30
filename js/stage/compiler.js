@@ -9,6 +9,7 @@
   const RandomApi = root.StageRandom || (typeof require === 'function' ? require('./random.js') : null);
   const PathApi = root.StagePath || (typeof require === 'function' ? require('./path.js') : null);
   const FormationApi = root.StageFormation || (typeof require === 'function' ? require('./formation.js') : null);
+  const EntryApi = root.StageEntry || (typeof require === 'function' ? require('./entry.js') : null);
   const { Random, hashString } = RandomApi;
   const ID = /^[a-z0-9][a-z0-9-]*$/;
   const REQUIRED_DEPENDENCIES = Object.freeze([
@@ -121,6 +122,7 @@
         const payload = item.payload || {};
         useDependency('enemyKinds', payload.enemy?.kind, label);
         useDependency('entryPresets', payload.entry?.presetId, label);
+        for (const error of EntryApi.validate(payload.entry)) errors.push(`${label}: ${error}`);
         useDependency('formationPresets', payload.formation?.presetId, label);
         for (const error of FormationApi.validate(payload.formation, payload.spawn?.count)) errors.push(`${label}: ${error}`);
         useDependency('movementPresets', payload.movement?.presetId, label);
@@ -175,16 +177,22 @@
     const viewport = stage.viewport;
     const itemRandom = new Random(stage.seed).fork(`${item.id}:${payload.spawn?.seedOffset ?? 0}`);
     const formation = FormationApi.normalize(payload.formation, payload.spawn?.count);
-    const entry = payload.entry;
+    const entry = EntryApi.normalize(payload.entry);
     const movement = clone(payload.movement);
     if (movement.presetId === 'custom-path') movement.path = PathApi.normalize(movement.path);
     const weapon = compileWeapon(payload.weapon, difficulty);
     const pathStart = movement.presetId === 'custom-path' ? movement.path?.[0] : null;
-    const baseY = pathStart ? pathStart.y * viewport.height : clamp(entry.y ?? 0.5, -1, 2) * viewport.height;
-    const fromLeft = entry.presetId === 'left-to-right';
-    const baseX = pathStart ? pathStart.x * viewport.width : (fromLeft ? -30 : viewport.width + 30);
-    const pathDirection = pathStart && movement.path?.[1] ? Math.sign(movement.path[1].x - pathStart.x) : 0;
-    const directionX = pathDirection || (fromLeft ? 1 : -1);
+    const resolvedEntry = EntryApi.resolve(entry, viewport);
+    const baseY = pathStart ? pathStart.y * viewport.height : resolvedEntry.y;
+    const baseX = pathStart ? pathStart.x * viewport.width : resolvedEntry.x;
+    const nextPathPoint = pathStart ? movement.path?.[1] : null;
+    const pathDeltaX = nextPathPoint ? (nextPathPoint.x - pathStart.x) * viewport.width : 0;
+    const pathDeltaY = nextPathPoint ? (nextPathPoint.y - pathStart.y) * viewport.height : 0;
+    const pathLength = Math.hypot(pathDeltaX, pathDeltaY);
+    const directionX = pathLength > 0 ? Math.sign(pathDeltaX) : resolvedEntry.directionX;
+    const directionY = pathLength > 0 ? Math.sign(pathDeltaY) : resolvedEntry.directionY;
+    const formationDirectionX = pathLength > 0 ? pathDeltaX / pathLength : resolvedEntry.directionX;
+    const formationDirectionY = pathLength > 0 ? pathDeltaY / pathLength : resolvedEntry.directionY;
     const events = [];
     let count = Math.round(payload.spawn?.count ?? 1);
     let interval = clamp(payload.spawn?.interval ?? 0, 0, 30);
@@ -205,6 +213,7 @@
           x,
           y,
           directionX,
+          directionY,
           phase,
           movement: clone(movement),
           weapon: clone(weapon),
@@ -220,17 +229,24 @@
         range[0],
         range[1],
       );
-      const resolved = FormationApi.layout(formation, count, { baseX, baseY, width: viewport.width, height: viewport.height, gapStart });
+      const resolved = FormationApi.layout(formation, count, {
+        baseX, baseY, width: viewport.width, height: viewport.height, gapStart,
+        directionX: formationDirectionX, directionY: formationDirectionY,
+      });
       for (const [index, point] of resolved.points.entries()) {
         makeEnemy(index, item.timing.start, point.x, point.y, { wallSlot: point.wallSlot });
       }
       count = resolved.resolvedCount;
       interval = 0;
     } else if (formation.presetId === 'v') {
-      const resolved = FormationApi.layout(formation, count, { baseX, baseY, width: viewport.width, height: viewport.height });
+      const resolved = FormationApi.layout(formation, count, {
+        baseX, baseY, width: viewport.width, height: viewport.height,
+        directionX: formationDirectionX, directionY: formationDirectionY,
+      });
       for (const [index, point] of resolved.points.entries()) {
         makeEnemy(index, item.timing.start, point.x, point.y, {
           targetXOffset: point.targetXOffset,
+          targetYOffset: point.targetYOffset,
         });
       }
     } else {

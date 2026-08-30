@@ -82,27 +82,34 @@
       const previous = points[index - 1];
       const next = points[index];
       const departAt = previous.t + (previous.hold || 0);
-      if (time <= departAt) return { ...scale(previous), pointIndex: index - 1, ratio: 0, done: false, directionX: 0 };
+      if (time <= departAt) return { ...scale(previous), pointIndex: index - 1, ratio: 0, done: false, directionX: 0, directionY: 0 };
       if (time <= next.t) {
         const span = next.t - departAt;
         const ratio = span > 0 ? easeRatio((time - departAt) / span, next.ease || 'linear') : 1;
+        const deltaX = (next.x - previous.x) * viewport.width;
+        const deltaY = (next.y - previous.y) * viewport.height;
         return {
           x: (previous.x + (next.x - previous.x) * ratio) * viewport.width,
           y: (previous.y + (next.y - previous.y) * ratio) * viewport.height,
           pointIndex: index,
           ratio,
           done: false,
-          directionX: Math.sign(next.x - previous.x),
+          directionX: Math.sign(deltaX),
+          directionY: Math.sign(deltaY),
         };
       }
     }
     const last = points[points.length - 1];
+    const previous = points[points.length - 2];
+    const deltaX = previous ? (last.x - previous.x) * viewport.width : 0;
+    const deltaY = previous ? (last.y - previous.y) * viewport.height : 0;
     return {
       ...scale(last),
       pointIndex: points.length - 1,
       ratio: 1,
       done: time > last.t + (last.hold || 0),
-      directionX: points.length > 1 ? Math.sign(last.x - points[points.length - 2].x) : 0,
+      directionX: Math.sign(deltaX),
+      directionY: Math.sign(deltaY),
     };
   }
 

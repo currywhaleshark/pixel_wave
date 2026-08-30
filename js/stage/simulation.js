@@ -85,9 +85,18 @@
         source.state = 'enter';
         source.pauseRemaining = 0;
         source.fireRemaining = source.weapon?.startDelay ?? 0.6;
-        source.targetX = (movementParams.targetX ?? 0.68) * this.compiled.viewport.width + (source.targetXOffset || 0);
+        const horizontalEntry = Math.abs(source.directionX) >= Math.abs(source.directionY || 0);
+        const defaultTargetX = horizontalEntry
+          ? (source.directionX > 0 ? 0.32 : 0.68)
+          : (source.x - (source.targetXOffset || 0)) / this.compiled.viewport.width;
+        const defaultTargetY = horizontalEntry
+          ? (source.y - (source.targetYOffset || 0)) / this.compiled.viewport.height
+          : ((source.directionY || 0) > 0 ? 0.3 : 0.7);
+        source.targetX = (movementParams.targetX ?? defaultTargetX) * this.compiled.viewport.width + (source.targetXOffset || 0);
+        source.targetY = (movementParams.targetY ?? defaultTargetY) * this.compiled.viewport.height + (source.targetYOffset || 0);
         source.pauseDuration = movementParams.pauseDuration ?? 2.2;
         source.vx = null;
+        source.waveOffset = 0;
         if (source.movement?.presetId === 'custom-path') {
           const first = source.movement.path?.[0];
           source.pathOffsetX = first ? source.x - first.x * this.compiled.viewport.width : 0;
@@ -225,11 +234,25 @@
       enemy.age += dt;
       const movement = enemy.movement?.presetId || 'straight';
       const params = enemy.movement?.params || {};
+      const directionX = Number(enemy.directionX) || 0;
+      const directionY = Number(enemy.directionY) || 0;
+      const directionLength = Math.hypot(directionX, directionY) || 1;
+      const sideX = directionY / directionLength;
+      const sideY = -directionX / directionLength;
       if (movement === 'straight') {
-        enemy.x += enemy.directionX * enemy.speed * dt;
+        enemy.x += directionX * enemy.speed * dt;
+        enemy.y += directionY * enemy.speed * dt;
       } else if (movement === 'sine') {
-        enemy.x += enemy.directionX * enemy.speed * dt;
-        enemy.y = enemy.y0 + (params.amplitude || 0) * Math.sin(enemy.age * (params.frequency ?? 3) + enemy.phase);
+        const waveOffset = (params.amplitude || 0) * Math.sin(enemy.age * (params.frequency ?? 3) + enemy.phase);
+        if (directionY === 0) {
+          enemy.x += directionX * enemy.speed * dt;
+          enemy.y = enemy.y0 + sideY * waveOffset;
+        } else {
+          const waveDelta = waveOffset - enemy.waveOffset;
+          enemy.x += directionX * enemy.speed * dt + sideX * waveDelta;
+          enemy.y += directionY * enemy.speed * dt + sideY * waveDelta;
+        }
+        enemy.waveOffset = waveOffset;
       } else if (movement === 'u-turn') {
         if (enemy.vx === null) enemy.vx = -enemy.speed;
         enemy.vx = Math.min(enemy.speed * 1.15, enemy.vx + enemy.speed * 0.85 * dt);
@@ -237,25 +260,34 @@
         enemy.y = enemy.y0 + Math.sin(enemy.age * 1.8) * 18;
       } else if (movement === 'enter-pause-exit') {
         if (enemy.state === 'enter') {
-          enemy.x -= enemy.speed * dt;
-          if (enemy.x <= enemy.targetX) {
+          enemy.x += directionX * enemy.speed * dt;
+          enemy.y += directionY * enemy.speed * dt;
+          const remaining = (enemy.targetX - enemy.x) * directionX + (enemy.targetY - enemy.y) * directionY;
+          if (remaining <= 0) {
             enemy.x = enemy.targetX;
+            enemy.y = enemy.targetY;
             enemy.state = 'pause';
             enemy.pauseRemaining = enemy.pauseDuration;
           }
         } else if (enemy.state === 'pause') {
           enemy.pauseRemaining -= dt;
-          enemy.y = enemy.y0 + Math.sin(enemy.age * 2) * 6;
+          const wobble = Math.sin(enemy.age * 2) * 6;
+          enemy.x = enemy.targetX + sideX * wobble;
+          enemy.y = enemy.targetY + sideY * wobble;
           if (enemy.pauseRemaining <= 0) enemy.state = 'exit';
         } else {
-          enemy.x -= enemy.speed * 1.7 * dt;
+          enemy.x += directionX * enemy.speed * 1.7 * dt;
+          enemy.y += directionY * enemy.speed * 1.7 * dt;
         }
       } else if (movement === 'custom-path') {
         const point = PathApi.sample(enemy.movement.path, enemy.age, this.compiled.viewport);
         if (point) {
           enemy.x = point.x + (enemy.pathOffsetX || 0);
           enemy.y = point.y + (enemy.pathOffsetY || 0);
-          if (point.directionX) enemy.directionX = point.directionX;
+          if (point.directionX || point.directionY) {
+            enemy.directionX = point.directionX;
+            enemy.directionY = point.directionY;
+          }
           enemy.pathComplete = point.done;
         }
       }

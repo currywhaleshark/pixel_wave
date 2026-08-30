@@ -80,12 +80,23 @@
       if (record.kind === 'replace-item') {
         const expected = forward ? record.before.id : record.after.id;
         this._replace(expected, forward ? record.after : record.before);
+      } else if (record.kind === 'replace-item-dependencies') {
+        const expected = forward ? record.before.id : record.after.id;
+        this._replace(expected, forward ? record.after : record.before);
+        this.stage.dependencies = clone(forward ? record.afterDependencies : record.beforeDependencies);
       } else if (record.kind === 'insert-item') {
         if (forward) this.stage.items.splice(record.index, 0, clone(record.item));
         else {
           const index = this.itemIndex(record.item.id);
           if (index >= 0) this.stage.items.splice(index, 1);
         }
+      } else if (record.kind === 'insert-item-dependencies') {
+        if (forward) this.stage.items.splice(record.index, 0, clone(record.item));
+        else {
+          const index = this.itemIndex(record.item.id);
+          if (index >= 0) this.stage.items.splice(index, 1);
+        }
+        this.stage.dependencies = clone(forward ? record.afterDependencies : record.beforeDependencies);
       } else if (record.kind === 'remove-item') {
         if (forward) {
           const index = this.itemIndex(record.item.id);
@@ -111,6 +122,22 @@
       const after = clone(nextItem);
       if (same(before, after)) return false;
       return this._commit({ kind: 'replace-item', label, before: clone(before), after });
+    }
+
+    replaceItemWithDependencies(id, nextItem, dependencies, label = '클립 수정') {
+      const before = this.findItem(id);
+      if (!before) throw new Error(`클립 '${id}'을 찾을 수 없습니다.`);
+      const after = clone(nextItem);
+      const afterDependencies = clone(dependencies);
+      if (same(before, after) && same(this.stage.dependencies, afterDependencies)) return false;
+      return this._commit({
+        kind: 'replace-item-dependencies',
+        label,
+        before: clone(before),
+        after,
+        beforeDependencies: clone(this.stage.dependencies),
+        afterDependencies,
+      });
     }
 
     setDifficultyOverride(id, difficulty, override, label = '난이도 덮어쓰기') {
@@ -139,6 +166,21 @@
       next.id = this.uniqueId(next.id);
       const target = Math.max(0, Math.min(this.stage.items.length, Number(index) || 0));
       this._commit({ kind: 'insert-item', label, item: next, index: target });
+      return clone(next);
+    }
+
+    insertItemWithDependencies(item, dependencies, index = this.stage.items.length, label = '클립 추가') {
+      const next = clone(item);
+      next.id = this.uniqueId(next.id);
+      const target = Math.max(0, Math.min(this.stage.items.length, Number(index) || 0));
+      this._commit({
+        kind: 'insert-item-dependencies',
+        label,
+        item: next,
+        index: target,
+        beforeDependencies: clone(this.stage.dependencies),
+        afterDependencies: clone(dependencies),
+      });
       return clone(next);
     }
 

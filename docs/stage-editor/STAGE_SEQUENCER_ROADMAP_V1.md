@@ -1,7 +1,7 @@
 # Pixel Wave Stage Sequencer Roadmap v1
 
-Status: M1 complete; M2 core editing/difficulty/turtle slice complete; M3 path
-editing slice in progress. This
+Status: M1 complete; M2 core editing/difficulty/turtle slice complete; M3 wave
+authoring slice in progress. This
 document orders the existing Stage JSON, preset registry, barrage runtime, and
 terrain-profile designs into usable vertical releases. It does not authorize
 changing current stage gameplay yet.
@@ -441,7 +441,7 @@ Scope:
 - open a barrage pattern in Barrage Lab and return its ID;
 - projectile/enemy budget overlay.
 
-Implemented path and formation slices:
+Implemented path, formation, and enemy/entry library slices:
 
 - `custom-path` movement with native normalized Stage JSON points;
 - shared path normalization, validation, easing, hold, and deterministic
@@ -457,9 +457,17 @@ Implemented path and formation slices:
 - direct V-spacing and wall-gap handles with portrait touch targets;
 - V and wall parameter inspectors plus live resolved-enemy count feedback;
 - base and active-difficulty formation gestures through the command model.
+- shared enemy metadata for fish, jelly, ray, turret, lantern, viper, ghost,
+  and big enemies, including Korean labels, descriptions, and creation defaults;
+- all five legacy entry presets through shared normalization, validation, and
+  compiler origin/direction rules in `js/stage/entry.js`;
+- direction-aware V and wall layouts for horizontal, vertical, and diagonal
+  entries, with X/Y-aware direct entry handles;
+- automatic dependency declarations grouped into the same undo command as the
+  wave edit or insertion.
 
-Still pending in M3: richer enemy/entry library UI, movement and weapon
-metadata, Barrage Lab round-trip, and budget overlays.
+Still pending in M3: movement and weapon metadata, Barrage Lab round-trip, and
+budget overlays.
 
 Acceptance:
 

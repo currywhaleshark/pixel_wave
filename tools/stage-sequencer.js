@@ -436,6 +436,28 @@
     return (values || []).map(value => `<option value="${escapeHtml(value)}" ${value === selected ? 'selected' : ''}>${escapeHtml(value)}</option>`).join('');
   }
 
+  function definitionOptionList(category, selected) {
+    return StageRegistry.entries(category).map(definition => (
+      `<option value="${escapeHtml(definition.id)}" ${definition.id === selected ? 'selected' : ''}>${escapeHtml(definition.name)}</option>`
+    )).join('');
+  }
+
+  function ensureDependency(candidate, category, id) {
+    if (!id || !StageRegistry.knows(category, id)) return;
+    const values = candidate.dependencies?.[category];
+    if (Array.isArray(values) && !values.includes(id)) values.push(id);
+  }
+
+  function ensureWaveDependencies(candidate, item) {
+    if (item?.type !== 'wave') return;
+    ensureDependency(candidate, 'enemyKinds', item.payload?.enemy?.kind);
+    ensureDependency(candidate, 'entryPresets', item.payload?.entry?.presetId);
+    ensureDependency(candidate, 'formationPresets', item.payload?.formation?.presetId);
+    ensureDependency(candidate, 'movementPresets', item.payload?.movement?.presetId);
+    if (item.payload?.weapon?.presetId) ensureDependency(candidate, 'weaponPresets', item.payload.weapon.presetId);
+    if (item.payload?.weapon?.patternId) ensureDependency(candidate, 'barragePatterns', item.payload.weapon.patternId);
+  }
+
   function validateStageCandidate(candidate) {
     const report = StageCompiler.validate(candidate);
     if (report.errors.length) throw new Error(report.errors[0]);
@@ -447,7 +469,9 @@
     const index = candidate.items.findIndex(item => item.id === id);
     if (index < 0) throw new Error(`클립 '${id}'을 찾을 수 없습니다.`);
     candidate.items[index] = nextItem;
+    ensureWaveDependencies(candidate, nextItem);
     validateStageCandidate(candidate);
+    return candidate;
   }
 
   function afterDocumentChange(label, focusId = selectedId, seekAt = simulation?.time || 0) {
@@ -463,8 +487,8 @@
 
   function replaceAuthoredItem(id, nextItem, label) {
     try {
-      validateReplacement(id, nextItem);
-      if (stageDocument.replaceItem(id, nextItem, label)) {
+      const candidate = validateReplacement(id, nextItem);
+      if (stageDocument.replaceItemWithDependencies(id, nextItem, candidate.dependencies, label)) {
         afterDocumentChange(label, nextItem.id, nextItem.timing.start);
         return true;
       }
@@ -485,8 +509,9 @@
       const index = candidate.items.findIndex(item => item.id === id);
       candidate.items[index].difficulty = StageDocument.clone(candidate.items[index].difficulty || {});
       candidate.items[index].difficulty[difficulty] = override;
+      ensureWaveDependencies(candidate, nextResolvedItem);
       validateStageCandidate(candidate);
-      if (stageDocument.setDifficultyOverride(id, difficulty, override, label)) {
+      if (stageDocument.replaceItemWithDependencies(id, candidate.items[index], candidate.dependencies, label)) {
         afterDocumentChange(label, id, nextResolvedItem.timing.start);
         return true;
       }
@@ -518,8 +543,21 @@
       if (formationId === 'wall-gap') delete next.payload.spawn.count;
       else next.payload.spawn.count = count;
       next.payload.spawn.interval = interval;
-      next.payload.entry.presetId = String(values.get('entryPreset'));
-      next.payload.entry.y = Math.max(0, Math.min(1, Number(values.get('y')) || 0));
+      const entryId = String(values.get('entryPreset'));
+      const existingEntryParams = next.payload.entry?.presetId === entryId
+        ? StageDocument.clone(next.payload.entry.params || {})
+        : {};
+      const entryDefinition = StageRegistry.get('entryPresets', entryId);
+      const entryCoordinate = Math.max(0, Math.min(1, Number(values.get('entryCoordinate')) || 0));
+      next.payload.entry = StageEntry.normalize({
+        ...next.payload.entry,
+        presetId: entryId,
+        x: entryDefinition?.coordinate === 'x' ? entryCoordinate : (next.payload.entry.x ?? 0.5),
+        y: entryDefinition?.coordinate === 'y' ? entryCoordinate : (next.payload.entry.y ?? 0.5),
+        params: entryId === 'diagonal'
+          ? { ...existingEntryParams, vertical: String(values.get('entryVertical') || 'down') }
+          : existingEntryParams,
+      });
       const existingFormationParams = next.payload.formation?.presetId === formationId
         ? StageDocument.clone(next.payload.formation.params || {})
         : {};
@@ -611,12 +649,37 @@
     else replaceAuthoredItem(item.id, next, label);
   }
 
+  function updateLibraryHints(form, applyEnemyDefaults = false) {
+    const enemySelect = form?.elements?.enemyKind;
+    const enemyDefinition = enemySelect ? StageRegistry.get('enemyKinds', enemySelect.value) : null;
+    const enemyHint = form?.querySelector('[data-enemy-hint]');
+    if (enemyHint) enemyHint.textContent = enemyDefinition?.description || '';
+    if (applyEnemyDefaults && enemyDefinition?.defaults) {
+      if (form.elements.hp) form.elements.hp.value = enemyDefinition.defaults.hp;
+      if (form.elements.speed) form.elements.speed.value = enemyDefinition.defaults.speed;
+    }
+
+    const entrySelect = form?.elements?.entryPreset;
+    const entryDefinition = entrySelect ? StageRegistry.get('entryPresets', entrySelect.value) : null;
+    const entryHint = form?.querySelector('[data-entry-hint]');
+    if (entryHint) entryHint.textContent = entryDefinition?.description || '';
+    const coordinateLabel = form?.querySelector('[data-entry-coordinate-label]');
+    if (coordinateLabel) coordinateLabel.textContent = entryDefinition?.coordinate === 'x' ? '진입 X 위치' : '진입 높이';
+    const diagonalControl = form?.querySelector('[data-entry-diagonal]');
+    if (diagonalControl) diagonalControl.hidden = entrySelect?.value !== 'diagonal';
+  }
+
   function bindInspectorForm() {
     const form = $('#clipEditForm');
     if (form) form.addEventListener('submit', event => {
       event.preventDefault();
       commitInspectorForm(form);
     });
+    if (form?.elements?.enemyKind) {
+      form.elements.enemyKind.addEventListener('change', () => updateLibraryHints(form, true));
+      form.elements.entryPreset.addEventListener('change', () => updateLibraryHints(form));
+      updateLibraryHints(form);
+    }
     document.querySelectorAll('[data-nudge]').forEach(button => button.addEventListener('click', () => nudgeSelected(Number(button.dataset.nudge))));
     document.querySelectorAll('[data-edit-scope]').forEach(button => button.addEventListener('click', () => {
       editScope = button.dataset.editScope;
@@ -738,6 +801,9 @@
     const formFormation = formItem.type === 'wave'
       ? StageFormation.normalize(formItem.payload.formation, formItem.payload.spawn?.count)
       : null;
+    const formEntry = formItem.type === 'wave' ? StageEntry.normalize(formItem.payload.entry) : null;
+    const formEntryDefinition = formEntry ? StageRegistry.get('entryPresets', formEntry.presetId) : null;
+    const formEntryCoordinate = formEntryDefinition?.coordinate === 'x' ? formEntry.x : formEntry?.y;
     const formationCount = formFormation
       ? StageFormation.resolvedCount(formFormation, formItem.payload.spawn?.count)
       : 0;
@@ -782,26 +848,29 @@
           </div>
           ${formItem.type === 'wave' ? `
             <div class="form-row three">
-              <label>적<select name="enemyKind">${optionList(rawStage.dependencies.enemyKinds, formItem.payload.enemy.kind)}</select></label>
+              <label>적<select name="enemyKind">${definitionOptionList('enemyKinds', formItem.payload.enemy.kind)}</select></label>
               <label>체력<input name="hp" type="number" min="0.1" max="1000000" step="0.1" value="${formItem.payload.enemy.hp}"></label>
               <label>속도<input name="speed" type="number" min="0" max="2000" step="1" value="${formItem.payload.enemy.speed}"></label>
             </div>
+            <p class="library-hint" data-enemy-hint>${escapeHtml(StageRegistry.get('enemyKinds', formItem.payload.enemy.kind)?.description || '')}</p>
             <div class="form-row three">
               <label>${formFormation.presetId === 'wall-gap' ? '해석 수' : '마릿수'}<input name="count" type="number" min="1" max="256" step="1" value="${formFormation.presetId === 'wall-gap' ? formationCount : (formItem.payload.spawn.count ?? 1)}" ${formFormation.presetId === 'wall-gap' ? 'disabled' : ''}></label>
               <label>간격<input name="interval" type="number" min="0" max="30" step="0.01" value="${formItem.payload.spawn.interval ?? 0}" ${formFormation.presetId === 'wall-gap' || formFormation.presetId === 'v' ? 'disabled' : ''}></label>
-              <label>높이<input name="y" type="number" min="0" max="1" step="0.01" value="${formItem.payload.entry.y ?? 0.5}"></label>
+              <label><span data-entry-coordinate-label>${formEntryDefinition?.coordinate === 'x' ? '진입 X 위치' : '진입 높이'}</span><input name="entryCoordinate" type="number" min="0" max="1" step="0.01" value="${formEntryCoordinate ?? 0.5}"></label>
             </div>
             <div class="form-row two">
-              <label>진입 방향<select name="entryPreset">${optionList(rawStage.dependencies.entryPresets, formItem.payload.entry.presetId)}</select></label>
+              <label>진입 방향<select name="entryPreset">${definitionOptionList('entryPresets', formEntry.presetId)}</select></label>
               <label>편대<select name="formation">${optionList(rawStage.dependencies.formationPresets, formItem.payload.formation.presetId)}</select></label>
             </div>
+            <label data-entry-diagonal ${formEntry.presetId === 'diagonal' ? '' : 'hidden'}>대각 진행<select name="entryVertical"><option value="down" ${formEntry.params?.vertical !== 'up' ? 'selected' : ''}>위에서 아래로</option><option value="up" ${formEntry.params?.vertical === 'up' ? 'selected' : ''}>아래에서 위로</option></select></label>
+            <p class="library-hint" data-entry-hint>${escapeHtml(formEntryDefinition?.description || '')}</p>
             <section class="formation-editor">
               <div class="formation-editor-heading"><strong>편대 배치</strong><span>해석 마릿수 <b data-formation-resolved-count>${formationCount}</b></span></div>
               <p>${formFormation.presetId === 'wall-gap'
-                ? '미리보기의 틈 핸들을 위아래로 끌어 안전 통로를 옮기세요.'
+                ? `미리보기의 틈 핸들을 ${formEntryDefinition?.coordinate === 'x' ? '좌우로' : '위아래로'} 끌어 안전 통로를 옮기세요.`
                 : formFormation.presetId === 'v'
-                  ? '진입 핸들로 높이를, 간격 핸들로 V의 폭과 높이를 조절하세요.'
-                  : '미리보기의 진입 핸들을 위아래로 끌어 생성 높이를 조절하세요.'}</p>
+                  ? `진입 핸들로 ${formEntryDefinition?.coordinate === 'x' ? 'X 위치를' : '높이를'}, 간격 핸들로 V의 폭과 높이를 조절하세요.`
+                  : `미리보기의 진입 핸들을 ${formEntryDefinition?.coordinate === 'x' ? '좌우로' : '위아래로'} 끌어 생성 위치를 조절하세요.`}</p>
               ${formFormation.presetId === 'v' ? `
                 <div class="form-row two">
                   <label>가로 간격<input name="formationSpacingX" type="number" min="0" max="240" step="1" value="${formFormation.params.spacingX}"></label>
@@ -1095,10 +1164,21 @@
   function formationGhost(item) {
     if (!item || item.type !== 'wave') return null;
     const formation = StageFormation.normalize(item.payload.formation, item.payload.spawn?.count);
-    const fromLeft = item.payload.entry?.presetId === 'left-to-right';
-    const anchorX = canvas.width * (fromLeft ? 0.18 : 0.72);
+    const entry = StageEntry.resolve(item.payload.entry, { width: canvas.width, height: canvas.height });
+    const verticalEntry = entry.coordinate === 'x';
+    const fromLeft = entry.directionX > 0 && !verticalEntry;
+    const fromBottom = entry.directionY < 0 && verticalEntry;
+    const displayEntryX = verticalEntry ? entry.entry.x * canvas.width : canvas.width * (fromLeft ? 0.18 : 0.72);
+    const displayEntryY = verticalEntry ? canvas.height * (fromBottom ? 0.82 : 0.18) : entry.entry.y * canvas.height;
     const pathStart = item.payload.movement?.presetId === 'custom-path' ? item.payload.movement.path?.[0] : null;
-    const anchorY = (pathStart?.y ?? item.payload.entry?.y ?? 0.5) * canvas.height;
+    const pathNext = pathStart ? item.payload.movement.path?.[1] : null;
+    const pathDeltaX = pathNext ? (pathNext.x - pathStart.x) * canvas.width : 0;
+    const pathDeltaY = pathNext ? (pathNext.y - pathStart.y) * canvas.height : 0;
+    const pathLength = Math.hypot(pathDeltaX, pathDeltaY);
+    const formationDirectionX = pathLength > 0 ? pathDeltaX / pathLength : entry.directionX;
+    const formationDirectionY = pathLength > 0 ? pathDeltaY / pathLength : entry.directionY;
+    const anchorX = pathStart ? pathStart.x * canvas.width : displayEntryX;
+    const anchorY = pathStart ? pathStart.y * canvas.height : displayEntryY;
     let gapStart;
     if (formation.presetId === 'wall-gap') {
       const compiledSlots = formationDrag?.itemId === item.id ? [] : (compiled?.events || [])
@@ -1116,9 +1196,13 @@
       width: canvas.width,
       height: canvas.height,
       gapStart,
+      directionX: formationDirectionX,
+      directionY: formationDirectionY,
     });
     const handles = [];
-    if (formation.presetId !== 'wall-gap' && !pathStart) handles.push({ type: 'entry', x: anchorX, y: anchorY, label: '진입' });
+    if (formation.presetId !== 'wall-gap' && !pathStart) {
+      handles.push({ type: 'entry', x: anchorX, y: anchorY, coordinate: entry.coordinate, label: verticalEntry ? '진입 X' : '진입 높이' });
+    }
     if (formation.presetId === 'v' && layout.points.length > 1) {
       const spreadPoint = layout.points
         .filter(point => point.side < 0)
@@ -1130,12 +1214,13 @@
       const centerSlot = layout.gapStart + Math.max(0, params.gapSlots - 1) * 0.5;
       handles.push({
         type: 'wall-gap',
-        x: anchorX,
-        y: params.topPadding + centerSlot * layout.spacing,
+        x: layout.verticalWall ? anchorX : params.topPadding + centerSlot * layout.spacing,
+        y: layout.verticalWall ? params.topPadding + centerSlot * layout.spacing : anchorY,
+        verticalWall: layout.verticalWall,
         label: '틈',
       });
     }
-    return { item, formation, anchorX, anchorY, layout, handles };
+    return { item, formation, anchorX, anchorY, directionX: formationDirectionX, directionY: formationDirectionY, layout, handles };
   }
 
   function formationHandlePosition(handle, scale) {
@@ -1226,6 +1311,8 @@
       pointerId: event.pointerId,
       itemId: authored.id,
       handleType: hit.type,
+      coordinate: hit.coordinate,
+      verticalWall: hit.verticalWall,
       rank: hit.rank,
       scope: editScope,
       working,
@@ -1240,19 +1327,29 @@
     const pointer = pointerCanvasPosition(event);
     const drag = formationDrag;
     if (drag.handleType === 'entry') {
-      drag.working.payload.entry.y = +Math.max(0, Math.min(1, pointer.y / canvas.height)).toFixed(2);
+      if (drag.coordinate === 'x') drag.working.payload.entry.x = +Math.max(0, Math.min(1, pointer.x / canvas.width)).toFixed(2);
+      else drag.working.payload.entry.y = +Math.max(0, Math.min(1, pointer.y / canvas.height)).toFixed(2);
     } else if (drag.handleType === 'v-spread') {
       const ghost = formationGhost(drag.working);
       const formation = StageFormation.normalize(drag.working.payload.formation, drag.working.payload.spawn?.count);
-      formation.params.spacingX = Math.round(Math.max(0, Math.min(240, Math.abs(pointer.x - ghost.anchorX) / drag.rank)));
-      formation.params.spacingY = Math.round(Math.max(0, Math.min(180, Math.abs(pointer.y - ghost.anchorY) / drag.rank)));
+      const length = Math.hypot(ghost.directionX, ghost.directionY) || 1;
+      const backwardX = -ghost.directionX / length;
+      const backwardY = -ghost.directionY / length;
+      const sideX = ghost.directionY / length;
+      const sideY = -ghost.directionX / length;
+      const deltaX = pointer.x - ghost.anchorX;
+      const deltaY = pointer.y - ghost.anchorY;
+      formation.params.spacingX = Math.round(Math.max(0, Math.min(240, (deltaX * backwardX + deltaY * backwardY) / drag.rank)));
+      formation.params.spacingY = Math.round(Math.max(0, Math.min(180, Math.abs(deltaX * sideX + deltaY * sideY) / drag.rank)));
       drag.working.payload.formation = StageFormation.normalize(formation, drag.working.payload.spawn?.count);
     } else if (drag.handleType === 'wall-gap') {
       const formation = StageFormation.normalize(drag.working.payload.formation, drag.working.payload.spawn?.count);
       const params = formation.params;
-      const usableHeight = Math.max(0, canvas.height - params.topPadding - params.bottomPadding);
-      const spacing = params.slotCount > 1 ? usableHeight / (params.slotCount - 1) : 0;
-      const centerSlot = spacing > 0 ? (pointer.y - params.topPadding) / spacing : 0;
+      const span = drag.verticalWall ? canvas.height : canvas.width;
+      const usableSpan = Math.max(0, span - params.topPadding - params.bottomPadding);
+      const spacing = params.slotCount > 1 ? usableSpan / (params.slotCount - 1) : 0;
+      const pointerPosition = drag.verticalWall ? pointer.y : pointer.x;
+      const centerSlot = spacing > 0 ? (pointerPosition - params.topPadding) / spacing : 0;
       const start = Math.max(0, Math.min(
         params.slotCount - params.gapSlots,
         Math.round(centerSlot - Math.max(0, params.gapSlots - 1) * 0.5),
@@ -1274,7 +1371,7 @@
       return;
     }
     const authored = stageDocument.findItem(drag.itemId);
-    const labels = { entry: '진입 높이 이동', 'v-spread': 'V 편대 간격 조정', 'wall-gap': '벽 편대 틈 이동' };
+    const labels = { entry: drag.coordinate === 'x' ? '진입 X 이동' : '진입 높이 이동', 'v-spread': 'V 편대 간격 조정', 'wall-gap': '벽 편대 틈 이동' };
     const label = labels[drag.handleType] || '편대 조정';
     if (drag.scope === 'difficulty') replaceDifficultyItem(authored.id, drag.working, `${activeDifficulty().name} ${label}`);
     else replaceAuthoredItem(authored.id, drag.working, label);
@@ -1389,11 +1486,17 @@
     const duration = (count - 1) * interval;
     const start = Math.max(0, Math.min(rawStage.timeline.duration - duration, Number(values.get('start')) || 0));
     const enemyKind = String(values.get('enemyKind'));
-    const defaults = {
-      fish: { hp: 2, speed: 150 },
-      ray: { hp: 4, speed: 150 },
-      big: { hp: 48, speed: 105 },
-    }[enemyKind] || { hp: 2, speed: 150 };
+    const defaults = StageRegistry.get('enemyKinds', enemyKind)?.defaults || { hp: 2, speed: 150 };
+    const entryPreset = String(values.get('entryPreset') || 'right-to-left');
+    const entryDefinition = StageRegistry.get('entryPresets', entryPreset);
+    const rawEntryCoordinate = Number(values.get('entryCoordinate'));
+    const entryCoordinate = Math.max(0, Math.min(1, Number.isFinite(rawEntryCoordinate) ? rawEntryCoordinate : 0.5));
+    const entry = StageEntry.normalize({
+      presetId: entryPreset,
+      x: entryDefinition?.coordinate === 'x' ? entryCoordinate : 0.5,
+      y: entryDefinition?.coordinate === 'y' ? entryCoordinate : 0.5,
+      params: entryPreset === 'diagonal' ? { vertical: String(values.get('entryVertical') || 'down') } : undefined,
+    });
     const item = {
       id: stageDocument.uniqueId(`${rawStage.id}-wave`),
       type: 'wave',
@@ -1403,7 +1506,7 @@
       payload: {
         enemy: { kind: enemyKind, hp: defaults.hp, speed: defaults.speed },
         spawn: { count, interval },
-        entry: { presetId: 'right-to-left', y: Math.max(0, Math.min(1, Number(values.get('y')) || 0.5)) },
+        entry,
         formation: { presetId: 'column' },
         movement: { presetId: 'straight' },
         weapon: { presetId: 'none' },
@@ -1417,13 +1520,28 @@
     return item;
   }
 
+  function populateAddWaveLibrary() {
+    const form = $('#addWaveForm');
+    form.elements.enemyKind.innerHTML = definitionOptionList('enemyKinds', 'fish');
+    form.elements.entryPreset.innerHTML = definitionOptionList('entryPresets', 'right-to-left');
+    form.elements.enemyKind.addEventListener('change', () => updateLibraryHints(form));
+    form.elements.entryPreset.addEventListener('change', () => updateLibraryHints(form));
+    updateLibraryHints(form);
+  }
+
   function addWaveFromDialog(form) {
     try {
       const item = createWaveFromForm(form);
       const candidate = stageDocument.snapshot();
       candidate.items.push(item);
+      ensureWaveDependencies(candidate, item);
       validateStageCandidate(candidate);
-      const inserted = stageDocument.insertItem(item, stageDocument.stage.items.length, '잡몹 웨이브 추가');
+      const inserted = stageDocument.insertItemWithDependencies(
+        item,
+        candidate.dependencies,
+        stageDocument.stage.items.length,
+        '잡몹 웨이브 추가',
+      );
       $('#addWaveDialog').close();
       const suffix = item.enabled === false ? ` · ${activeDifficulty().name} 전용` : '';
       afterDocumentChange(`잡몹 웨이브를 추가했습니다${suffix}`, inserted.id, inserted.timing.start);
@@ -1556,6 +1674,7 @@
   });
   $('#markRangeIn').addEventListener('click', () => markCustomRange('in'));
   $('#markRangeOut').addEventListener('click', () => markCustomRange('out'));
+  populateAddWaveLibrary();
   $('#addWave').addEventListener('click', () => {
     if (!simulation) return;
     const form = $('#addWaveForm');

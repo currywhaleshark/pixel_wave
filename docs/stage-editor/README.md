@@ -1,6 +1,6 @@
 # Pixel Wave Stage Sequencer design index
 
-The Stage Sequencer contract now has an M3 path-editing slice. The current game
+The Stage Sequencer contract now has an M3 wave-authoring slice. The current game
 runtime has not been replaced; the editor remains isolated under `tools/`
 until preview parity is proven.
 
@@ -23,16 +23,23 @@ until preview parity is proven.
    fields. When the active-difficulty scope is selected, path gestures create a
    difficulty patch instead of changing the shared base.
 6. Wave formation controls show the resolved enemy count. The preview exposes
-   an entry-height handle for ordinary waves, a V-spacing handle, and a wall-gap
-   handle. These gestures also follow the selected base or difficulty scope.
-7. Timeline clips show inherited, patched, replaced, disabled, and
+   an entry-position handle for ordinary waves, a V-spacing handle, and a
+   wall-gap handle. Horizontal, vertical, and diagonal entries rotate formation
+   previews to match their travel direction. These gestures also follow the
+   selected base or difficulty scope.
+7. Enemy and entry selectors use the shared registry library. Eight ordinary
+   enemy kinds and all five legacy entry directions are available with Korean
+   names, descriptions, and enemy defaults. Choosing a dependency not yet used
+   by the stage adds its declaration in the same undoable command.
+8. Timeline clips show inherited, patched, replaced, disabled, and
    active-difficulty-only states. The editor also supports duplicate/delete,
    undo/redo, Stage 3 JSON import, device autosave, and JSON export.
 
 The simulator uses deterministic fixed steps and 5-second snapshots. The shared
-`js/stage/path.js` module normalizes, validates, and samples custom paths, while
-`js/stage/formation.js` resolves V spacing, wall gaps, and enemy counts for both
-the compiler and editor. It previews spawns, movement, legacy
+`js/stage/path.js` module normalizes, validates, and samples custom paths,
+`js/stage/entry.js` resolves the five screen-edge entry presets, and
+`js/stage/formation.js` resolves direction-aware V spacing, wall gaps, and enemy
+counts for both the compiler and editor. It previews spawns, movement, legacy
 enemy fire, Stage 3's turtle ride, background scroll changes, warning, and boss
 entry. Player input, collision, damage, and live game-runtime replacement
 remain intentionally outside this slice.
@@ -69,5 +76,8 @@ slices. M3 now includes native custom-path data,
 shared deterministic sampling, direct desktop/touch point dragging, point
 timing/easing/hold controls, coalesced undo, and difficulty-specific paths. Its
 formation slice adds entry-direction authoring, shared V/wall layout rules,
-resolved-count feedback, and direct desktop/touch formation handles. The richer
-enemy library, Barrage Lab handoff, and budget overlays are still pending.
+resolved-count feedback, and direct desktop/touch formation handles. The enemy
+and entry library slice adds eight ordinary enemy definitions, all five legacy
+entry directions, direction-aware formation rotation, and atomic dependency
+declarations. Movement/weapon metadata, Barrage Lab handoff, and budget overlays
+are still pending.

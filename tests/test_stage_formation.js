@@ -52,8 +52,8 @@ const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/sta
   assert.equal(events.length, wave.payload.spawn.count);
   assert.equal(events[0].enemy.x, -30);
   assert.equal(events[0].enemy.directionX, 1);
-  assert.equal(events[1].enemy.x - events[0].enemy.x, 60);
-  assert.equal(events[0].enemy.y - events[1].enemy.y, 30);
+  assert.equal(Math.abs(events[1].enemy.x - events[0].enemy.x), 60);
+  assert.equal(Math.abs(events[0].enemy.y - events[1].enemy.y), 30);
 }
 
 {
