@@ -441,7 +441,7 @@ Scope:
 - open a barrage pattern in Barrage Lab and return its ID;
 - projectile/enemy budget overlay.
 
-Implemented path slice:
+Implemented path and formation slices:
 
 - `custom-path` movement with native normalized Stage JSON points;
 - shared path normalization, validation, easing, hold, and deterministic
@@ -451,9 +451,15 @@ Implemented path slice:
 - point add/delete plus arrival-time, easing, and hold controls without raw
   normalized coordinate fields;
 - base and active-difficulty path authoring through the existing patch model.
+- shared formation normalization, validation, layout, and resolved-count rules
+  in `js/stage/formation.js`;
+- entry-direction selection and direct entry-height manipulation;
+- direct V-spacing and wall-gap handles with portrait touch targets;
+- V and wall parameter inspectors plus live resolved-enemy count feedback;
+- base and active-difficulty formation gestures through the command model.
 
-Still pending in M3: enemy/entry library UI, formation handles, richer movement
-and weapon metadata, Barrage Lab round-trip, and budget overlays.
+Still pending in M3: richer enemy/entry library UI, movement and weapon
+metadata, Barrage Lab round-trip, and budget overlays.
 
 Acceptance:
 

@@ -34,6 +34,7 @@
   let toastTimer = 0;
   let clipDrag = null;
   let pathDrag = null;
+  let formationDrag = null;
   let selectedPathPoint = 0;
   let editScope = 'base';
 
@@ -69,6 +70,13 @@
     if (!authored || authored.type !== 'wave') return null;
     const item = pathDrag?.itemId === authored.id ? pathDrag.working : scopedEditableItem(authored);
     return item?.payload?.movement?.presetId === 'custom-path' ? item : null;
+  }
+
+  function selectedFormationItem() {
+    const authored = stageDocument?.findItem(selectedId);
+    if (!authored || authored.type !== 'wave') return null;
+    if (formationDrag?.itemId === authored.id) return formationDrag.working;
+    return scopedEditableItem(authored);
   }
 
   function objectDiff(base, value) {
@@ -507,10 +515,43 @@
       next.payload.enemy.kind = String(values.get('enemyKind'));
       next.payload.enemy.hp = Math.max(0.1, Number(values.get('hp')) || 1);
       next.payload.enemy.speed = Math.max(0, Number(values.get('speed')) || 0);
-      next.payload.spawn.count = count;
+      if (formationId === 'wall-gap') delete next.payload.spawn.count;
+      else next.payload.spawn.count = count;
       next.payload.spawn.interval = interval;
+      next.payload.entry.presetId = String(values.get('entryPreset'));
       next.payload.entry.y = Math.max(0, Math.min(1, Number(values.get('y')) || 0));
-      next.payload.formation.presetId = formationId;
+      const existingFormationParams = next.payload.formation?.presetId === formationId
+        ? StageDocument.clone(next.payload.formation.params || {})
+        : {};
+      if (formationId === 'v') {
+        next.payload.formation = StageFormation.normalize({
+          presetId: formationId,
+          params: {
+            ...existingFormationParams,
+            spacingX: Number(values.get('formationSpacingX')) || 34,
+            spacingY: Number(values.get('formationSpacingY')) || 42,
+          },
+        }, count);
+      } else if (formationId === 'wall-gap') {
+        const slotCount = Math.max(2, Math.round(Number(values.get('wallSlotCount')) || 10));
+        const gapSlotsValue = values.has('wallGapSlots') ? Number(values.get('wallGapSlots')) : 2;
+        const gapSlots = Math.max(0, Math.min(slotCount - 1, Math.round(gapSlotsValue)));
+        const gapStartValue = values.has('wallGapStart') ? Number(values.get('wallGapStart')) : 1;
+        const gapStart = Math.max(0, Math.min(slotCount - gapSlots, Math.round(gapStartValue)));
+        next.payload.formation = StageFormation.normalize({
+          presetId: formationId,
+          params: {
+            ...existingFormationParams,
+            slotCount,
+            gapSlots,
+            gapStartRange: [gapStart, gapStart],
+            topPadding: Math.max(0, values.has('wallTopPadding') ? Number(values.get('wallTopPadding')) : 40),
+            bottomPadding: Math.max(0, values.has('wallBottomPadding') ? Number(values.get('wallBottomPadding')) : 20),
+          },
+        }, count);
+      } else {
+        next.payload.formation = { presetId: formationId };
+      }
       const movementId = String(values.get('movement'));
       next.payload.movement.presetId = movementId;
       if (movementId === 'custom-path') {
@@ -598,6 +639,26 @@
     document.querySelectorAll('[data-path-action]').forEach(button => button.addEventListener('click', () => {
       editSelectedPath(button.dataset.pathAction);
     }));
+    if (form) {
+      const updateFormationCount = () => {
+        const output = form.querySelector('[data-formation-resolved-count]');
+        if (!output) return;
+        const values = new FormData(form);
+        const presetId = String(values.get('formation'));
+        const count = Math.max(1, Math.round(Number(values.get('count')) || 1));
+        let formation = { presetId };
+        if (presetId === 'wall-gap') {
+          const gapSlotsValue = values.has('wallGapSlots') ? Number(values.get('wallGapSlots')) : 2;
+          formation.params = {
+            slotCount: Math.max(2, Math.round(Number(values.get('wallSlotCount')) || 10)),
+            gapSlots: Math.max(0, Math.round(gapSlotsValue)),
+          };
+        }
+        output.textContent = String(StageFormation.resolvedCount(formation, count));
+      };
+      form.querySelectorAll('[name="formation"], [name="count"], [name="wallSlotCount"], [name="wallGapSlots"]')
+        .forEach(input => input.addEventListener('input', updateFormationCount));
+    }
   }
 
   function commitScopedItem(authored, next, baseLabel, difficultyLabel = baseLabel) {
@@ -674,6 +735,12 @@
     const formPath = formItem.type === 'wave' && formItem.payload?.movement?.presetId === 'custom-path'
       ? StagePath.normalize(formItem.payload.movement.path)
       : [];
+    const formFormation = formItem.type === 'wave'
+      ? StageFormation.normalize(formItem.payload.formation, formItem.payload.spawn?.count)
+      : null;
+    const formationCount = formFormation
+      ? StageFormation.resolvedCount(formFormation, formItem.payload.spawn?.count)
+      : 0;
     selectedPathPoint = Math.max(0, Math.min(selectedPathPoint, Math.max(0, formPath.length - 1)));
     const pathPoint = formPath[selectedPathPoint];
     const state = difficultyState(authored, difficulty.id);
@@ -720,11 +787,39 @@
               <label>속도<input name="speed" type="number" min="0" max="2000" step="1" value="${formItem.payload.enemy.speed}"></label>
             </div>
             <div class="form-row three">
-              <label>마릿수<input name="count" type="number" min="1" max="256" step="1" value="${formItem.payload.spawn.count ?? 1}"></label>
-              <label>간격<input name="interval" type="number" min="0" max="30" step="0.01" value="${formItem.payload.spawn.interval ?? 0}"></label>
-              <label>높이<input name="y" type="number" min="0" max="1" step="0.05" value="${formItem.payload.entry.y ?? 0.5}"></label>
+              <label>${formFormation.presetId === 'wall-gap' ? '해석 수' : '마릿수'}<input name="count" type="number" min="1" max="256" step="1" value="${formFormation.presetId === 'wall-gap' ? formationCount : (formItem.payload.spawn.count ?? 1)}" ${formFormation.presetId === 'wall-gap' ? 'disabled' : ''}></label>
+              <label>간격<input name="interval" type="number" min="0" max="30" step="0.01" value="${formItem.payload.spawn.interval ?? 0}" ${formFormation.presetId === 'wall-gap' || formFormation.presetId === 'v' ? 'disabled' : ''}></label>
+              <label>높이<input name="y" type="number" min="0" max="1" step="0.01" value="${formItem.payload.entry.y ?? 0.5}"></label>
             </div>
-            <label>편대<select name="formation">${optionList(rawStage.dependencies.formationPresets, formItem.payload.formation.presetId)}</select></label>
+            <div class="form-row two">
+              <label>진입 방향<select name="entryPreset">${optionList(rawStage.dependencies.entryPresets, formItem.payload.entry.presetId)}</select></label>
+              <label>편대<select name="formation">${optionList(rawStage.dependencies.formationPresets, formItem.payload.formation.presetId)}</select></label>
+            </div>
+            <section class="formation-editor">
+              <div class="formation-editor-heading"><strong>편대 배치</strong><span>해석 마릿수 <b data-formation-resolved-count>${formationCount}</b></span></div>
+              <p>${formFormation.presetId === 'wall-gap'
+                ? '미리보기의 틈 핸들을 위아래로 끌어 안전 통로를 옮기세요.'
+                : formFormation.presetId === 'v'
+                  ? '진입 핸들로 높이를, 간격 핸들로 V의 폭과 높이를 조절하세요.'
+                  : '미리보기의 진입 핸들을 위아래로 끌어 생성 높이를 조절하세요.'}</p>
+              ${formFormation.presetId === 'v' ? `
+                <div class="form-row two">
+                  <label>가로 간격<input name="formationSpacingX" type="number" min="0" max="240" step="1" value="${formFormation.params.spacingX}"></label>
+                  <label>세로 간격<input name="formationSpacingY" type="number" min="0" max="180" step="1" value="${formFormation.params.spacingY}"></label>
+                </div>
+              ` : ''}
+              ${formFormation.presetId === 'wall-gap' ? `
+                <div class="form-row three">
+                  <label>전체 칸<input name="wallSlotCount" type="number" min="2" max="128" step="1" value="${formFormation.params.slotCount}"></label>
+                  <label>빈 칸<input name="wallGapSlots" type="number" min="0" max="${formFormation.params.slotCount - 1}" step="1" value="${formFormation.params.gapSlots}"></label>
+                  <label>틈 시작<input name="wallGapStart" type="number" min="0" max="${formFormation.params.slotCount - formFormation.params.gapSlots}" step="1" value="${Math.round((formFormation.params.gapStartRange[0] + formFormation.params.gapStartRange[1]) * 0.5)}"></label>
+                </div>
+                <div class="form-row two">
+                  <label>위 여백<input name="wallTopPadding" type="number" min="0" max="520" step="1" value="${formFormation.params.topPadding}"></label>
+                  <label>아래 여백<input name="wallBottomPadding" type="number" min="0" max="520" step="1" value="${formFormation.params.bottomPadding}"></label>
+                </div>
+              ` : ''}
+            </section>
             <label>이동<select name="movement">${optionList(rawStage.dependencies.movementPresets, formItem.payload.movement.presetId)}</select></label>
             ${pathPoint ? `
               <section class="path-editor">
@@ -997,6 +1092,194 @@
     else replaceAuthoredItem(authored.id, drag.working, label);
   }
 
+  function formationGhost(item) {
+    if (!item || item.type !== 'wave') return null;
+    const formation = StageFormation.normalize(item.payload.formation, item.payload.spawn?.count);
+    const fromLeft = item.payload.entry?.presetId === 'left-to-right';
+    const anchorX = canvas.width * (fromLeft ? 0.18 : 0.72);
+    const pathStart = item.payload.movement?.presetId === 'custom-path' ? item.payload.movement.path?.[0] : null;
+    const anchorY = (pathStart?.y ?? item.payload.entry?.y ?? 0.5) * canvas.height;
+    let gapStart;
+    if (formation.presetId === 'wall-gap') {
+      const compiledSlots = formationDrag?.itemId === item.id ? [] : (compiled?.events || [])
+        .filter(event => event.itemId === item.id && event.type === 'spawn-enemy' && Number.isInteger(event.enemy?.wallSlot))
+        .map(event => event.enemy.wallSlot);
+      const occupied = new Set(compiledSlots);
+      const missing = Array.from({ length: formation.params.slotCount }, (_, slot) => slot).filter(slot => !occupied.has(slot));
+      gapStart = missing.length === formation.params.gapSlots && missing.length
+        ? missing[0]
+        : Math.round((formation.params.gapStartRange[0] + formation.params.gapStartRange[1]) * 0.5);
+    }
+    const layout = StageFormation.layout(formation, item.payload.spawn?.count, {
+      baseX: anchorX,
+      baseY: anchorY,
+      width: canvas.width,
+      height: canvas.height,
+      gapStart,
+    });
+    const handles = [];
+    if (formation.presetId !== 'wall-gap' && !pathStart) handles.push({ type: 'entry', x: anchorX, y: anchorY, label: '진입' });
+    if (formation.presetId === 'v' && layout.points.length > 1) {
+      const spreadPoint = layout.points
+        .filter(point => point.side < 0)
+        .sort((left, right) => right.rank - left.rank)[0] || layout.points[layout.points.length - 1];
+      handles.push({ type: 'v-spread', x: spreadPoint.x, y: spreadPoint.y, rank: Math.max(1, spreadPoint.rank), label: '간격' });
+    }
+    if (formation.presetId === 'wall-gap' && formation.params.gapSlots > 0) {
+      const params = formation.params;
+      const centerSlot = layout.gapStart + Math.max(0, params.gapSlots - 1) * 0.5;
+      handles.push({
+        type: 'wall-gap',
+        x: anchorX,
+        y: params.topPadding + centerSlot * layout.spacing,
+        label: '틈',
+      });
+    }
+    return { item, formation, anchorX, anchorY, layout, handles };
+  }
+
+  function formationHandlePosition(handle, scale) {
+    const margin = 15 * scale;
+    return {
+      ...handle,
+      x: Math.max(margin, Math.min(canvas.width - margin, handle.x)),
+      y: Math.max(margin, Math.min(canvas.height - margin, handle.y)),
+    };
+  }
+
+  function drawFormationOverlay() {
+    const ghost = formationGhost(selectedFormationItem());
+    if (!ghost) return;
+    const scale = previewPixelScale();
+    ctx.save();
+    ctx.lineWidth = 1.5 * scale;
+    ctx.strokeStyle = 'rgba(255, 214, 110, 0.72)';
+    ctx.fillStyle = 'rgba(255, 214, 110, 0.18)';
+    if (ghost.formation.presetId === 'v') {
+      ctx.beginPath();
+      for (const point of ghost.layout.points) {
+        if (!point.rank) continue;
+        ctx.moveTo(ghost.anchorX, ghost.anchorY);
+        ctx.lineTo(point.x, point.y);
+      }
+      ctx.stroke();
+    }
+    const visiblePoints = ghost.formation.presetId === 'column' || ghost.formation.presetId === 'single'
+      ? ghost.layout.points.slice(0, 1)
+      : ghost.layout.points;
+    for (const point of visiblePoints) {
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, 6 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+    if (visiblePoints.length === 1 && ghost.layout.resolvedCount > 1) {
+      ctx.fillStyle = '#fff2bb';
+      ctx.font = `bold ${9 * scale}px 'Galmuri11', monospace`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`×${ghost.layout.resolvedCount}`, visiblePoints[0].x + 10 * scale, visiblePoints[0].y);
+    }
+    for (const rawHandle of ghost.handles) {
+      const handle = formationHandlePosition(rawHandle, scale);
+      const size = 10 * scale;
+      ctx.fillStyle = rawHandle.type === 'entry' ? '#ff87bd' : '#ffd66e';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2 * scale;
+      ctx.fillRect(handle.x - size, handle.y - size, size * 2, size * 2);
+      ctx.strokeRect(handle.x - size, handle.y - size, size * 2, size * 2);
+      ctx.fillStyle = '#06172a';
+      ctx.font = `bold ${7 * scale}px 'Galmuri11', monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(rawHandle.type === 'entry' ? 'E' : rawHandle.type === 'v-spread' ? 'V' : 'G', handle.x, handle.y + scale);
+      ctx.fillStyle = '#fff4c4';
+      ctx.font = `${7 * scale}px 'Galmuri11', monospace`;
+      ctx.fillText(rawHandle.label, handle.x, handle.y - 17 * scale);
+    }
+    ctx.restore();
+  }
+
+  function beginFormationDrag(event) {
+    if (event.defaultPrevented || pathDrag || (event.button !== undefined && event.button !== 0)) return;
+    const authored = stageDocument?.findItem(selectedId);
+    const working = scopedEditableItem(authored);
+    const ghost = formationGhost(working);
+    if (!authored || !ghost?.handles.length) return;
+    const pointer = pointerCanvasPosition(event);
+    const scale = previewPixelScale();
+    let hit = null;
+    let hitDistance = Infinity;
+    for (const rawHandle of ghost.handles) {
+      const handle = formationHandlePosition(rawHandle, scale);
+      const distance = Math.hypot(pointer.x - handle.x, pointer.y - handle.y);
+      if (distance < hitDistance && distance <= 23 * scale) {
+        hit = rawHandle;
+        hitDistance = distance;
+      }
+    }
+    if (!hit) return;
+    event.preventDefault();
+    playing = false;
+    updatePlayButton();
+    formationDrag = {
+      pointerId: event.pointerId,
+      itemId: authored.id,
+      handleType: hit.type,
+      rank: hit.rank,
+      scope: editScope,
+      working,
+      moved: false,
+    };
+    canvas.setPointerCapture(event.pointerId);
+  }
+
+  function moveFormationDrag(event) {
+    if (!formationDrag || formationDrag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    const pointer = pointerCanvasPosition(event);
+    const drag = formationDrag;
+    if (drag.handleType === 'entry') {
+      drag.working.payload.entry.y = +Math.max(0, Math.min(1, pointer.y / canvas.height)).toFixed(2);
+    } else if (drag.handleType === 'v-spread') {
+      const ghost = formationGhost(drag.working);
+      const formation = StageFormation.normalize(drag.working.payload.formation, drag.working.payload.spawn?.count);
+      formation.params.spacingX = Math.round(Math.max(0, Math.min(240, Math.abs(pointer.x - ghost.anchorX) / drag.rank)));
+      formation.params.spacingY = Math.round(Math.max(0, Math.min(180, Math.abs(pointer.y - ghost.anchorY) / drag.rank)));
+      drag.working.payload.formation = StageFormation.normalize(formation, drag.working.payload.spawn?.count);
+    } else if (drag.handleType === 'wall-gap') {
+      const formation = StageFormation.normalize(drag.working.payload.formation, drag.working.payload.spawn?.count);
+      const params = formation.params;
+      const usableHeight = Math.max(0, canvas.height - params.topPadding - params.bottomPadding);
+      const spacing = params.slotCount > 1 ? usableHeight / (params.slotCount - 1) : 0;
+      const centerSlot = spacing > 0 ? (pointer.y - params.topPadding) / spacing : 0;
+      const start = Math.max(0, Math.min(
+        params.slotCount - params.gapSlots,
+        Math.round(centerSlot - Math.max(0, params.gapSlots - 1) * 0.5),
+      ));
+      formation.params.gapStartRange = [start, start];
+      drag.working.payload.formation = StageFormation.normalize(formation, drag.working.payload.spawn?.count);
+    }
+    drag.moved = true;
+    renderPreview();
+  }
+
+  function endFormationDrag(event) {
+    if (!formationDrag || formationDrag.pointerId !== event.pointerId) return;
+    const drag = formationDrag;
+    formationDrag = null;
+    if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+    if (event.type === 'pointercancel' || !drag.moved) {
+      renderPreview();
+      return;
+    }
+    const authored = stageDocument.findItem(drag.itemId);
+    const labels = { entry: '진입 높이 이동', 'v-spread': 'V 편대 간격 조정', 'wall-gap': '벽 편대 틈 이동' };
+    const label = labels[drag.handleType] || '편대 조정';
+    if (drag.scope === 'difficulty') replaceDifficultyItem(authored.id, drag.working, `${activeDifficulty().name} ${label}`);
+    else replaceAuthoredItem(authored.id, drag.working, label);
+  }
+
   function renderPreview() {
     drawFallbackBackground();
     if (simulation && typeof Backgrounds !== 'undefined') {
@@ -1040,6 +1323,7 @@
         ctx.fillStyle = '#8fa3e8'; ctx.beginPath(); ctx.ellipse(simulation.boss.x, simulation.boss.y, 56, 36, 0, 0, Math.PI * 2); ctx.fill();
       }
     }
+    drawFormationOverlay();
     drawPathOverlay();
 
     if (simulation.warningUntil > simulation.time) {
@@ -1260,6 +1544,10 @@
   canvas.addEventListener('pointermove', movePathDrag);
   canvas.addEventListener('pointerup', endPathDrag);
   canvas.addEventListener('pointercancel', endPathDrag);
+  canvas.addEventListener('pointerdown', beginFormationDrag);
+  canvas.addEventListener('pointermove', moveFormationDrag);
+  canvas.addEventListener('pointerup', endFormationDrag);
+  canvas.addEventListener('pointercancel', endFormationDrag);
   $('#previewSpeed').addEventListener('change', event => { previewSpeed = Number(event.target.value) || 1; });
   $('#previewDifficulty').addEventListener('change', event => {
     if (!rawStage) return;

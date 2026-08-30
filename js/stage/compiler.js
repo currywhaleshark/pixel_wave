@@ -8,6 +8,7 @@
   const Registry = root.StageRegistry || (typeof require === 'function' ? require('./registry.js') : null);
   const RandomApi = root.StageRandom || (typeof require === 'function' ? require('./random.js') : null);
   const PathApi = root.StagePath || (typeof require === 'function' ? require('./path.js') : null);
+  const FormationApi = root.StageFormation || (typeof require === 'function' ? require('./formation.js') : null);
   const { Random, hashString } = RandomApi;
   const ID = /^[a-z0-9][a-z0-9-]*$/;
   const REQUIRED_DEPENDENCIES = Object.freeze([
@@ -121,6 +122,7 @@
         useDependency('enemyKinds', payload.enemy?.kind, label);
         useDependency('entryPresets', payload.entry?.presetId, label);
         useDependency('formationPresets', payload.formation?.presetId, label);
+        for (const error of FormationApi.validate(payload.formation, payload.spawn?.count)) errors.push(`${label}: ${error}`);
         useDependency('movementPresets', payload.movement?.presetId, label);
         if (payload.movement?.presetId === 'custom-path') {
           for (const error of PathApi.validate(payload.movement.path)) errors.push(`${label}: ${error}`);
@@ -172,7 +174,7 @@
     const payload = item.payload;
     const viewport = stage.viewport;
     const itemRandom = new Random(stage.seed).fork(`${item.id}:${payload.spawn?.seedOffset ?? 0}`);
-    const formation = payload.formation;
+    const formation = FormationApi.normalize(payload.formation, payload.spawn?.count);
     const entry = payload.entry;
     const movement = clone(payload.movement);
     if (movement.presetId === 'custom-path') movement.path = PathApi.normalize(movement.path);
@@ -212,30 +214,23 @@
     };
 
     if (formation.presetId === 'wall-gap') {
-      const params = formation.params || {};
-      const slotCount = Math.round(clamp(params.slotCount ?? 10, 2, 128));
-      const gapSlots = Math.round(clamp(params.gapSlots ?? 2, 0, slotCount - 1));
-      const range = params.gapStartRange || [1, Math.max(1, slotCount - gapSlots - 1)];
+      const params = formation.params;
+      const range = params.gapStartRange;
       const gapStart = itemRandom.int(
-        Math.round(clamp(range[0], 0, slotCount - gapSlots)),
-        Math.round(clamp(range[1], 0, slotCount - gapSlots)),
+        range[0],
+        range[1],
       );
-      const top = finite(params.topPadding, 40);
-      const bottom = finite(params.bottomPadding, 20);
-      const spacing = slotCount > 1 ? (viewport.height - top - bottom) / (slotCount - 1) : 0;
-      let enemyIndex = 0;
-      for (let slot = 0; slot < slotCount; slot++) {
-        if (slot >= gapStart && slot < gapStart + gapSlots) continue;
-        makeEnemy(enemyIndex++, item.timing.start, baseX, top + slot * spacing, { wallSlot: slot });
+      const resolved = FormationApi.layout(formation, count, { baseX, baseY, width: viewport.width, height: viewport.height, gapStart });
+      for (const [index, point] of resolved.points.entries()) {
+        makeEnemy(index, item.timing.start, point.x, point.y, { wallSlot: point.wallSlot });
       }
-      count = enemyIndex;
+      count = resolved.resolvedCount;
       interval = 0;
     } else if (formation.presetId === 'v') {
-      for (let index = 0; index < count; index++) {
-        const rank = index === 0 ? 0 : Math.ceil(index / 2);
-        const side = index === 0 ? 0 : (index % 2 === 1 ? -1 : 1);
-        makeEnemy(index, item.timing.start, baseX + rank * 34, baseY + side * rank * 42, {
-          targetXOffset: rank * 34,
+      const resolved = FormationApi.layout(formation, count, { baseX, baseY, width: viewport.width, height: viewport.height });
+      for (const [index, point] of resolved.points.entries()) {
+        makeEnemy(index, item.timing.start, point.x, point.y, {
+          targetXOffset: point.targetXOffset,
         });
       }
     } else {
