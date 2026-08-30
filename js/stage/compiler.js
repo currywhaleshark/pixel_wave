@@ -7,6 +7,7 @@
 
   const Registry = root.StageRegistry || (typeof require === 'function' ? require('./registry.js') : null);
   const RandomApi = root.StageRandom || (typeof require === 'function' ? require('./random.js') : null);
+  const PathApi = root.StagePath || (typeof require === 'function' ? require('./path.js') : null);
   const { Random, hashString } = RandomApi;
   const ID = /^[a-z0-9][a-z0-9-]*$/;
   const REQUIRED_DEPENDENCIES = Object.freeze([
@@ -121,6 +122,9 @@
         useDependency('entryPresets', payload.entry?.presetId, label);
         useDependency('formationPresets', payload.formation?.presetId, label);
         useDependency('movementPresets', payload.movement?.presetId, label);
+        if (payload.movement?.presetId === 'custom-path') {
+          for (const error of PathApi.validate(payload.movement.path)) errors.push(`${label}: ${error}`);
+        }
         if (payload.weapon?.presetId) useDependency('weaponPresets', payload.weapon.presetId, label);
         if (payload.weapon?.patternId) useDependency('barragePatterns', payload.weapon.patternId, label);
         if (payload.formation?.presetId !== 'wall-gap') {
@@ -171,11 +175,14 @@
     const formation = payload.formation;
     const entry = payload.entry;
     const movement = clone(payload.movement);
+    if (movement.presetId === 'custom-path') movement.path = PathApi.normalize(movement.path);
     const weapon = compileWeapon(payload.weapon, difficulty);
-    const baseY = clamp(entry.y ?? 0.5, -1, 2) * viewport.height;
+    const pathStart = movement.presetId === 'custom-path' ? movement.path?.[0] : null;
+    const baseY = pathStart ? pathStart.y * viewport.height : clamp(entry.y ?? 0.5, -1, 2) * viewport.height;
     const fromLeft = entry.presetId === 'left-to-right';
-    const baseX = fromLeft ? -30 : viewport.width + 30;
-    const directionX = fromLeft ? 1 : -1;
+    const baseX = pathStart ? pathStart.x * viewport.width : (fromLeft ? -30 : viewport.width + 30);
+    const pathDirection = pathStart && movement.path?.[1] ? Math.sign(movement.path[1].x - pathStart.x) : 0;
+    const directionX = pathDirection || (fromLeft ? 1 : -1);
     const events = [];
     let count = Math.round(payload.spawn?.count ?? 1);
     let interval = clamp(payload.spawn?.interval ?? 0, 0, 30);

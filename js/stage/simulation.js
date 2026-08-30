@@ -6,6 +6,7 @@
   'use strict';
 
   const RandomApi = root.StageRandom || (typeof require === 'function' ? require('./random.js') : null);
+  const PathApi = root.StagePath || (typeof require === 'function' ? require('./path.js') : null);
   const { Random, hashString, mixSeed } = RandomApi;
   const EPS = 1e-9;
 
@@ -87,6 +88,12 @@
         source.targetX = (movementParams.targetX ?? 0.68) * this.compiled.viewport.width + (source.targetXOffset || 0);
         source.pauseDuration = movementParams.pauseDuration ?? 2.2;
         source.vx = null;
+        if (source.movement?.presetId === 'custom-path') {
+          const first = source.movement.path?.[0];
+          source.pathOffsetX = first ? source.x - first.x * this.compiled.viewport.width : 0;
+          source.pathOffsetY = first ? source.y - first.y * this.compiled.viewport.height : 0;
+          source.pathComplete = false;
+        }
         this.enemies.push(source);
         this.spawnedEnemyCount++;
         return;
@@ -243,8 +250,17 @@
         } else {
           enemy.x -= enemy.speed * 1.7 * dt;
         }
+      } else if (movement === 'custom-path') {
+        const point = PathApi.sample(enemy.movement.path, enemy.age, this.compiled.viewport);
+        if (point) {
+          enemy.x = point.x + (enemy.pathOffsetX || 0);
+          enemy.y = point.y + (enemy.pathOffsetY || 0);
+          if (point.directionX) enemy.directionX = point.directionX;
+          enemy.pathComplete = point.done;
+        }
       }
 
+      if (enemy.pathComplete) return;
       const onScreen = enemy.x > 30 && enemy.x < this.compiled.viewport.width - 10;
       const canFire = movement !== 'enter-pause-exit' || enemy.state === 'pause';
       if (enemy.weapon?.presetId !== 'none' && enemy.weapon?.presetId !== 'legacy-death-shot' && onScreen && canFire) {
@@ -300,7 +316,7 @@
       this._updateRide(toTime);
       for (const enemy of this.enemies) this._updateEnemy(enemy, dt);
       const { width, height } = this.compiled.viewport;
-      this.enemies = this.enemies.filter(enemy => enemy.x > -60 && enemy.x < width + 120 && enemy.y > -80 && enemy.y < height + 80);
+      this.enemies = this.enemies.filter(enemy => !enemy.pathComplete && enemy.x > -60 && enemy.x < width + 120 && enemy.y > -80 && enemy.y < height + 80);
       for (const bullet of this.bullets) {
         bullet.age += dt;
         bullet.x += bullet.vx * dt;

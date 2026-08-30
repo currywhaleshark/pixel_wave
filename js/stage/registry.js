@@ -15,7 +15,7 @@
     enemyKinds: new Set(['fish', 'ray', 'big']),
     entryPresets: new Set(['right-to-left', 'left-to-right']),
     formationPresets: new Set(['single', 'column', 'v', 'wall-gap']),
-    movementPresets: new Set(['straight', 'sine', 'enter-pause-exit', 'u-turn']),
+    movementPresets: new Set(['straight', 'sine', 'enter-pause-exit', 'u-turn', 'custom-path']),
     weaponPresets: new Set(['none', 'legacy-aimed', 'legacy-ring', 'legacy-death-shot']),
     barragePatterns: new Set(),
     itemPlugins: new Set(['scroll-speed', 'turtle-ride', 'boss-warning', 'boss-start']),

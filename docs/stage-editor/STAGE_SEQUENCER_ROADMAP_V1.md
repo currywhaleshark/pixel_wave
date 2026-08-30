@@ -1,6 +1,7 @@
 # Pixel Wave Stage Sequencer Roadmap v1
 
-Status: M1 complete; M2 core editing and difficulty slice in progress. This
+Status: M1 complete; M2 core editing/difficulty/turtle slice complete; M3 path
+editing slice in progress. This
 document orders the existing Stage JSON, preset registry, barrage runtime, and
 terrain-profile designs into usable vertical releases. It does not authorize
 changing current stage gameplay yet.
@@ -439,6 +440,20 @@ Scope:
 - movement and weapon inspector metadata;
 - open a barrage pattern in Barrage Lab and return its ID;
 - projectile/enemy budget overlay.
+
+Implemented path slice:
+
+- `custom-path` movement with native normalized Stage JSON points;
+- shared path normalization, validation, easing, hold, and deterministic
+  sampling in `js/stage/path.js`;
+- numbered preview handles with desktop and portrait touch targets;
+- direct point dragging coalesced into one undo command;
+- point add/delete plus arrival-time, easing, and hold controls without raw
+  normalized coordinate fields;
+- base and active-difficulty path authoring through the existing patch model.
+
+Still pending in M3: enemy/entry library UI, formation handles, richer movement
+and weapon metadata, Barrage Lab round-trip, and budget overlays.
 
 Acceptance:
 

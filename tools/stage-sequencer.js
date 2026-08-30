@@ -33,6 +33,8 @@
   let autosaveTimer = 0;
   let toastTimer = 0;
   let clipDrag = null;
+  let pathDrag = null;
+  let selectedPathPoint = 0;
   let editScope = 'base';
 
   function isEditableItem(item) {
@@ -55,6 +57,18 @@
 
   function resolvedAuthoredItem(item, difficulty = activeDifficulty()) {
     return item ? StageCompiler.resolveDifficulty(item, difficulty) : null;
+  }
+
+  function scopedEditableItem(item) {
+    if (!item) return null;
+    return StageDocument.clone(editScope === 'difficulty' ? (resolvedAuthoredItem(item) || item) : item);
+  }
+
+  function selectedPathItem() {
+    const authored = stageDocument?.findItem(selectedId);
+    if (!authored || authored.type !== 'wave') return null;
+    const item = pathDrag?.itemId === authored.id ? pathDrag.working : scopedEditableItem(authored);
+    return item?.payload?.movement?.presetId === 'custom-path' ? item : null;
   }
 
   function objectDiff(base, value) {
@@ -497,7 +511,25 @@
       next.payload.spawn.interval = interval;
       next.payload.entry.y = Math.max(0, Math.min(1, Number(values.get('y')) || 0));
       next.payload.formation.presetId = formationId;
-      next.payload.movement.presetId = String(values.get('movement'));
+      const movementId = String(values.get('movement'));
+      next.payload.movement.presetId = movementId;
+      if (movementId === 'custom-path') {
+        if (!Array.isArray(next.payload.movement.path) || next.payload.movement.path.length < 2) {
+          next.payload.movement.path = StagePath.defaultForWave(next, rawStage.viewport);
+          selectedPathPoint = 0;
+        }
+        const point = next.payload.movement.path[selectedPathPoint];
+        if (point && values.has('pathPointTime')) {
+          point.t = Math.max(0, Number(values.get('pathPointTime')) || 0);
+          point.ease = String(values.get('pathPointEase') || 'linear');
+          const hold = Math.max(0, Number(values.get('pathPointHold')) || 0);
+          if (hold > 0) point.hold = hold;
+          else delete point.hold;
+        }
+        next.payload.movement.path = StagePath.normalize(next.payload.movement.path);
+      } else {
+        delete next.payload.movement.path;
+      }
       next.payload.weapon.presetId = String(values.get('weapon'));
       next.timing.duration = formationId === 'wall-gap' ? 0 : (count - 1) * interval;
     } else if (next.type === 'environment' && next.payload?.pluginId === 'scroll-speed') {
@@ -563,9 +595,67 @@
         afterDocumentChange(`${difficulty.name}에서 클립을 껐습니다`, item.id, simulation?.time || 0);
       }
     }));
+    document.querySelectorAll('[data-path-action]').forEach(button => button.addEventListener('click', () => {
+      editSelectedPath(button.dataset.pathAction);
+    }));
+  }
+
+  function commitScopedItem(authored, next, baseLabel, difficultyLabel = baseLabel) {
+    if (editScope === 'difficulty') return replaceDifficultyItem(authored.id, next, `${activeDifficulty().name} ${difficultyLabel}`);
+    return replaceAuthoredItem(authored.id, next, baseLabel);
+  }
+
+  function editSelectedPath(action) {
+    const authored = stageDocument?.findItem(selectedId);
+    const next = scopedEditableItem(authored);
+    const path = next?.payload?.movement?.path;
+    if (!authored || next.type !== 'wave' || next.payload.movement.presetId !== 'custom-path' || !Array.isArray(path)) return;
+    selectedPathPoint = Math.max(0, Math.min(selectedPathPoint, path.length - 1));
+    if (action === 'previous' || action === 'next') {
+      selectedPathPoint = Math.max(0, Math.min(path.length - 1, selectedPathPoint + (action === 'next' ? 1 : -1)));
+      selectItem(authored.id, false);
+      return;
+    }
+    if (action === 'add') {
+      const current = path[selectedPathPoint];
+      const following = path[selectedPathPoint + 1];
+      const previous = path[selectedPathPoint - 1];
+      if (following && following.t - (current.t + (current.hold || 0)) < 0.02) {
+        toast('이 구간에는 점을 추가할 시간 간격이 없습니다');
+        return;
+      }
+      const point = following
+        ? {
+          t: +(((current.t + (current.hold || 0)) + following.t) * 0.5).toFixed(2),
+          x: (current.x + following.x) * 0.5,
+          y: (current.y + following.y) * 0.5,
+          ease: following.ease || 'smooth',
+        }
+        : {
+          t: +(current.t + 1).toFixed(2),
+          x: current.x + (current.x - (previous?.x ?? current.x - 0.12)),
+          y: current.y + (current.y - (previous?.y ?? current.y)),
+          ease: current.ease || 'smooth',
+        };
+      path.splice(selectedPathPoint + 1, 0, point);
+      next.payload.movement.path = StagePath.normalize(path);
+      selectedPathPoint++;
+      commitScopedItem(authored, next, '경로 점 추가', '경로 점 추가');
+      return;
+    }
+    if (action === 'delete') {
+      if (path.length <= 2) {
+        toast('경로에는 점이 2개 이상 필요합니다');
+        return;
+      }
+      path.splice(selectedPathPoint, 1);
+      selectedPathPoint = Math.max(0, Math.min(selectedPathPoint, path.length - 1));
+      commitScopedItem(authored, next, '경로 점 삭제', '경로 점 삭제');
+    }
   }
 
   function selectItem(id, openInspector = true) {
+    if (selectedId !== id) selectedPathPoint = 0;
     selectedId = stageDocument?.findItem(id) ? id : null;
     document.querySelectorAll('.timeline-clip').forEach(clip => clip.classList.toggle('selected', clip.dataset.itemId === selectedId));
     const authored = stageDocument?.findItem(selectedId);
@@ -581,6 +671,11 @@
     const compiledItem = compiled?.items.find(entry => entry.id === selectedId);
     const item = compiledItem || resolved || authored;
     const formItem = editScope === 'difficulty' ? (resolved || authored) : authored;
+    const formPath = formItem.type === 'wave' && formItem.payload?.movement?.presetId === 'custom-path'
+      ? StagePath.normalize(formItem.payload.movement.path)
+      : [];
+    selectedPathPoint = Math.max(0, Math.min(selectedPathPoint, Math.max(0, formPath.length - 1)));
+    const pathPoint = formPath[selectedPathPoint];
     const state = difficultyState(authored, difficulty.id);
     const stateLabels = { inherited: '상속', patched: '수정', replaced: '교체', disabled: '꺼짐', only: '전용' };
     const editable = isEditableItem(authored);
@@ -621,16 +716,33 @@
           ${formItem.type === 'wave' ? `
             <div class="form-row three">
               <label>적<select name="enemyKind">${optionList(rawStage.dependencies.enemyKinds, formItem.payload.enemy.kind)}</select></label>
-              <label>체력<input name="hp" type="number" min="0.1" max="1000000" step="1" value="${formItem.payload.enemy.hp}"></label>
+              <label>체력<input name="hp" type="number" min="0.1" max="1000000" step="0.1" value="${formItem.payload.enemy.hp}"></label>
               <label>속도<input name="speed" type="number" min="0" max="2000" step="1" value="${formItem.payload.enemy.speed}"></label>
             </div>
             <div class="form-row three">
               <label>마릿수<input name="count" type="number" min="1" max="256" step="1" value="${formItem.payload.spawn.count ?? 1}"></label>
-              <label>간격<input name="interval" type="number" min="0" max="30" step="0.05" value="${formItem.payload.spawn.interval ?? 0}"></label>
+              <label>간격<input name="interval" type="number" min="0" max="30" step="0.01" value="${formItem.payload.spawn.interval ?? 0}"></label>
               <label>높이<input name="y" type="number" min="0" max="1" step="0.05" value="${formItem.payload.entry.y ?? 0.5}"></label>
             </div>
             <label>편대<select name="formation">${optionList(rawStage.dependencies.formationPresets, formItem.payload.formation.presetId)}</select></label>
             <label>이동<select name="movement">${optionList(rawStage.dependencies.movementPresets, formItem.payload.movement.presetId)}</select></label>
+            ${pathPoint ? `
+              <section class="path-editor">
+                <div class="path-editor-heading"><strong>이동 궤적</strong><span>점 ${selectedPathPoint + 1} / ${formPath.length}</span></div>
+                <p>미리보기의 번호 점을 직접 끌어 이동하세요. 화면 가장자리의 점은 화면 밖 시작·종료점을 뜻합니다.</p>
+                <div class="path-tools">
+                  <button type="button" data-path-action="previous" ${selectedPathPoint === 0 ? 'disabled' : ''} aria-label="이전 경로 점">←</button>
+                  <button type="button" data-path-action="next" ${selectedPathPoint >= formPath.length - 1 ? 'disabled' : ''} aria-label="다음 경로 점">→</button>
+                  <button type="button" data-path-action="add">점 추가</button>
+                  <button type="button" data-path-action="delete" ${formPath.length <= 2 ? 'disabled' : ''}>점 삭제</button>
+                </div>
+                <div class="form-row three">
+                  <label>도착(초)<input name="pathPointTime" type="number" min="${selectedPathPoint ? +(formPath[selectedPathPoint - 1].t + (formPath[selectedPathPoint - 1].hold || 0) + 0.01).toFixed(2) : 0}" max="${formPath[selectedPathPoint + 1] ? +(formPath[selectedPathPoint + 1].t - (pathPoint.hold || 0) - 0.01).toFixed(2) : 300}" step="0.01" value="${pathPoint.t}"></label>
+                  <label>도착 움직임<select name="pathPointEase">${optionList(StagePath.EASES, pathPoint.ease || 'linear')}</select></label>
+                  <label>대기(초)<input name="pathPointHold" type="number" min="0" max="${formPath[selectedPathPoint + 1] ? +(formPath[selectedPathPoint + 1].t - pathPoint.t).toFixed(2) : 120}" step="0.05" value="${pathPoint.hold || 0}"></label>
+                </div>
+              </section>
+            ` : ''}
             <label>사격<select name="weapon">${optionList(rawStage.dependencies.weaponPresets, formItem.payload.weapon.presetId)}</select></label>
           ` : ''}
           ${formItem.type === 'environment' && formItem.payload?.pluginId === 'scroll-speed' ? `
@@ -759,6 +871,132 @@
     ctx.restore();
   }
 
+  function previewPixelScale() {
+    const rect = canvas.getBoundingClientRect();
+    return rect.width > 0 ? canvas.width / rect.width : 1;
+  }
+
+  function pathHandlePosition(point, scale = previewPixelScale()) {
+    const x = point.x * canvas.width;
+    const y = point.y * canvas.height;
+    const margin = 12 * scale;
+    return {
+      actualX: x,
+      actualY: y,
+      x: Math.max(margin, Math.min(canvas.width - margin, x)),
+      y: Math.max(margin, Math.min(canvas.height - margin, y)),
+      offscreen: x < 0 || x > canvas.width || y < 0 || y > canvas.height,
+    };
+  }
+
+  function drawPathOverlay() {
+    const item = selectedPathItem();
+    const path = item?.payload?.movement?.path;
+    if (!Array.isArray(path) || path.length < 2) return;
+    const scale = previewPixelScale();
+    ctx.save();
+    ctx.lineWidth = 2.5 * scale;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(101, 239, 255, 0.88)';
+    ctx.setLineDash([9 * scale, 6 * scale]);
+    ctx.beginPath();
+    path.forEach((point, index) => {
+      const x = point.x * canvas.width;
+      const y = point.y * canvas.height;
+      if (index) ctx.lineTo(x, y);
+      else ctx.moveTo(x, y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+    path.forEach((point, index) => {
+      const position = pathHandlePosition(point, scale);
+      const active = index === selectedPathPoint;
+      ctx.beginPath();
+      ctx.arc(position.x, position.y, (active ? 12 : 9) * scale, 0, Math.PI * 2);
+      ctx.fillStyle = active ? '#ff87bd' : position.offscreen ? '#ffd66e' : '#55d9e8';
+      ctx.fill();
+      ctx.lineWidth = (active ? 2.5 : 2) * scale;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+      ctx.fillStyle = '#06172a';
+      ctx.font = `bold ${10 * scale}px 'Galmuri11', monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(index + 1), position.x, position.y + 1);
+    });
+    ctx.restore();
+  }
+
+  function pointerCanvasPosition(event) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (event.clientX - rect.left) * canvas.width / rect.width,
+      y: (event.clientY - rect.top) * canvas.height / rect.height,
+    };
+  }
+
+  function beginPathDrag(event) {
+    if (event.button !== undefined && event.button !== 0) return;
+    const authored = stageDocument?.findItem(selectedId);
+    const working = scopedEditableItem(authored);
+    const path = working?.payload?.movement?.presetId === 'custom-path' ? working.payload.movement.path : null;
+    if (!authored || !Array.isArray(path)) return;
+    const pointer = pointerCanvasPosition(event);
+    const scale = previewPixelScale();
+    let hitIndex = -1;
+    let hitDistance = Infinity;
+    path.forEach((point, index) => {
+      const handle = pathHandlePosition(point, scale);
+      const distance = Math.hypot(pointer.x - handle.x, pointer.y - handle.y);
+      if (distance < hitDistance && distance <= 22 * scale) {
+        hitIndex = index;
+        hitDistance = distance;
+      }
+    });
+    if (hitIndex < 0) return;
+    event.preventDefault();
+    playing = false;
+    updatePlayButton();
+    selectedPathPoint = hitIndex;
+    pathDrag = {
+      pointerId: event.pointerId,
+      itemId: authored.id,
+      pointIndex: hitIndex,
+      scope: editScope,
+      working,
+      moved: false,
+    };
+    canvas.setPointerCapture(event.pointerId);
+    selectItem(authored.id, false);
+  }
+
+  function movePathDrag(event) {
+    if (!pathDrag || pathDrag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    const pointer = pointerCanvasPosition(event);
+    const point = pathDrag.working.payload.movement.path[pathDrag.pointIndex];
+    point.x = Math.max(0, Math.min(1, pointer.x / canvas.width));
+    point.y = Math.max(0, Math.min(1, pointer.y / canvas.height));
+    pathDrag.moved = true;
+    renderPreview();
+  }
+
+  function endPathDrag(event) {
+    if (!pathDrag || pathDrag.pointerId !== event.pointerId) return;
+    const drag = pathDrag;
+    pathDrag = null;
+    if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+    if (event.type === 'pointercancel' || !drag.moved) {
+      renderPreview();
+      return;
+    }
+    const authored = stageDocument.findItem(drag.itemId);
+    const label = `경로 점 ${drag.pointIndex + 1} 이동`;
+    if (drag.scope === 'difficulty') replaceDifficultyItem(authored.id, drag.working, `${activeDifficulty().name} ${label}`);
+    else replaceAuthoredItem(authored.id, drag.working, label);
+  }
+
   function renderPreview() {
     drawFallbackBackground();
     if (simulation && typeof Backgrounds !== 'undefined') {
@@ -802,6 +1040,7 @@
         ctx.fillStyle = '#8fa3e8'; ctx.beginPath(); ctx.ellipse(simulation.boss.x, simulation.boss.y, 56, 36, 0, 0, Math.PI * 2); ctx.fill();
       }
     }
+    drawPathOverlay();
 
     if (simulation.warningUntil > simulation.time) {
       const flash = 0.7 + Math.sin(simulation.time * 10) * 0.3;
@@ -1017,6 +1256,10 @@
     updateUi(false);
   });
   $('#timeScrub').addEventListener('pointerdown', () => { playing = false; updatePlayButton(); });
+  canvas.addEventListener('pointerdown', beginPathDrag);
+  canvas.addEventListener('pointermove', movePathDrag);
+  canvas.addEventListener('pointerup', endPathDrag);
+  canvas.addEventListener('pointercancel', endPathDrag);
   $('#previewSpeed').addEventListener('change', event => { previewSpeed = Number(event.target.value) || 1; });
   $('#previewDifficulty').addEventListener('change', event => {
     if (!rawStage) return;

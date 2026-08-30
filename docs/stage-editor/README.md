@@ -1,27 +1,35 @@
 # Pixel Wave Stage Sequencer design index
 
-The Stage Sequencer contract now has an M2 editing slice. The current game
+The Stage Sequencer contract now has an M3 path-editing slice. The current game
 runtime has not been replaced; the editor remains isolated under `tools/`
 until preview parity is proven.
 
-## Run M2
+## Run M3
 
 1. Run `python server.py` at the repository root.
 2. Open `http://localhost:8321/tools/stage-sequencer.html` on desktop or mobile.
 3. Use the section chips or `IN`/`OUT` marks for a looping range, switch
    difficulty, and select a timeline clip to edit it.
-4. M2 edits wave, environment, cue, and the Stage 3 turtle-ride clip. The
+4. The editor handles wave, environment, cue, and the Stage 3 turtle-ride clip. The
    inspector can edit the shared base or an Easy/Normal/Hard patch, disable a
    clip for one difficulty, and restore inheritance. New waves can target all
    difficulties or only the active difficulty.
-5. Timeline clips show inherited, patched, replaced, disabled, and
+5. Select `custom-path` as a wave's movement and apply once to create a path.
+   Numbered points then appear over the preview. Drag a point directly; use the
+   inspector to add/delete points and edit arrival time, easing, or hold time.
+   Raw normalized coordinates stay in Stage JSON and are not exposed as form
+   fields. When the active-difficulty scope is selected, path gestures create a
+   difficulty patch instead of changing the shared base.
+6. Timeline clips show inherited, patched, replaced, disabled, and
    active-difficulty-only states. The editor also supports duplicate/delete,
    undo/redo, Stage 3 JSON import, device autosave, and JSON export.
 
-The simulator uses deterministic fixed steps and 5-second snapshots. It
-previews spawns, movement, legacy enemy fire, Stage 3's turtle ride, background
-scroll changes, warning, and boss entry. Player input, collision, damage, and
-live game-runtime replacement remain intentionally outside this slice.
+The simulator uses deterministic fixed steps and 5-second snapshots. The shared
+`js/stage/path.js` module normalizes, validates, and samples custom paths for
+both the compiler and preview simulation. It previews spawns, movement, legacy
+enemy fire, Stage 3's turtle ride, background scroll changes, warning, and boss
+entry. Player input, collision, damage, and live game-runtime replacement
+remain intentionally outside this slice.
 
 ## Start here
 
@@ -47,8 +55,11 @@ live game-runtime replacement remain intentionally outside this slice.
 
 ## Current decision
 
-M1's read-only mobile Stage 3 player is complete. M2 now includes command
+M1's read-only mobile Stage 3 player is complete. M2 includes command
 history, device persistence, JSON import/export, timeline dragging, difficulty
 patch authoring, difficulty-only waves, and focused turtle-ride controls. Clip
-resize handles, generic registry-generated advanced fields, and other special
-systems remain for later slices.
+resize handles and generic registry-generated advanced fields remain for later
+slices. M3 now includes its first vertical slice: native custom-path data,
+shared deterministic sampling, direct desktop/touch point dragging, point
+timing/easing/hold controls, coalesced undo, and difficulty-specific paths.
+Formation handles, Barrage Lab handoff, and budget overlays are still pending.

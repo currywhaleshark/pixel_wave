@@ -101,6 +101,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   const required = [
     'js/stage/random.js',
     'js/stage/registry.js',
+    'js/stage/path.js',
     'js/stage/compiler.js',
     'js/stage/simulation.js',
     'js/stage/document.js',
@@ -108,8 +109,9 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
     'tools/stage-sequencer.js',
   ];
   for (const script of required) assert.ok(html.includes(script), `${script}가 도구 페이지에 연결되어야 한다`);
+  assert.ok(html.indexOf('js/stage/path.js') < html.indexOf('js/stage/compiler.js'));
   assert.ok(html.indexOf('js/stage/compiler.js') < html.indexOf('tools/stage-sequencer.js'));
-  assert.ok(html.includes('<title>픽셀 파도 — 스테이지 시퀀서 M2</title>'));
+  assert.ok(html.includes('<title>픽셀 파도 — 스테이지 시퀀서 M3</title>'));
   assert.ok(html.includes('id="markRangeIn"'));
   assert.ok(html.includes('id="markRangeOut"'));
   assert.ok(html.includes('id="addWave"'));
@@ -117,16 +119,22 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(html.includes('id="importStageFile"'));
   assert.ok(html.includes('class="difficulty-legend"'));
   assert.ok(html.includes('id="activeDifficultyOnlyOption"'));
-  assert.ok(html.includes('tools/stage-sequencer.js?v=3'));
+  assert.ok(html.includes('tools/stage-sequencer.js?v=4'));
   const sequencer = fs.readFileSync(path.join(root, 'tools/stage-sequencer.js'), 'utf8');
   assert.ok(sequencer.includes('data-difficulty-action="disable"'));
   assert.ok(sequencer.includes("pluginId === 'turtle-ride'"));
   assert.ok(sequencer.includes('name="ringCount"'));
+  assert.ok(sequencer.includes('name="hp" type="number" min="0.1" max="1000000" step="0.1"'));
+  assert.ok(sequencer.includes('name="interval" type="number" min="0" max="30" step="0.01"'));
+  assert.ok(sequencer.includes('data-path-action="add"'));
+  assert.ok(sequencer.includes("canvas.addEventListener('pointerdown', beginPathDrag)"));
+  assert.ok(sequencer.includes("replaceDifficultyItem(authored.id, drag.working"));
   assert.ok(sequencer.includes('validateStageCandidate(candidate)'));
   const serviceWorker = fs.readFileSync(path.join(root, 'tools/stage-sequencer-sw.js'), 'utf8');
   assert.ok(serviceWorker.includes('../js/stage/document.js'));
   assert.ok(serviceWorker.includes('../js/stage/persistence.js'));
-  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m2-v2'));
+  assert.ok(serviceWorker.includes('../js/stage/path.js'));
+  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m3-v1'));
 }
 
 console.log('stage runtime: ok', results);

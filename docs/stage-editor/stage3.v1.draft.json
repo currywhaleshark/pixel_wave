@@ -55,7 +55,7 @@
     "enemyKinds": ["fish", "ray", "big"],
     "entryPresets": ["right-to-left", "left-to-right"],
     "formationPresets": ["single", "column", "v", "wall-gap"],
-    "movementPresets": ["straight", "sine", "enter-pause-exit", "u-turn"],
+    "movementPresets": ["straight", "sine", "enter-pause-exit", "u-turn", "custom-path"],
     "weaponPresets": ["none", "legacy-aimed", "legacy-ring", "legacy-death-shot"],
     "barragePatterns": [],
     "itemPlugins": ["scroll-speed", "turtle-ride", "boss-warning", "boss-start"],
