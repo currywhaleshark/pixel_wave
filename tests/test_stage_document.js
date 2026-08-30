@@ -82,6 +82,64 @@ const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/sta
   assert.ok(Math.abs(simulation.scroll - 4680) < 1e-6, '환경 클립 수정이 실제 미리보기 스크롤에 반영되어야 한다');
 }
 
+{
+  const document = new DocumentSession(source);
+  document.setDifficultyOverride('s3-w001', 'hard', {
+    mode: 'patch',
+    patch: {
+      timing: { duration: 2.16 },
+      payload: {
+        spawn: { count: 10 },
+        movement: { presetId: 'u-turn' },
+        weapon: { presetId: 'legacy-aimed', interval: 0.8 },
+      },
+    },
+  }, '하드 웨이브 수정');
+  assert.equal(StageCompiler.compile(document.stage, { difficulty: 'easy' })
+    .items.find(item => item.id === 's3-w001').resolvedCount, 6);
+  const hard = StageCompiler.compile(document.stage, { difficulty: 'hard' })
+    .items.find(item => item.id === 's3-w001');
+  assert.equal(hard.resolvedCount, 10);
+  assert.equal(hard.payload.movement.presetId, 'u-turn');
+  assert.equal(hard.payload.weapon.presetId, 'legacy-aimed');
+  assert.equal(document.undo(), '하드 웨이브 수정');
+  assert.equal(StageCompiler.compile(document.stage, { difficulty: 'hard' })
+    .items.find(item => item.id === 's3-w001').resolvedCount, 6);
+  document.redo();
+  document.clearDifficultyOverride('s3-w001', 'hard');
+  assert.equal(document.findItem('s3-w001').difficulty, undefined);
+}
+
+{
+  const document = new DocumentSession(source);
+  document.setDifficultyOverride('s3-w002', 'normal', { enabled: false }, '노멀에서 끄기');
+  assert.ok(StageCompiler.compile(document.stage, { difficulty: 'easy' }).items.some(item => item.id === 's3-w002'));
+  assert.ok(!StageCompiler.compile(document.stage, { difficulty: 'normal' }).items.some(item => item.id === 's3-w002'));
+
+  const hardOnly = StageCompiler.clone(document.findItem('s3-w001'));
+  hardOnly.id = 's3-hard-only-test';
+  hardOnly.name = '하드 전용 증원';
+  hardOnly.enabled = false;
+  hardOnly.difficulty = { hard: { enabled: true, mode: 'patch', patch: {} } };
+  document.insertItem(hardOnly);
+  assert.ok(!StageCompiler.compile(document.stage, { difficulty: 'easy' }).items.some(item => item.id === hardOnly.id));
+  assert.ok(StageCompiler.compile(document.stage, { difficulty: 'hard' }).items.some(item => item.id === hardOnly.id));
+}
+
+{
+  const document = new DocumentSession(source);
+  document.setDifficultyOverride('s3-ride-01', 'hard', {
+    mode: 'patch',
+    patch: { payload: { params: { scrollMultiplier: 3, pearlRing: { count: 18 } } } },
+  });
+  const easyRide = StageCompiler.compile(document.stage, { difficulty: 'easy' }).items.find(item => item.id === 's3-ride-01');
+  const hardRide = StageCompiler.compile(document.stage, { difficulty: 'hard' }).items.find(item => item.id === 's3-ride-01');
+  assert.equal(easyRide.payload.params.scrollMultiplier, 5);
+  assert.equal(easyRide.payload.params.pearlRing.count, 10);
+  assert.equal(hardRide.payload.params.scrollMultiplier, 3);
+  assert.equal(hardRide.payload.params.pearlRing.count, 18);
+}
+
 async function testPersistenceFallback() {
   const values = new Map();
   global.localStorage = {

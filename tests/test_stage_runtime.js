@@ -115,9 +115,18 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(html.includes('id="addWave"'));
   assert.ok(html.includes('id="undoEdit"'));
   assert.ok(html.includes('id="importStageFile"'));
+  assert.ok(html.includes('class="difficulty-legend"'));
+  assert.ok(html.includes('id="activeDifficultyOnlyOption"'));
+  assert.ok(html.includes('tools/stage-sequencer.js?v=3'));
+  const sequencer = fs.readFileSync(path.join(root, 'tools/stage-sequencer.js'), 'utf8');
+  assert.ok(sequencer.includes('data-difficulty-action="disable"'));
+  assert.ok(sequencer.includes("pluginId === 'turtle-ride'"));
+  assert.ok(sequencer.includes('name="ringCount"'));
+  assert.ok(sequencer.includes('validateStageCandidate(candidate)'));
   const serviceWorker = fs.readFileSync(path.join(root, 'tools/stage-sequencer-sw.js'), 'utf8');
   assert.ok(serviceWorker.includes('../js/stage/document.js'));
   assert.ok(serviceWorker.includes('../js/stage/persistence.js'));
+  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m2-v2'));
 }
 
 console.log('stage runtime: ok', results);

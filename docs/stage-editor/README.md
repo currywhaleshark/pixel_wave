@@ -10,9 +10,13 @@ until preview parity is proven.
 2. Open `http://localhost:8321/tools/stage-sequencer.html` on desktop or mobile.
 3. Use the section chips or `IN`/`OUT` marks for a looping range, switch
    difficulty, and select a timeline clip to edit it.
-4. M2 currently edits wave, environment, and cue clips. It can add a simple
-   wave, duplicate or delete supported clips, undo/redo, import Stage 3 JSON,
-   autosave a device draft, and export the current document.
+4. M2 edits wave, environment, cue, and the Stage 3 turtle-ride clip. The
+   inspector can edit the shared base or an Easy/Normal/Hard patch, disable a
+   clip for one difficulty, and restore inheritance. New waves can target all
+   difficulties or only the active difficulty.
+5. Timeline clips show inherited, patched, replaced, disabled, and
+   active-difficulty-only states. The editor also supports duplicate/delete,
+   undo/redo, Stage 3 JSON import, device autosave, and JSON export.
 
 The simulator uses deterministic fixed steps and 5-second snapshots. It
 previews spawns, movement, legacy enemy fire, Stage 3's turtle ride, background
@@ -43,8 +47,8 @@ live game-runtime replacement remain intentionally outside this slice.
 
 ## Current decision
 
-M1's read-only mobile Stage 3 player is complete. M2's first slice adds command
-history, device persistence, JSON import/export, timeline dragging, and
-inspector editing for waves, environment, and cues. Clip resize handles,
-difficulty override authoring, and registry-generated advanced fields remain
-for later M2 slices.
+M1's read-only mobile Stage 3 player is complete. M2 now includes command
+history, device persistence, JSON import/export, timeline dragging, difficulty
+patch authoring, difficulty-only waves, and focused turtle-ride controls. Clip
+resize handles, generic registry-generated advanced fields, and other special
+systems remain for later slices.

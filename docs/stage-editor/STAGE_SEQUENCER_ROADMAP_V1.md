@@ -1,6 +1,6 @@
 # Pixel Wave Stage Sequencer Roadmap v1
 
-Status: M1 complete; M2 core editing slice in progress. This
+Status: M1 complete; M2 core editing and difficulty slice in progress. This
 document orders the existing Stage JSON, preset registry, barrage runtime, and
 terrain-profile designs into usable vertical releases. It does not authorize
 changing current stage gameplay yet.
@@ -412,6 +412,14 @@ Scope:
 
 Initially support environment, cue, and simple straight single-enemy wave
 items. Other items remain visible but read-only.
+
+Implemented follow-up slice:
+
+- base versus active-difficulty patch authoring;
+- per-difficulty disable and inheritance restore;
+- active-difficulty-only wave creation and visible overlay states;
+- Stage 3 turtle-ride timing, scroll, invulnerability, pearl trail, and pearl
+  ring controls.
 
 Acceptance:
 
