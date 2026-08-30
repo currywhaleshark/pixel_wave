@@ -14,6 +14,7 @@ const Sound = {
   masterGain: null, bgmGain: null, sfxGain: null,
   tracks: {},        // key → { el, node, gain, dead }
   currentKey: null,
+  pendingBgm: null,  // 첫 사용자 입력 전 요청된 곡
   // Suno 곡은 마스터링이 크고(피크 0dB 근처) 합성 SE는 조용해서,
   // 기본값을 BGM 낮게 / SE 높게 잡아야 밸런스가 맞는다 (실청취로 조정)
   vol: { master: 1, bgm: 0.3, sfx: 1.0 },
@@ -35,20 +36,33 @@ const Sound = {
       this.masterGain.connect(this.ctx.destination);
       this.applyVol();
     }
-    if (this.ctx.state === 'suspended') this.ctx.resume();
-    // 자동재생 차단으로 멈춰 있던 현재 곡 재시도 (boot와 title이 같은 곡이라 블립 없음)
-    const cur = this.currentKey && this.tracks[this.currentKey];
-    if (cur && !cur.dead && cur.el.paused) {
-      try { const p = cur.el.play(); if (p && p.catch) p.catch(() => {}); } catch {}
-    }
-    // 잠금 해제 시점에 재생 예약된 BGM이 있으면 그때 시작
-    if (this.pendingBgm) {
-      // 예약 곡을 그대로 틀지 않는다 — 첫 입력이 화면 전환을 겸하는 경우
-      // (타이틀→항해도) 옛 화면의 곡이 한 순간 재생되는 블립이 생긴다.
-      // 키만 비워 두면 다음 프레임의 syncBgm이 현재 화면의 곡을 고른다.
+    const resumed = this.ctx.state === 'suspended' ? this.ctx.resume() : null;
+
+    // boot에서 예약한 타이틀곡은 반드시 이 사용자 입력 안에서 시작한다.
+    // 다음 animation frame으로 미루면 autoplay 허용 구간을 벗어나 침묵할 수 있다.
+    const pending = this.pendingBgm;
+    if (pending) {
       this.pendingBgm = null;
-      this.currentKey = null;
+      this.currentKey = null; // playBgm의 동일 키 조기 반환을 피한다
+      this.playBgm(pending, 0.35);
+    } else {
+      this.retryCurrentBgm();
     }
+
+    // 일부 브라우저는 AudioContext.resume()이 끝난 뒤에야 MediaElementSource를 흘린다.
+    // 입력 안에서 한 번 시작하고, resume 완료 뒤 정지 상태면 한 번 더 보강한다.
+    if (resumed && resumed.then) {
+      resumed.then(() => this.retryCurrentBgm()).catch(() => {});
+    }
+  },
+
+  retryCurrentBgm() {
+    const cur = this.currentKey && this.tracks[this.currentKey];
+    if (!cur || cur.dead || !cur.el.paused) return;
+    try {
+      const p = cur.el.play();
+      if (p && p.catch) p.catch(() => {});
+    } catch {}
   },
 
   applyVol() {

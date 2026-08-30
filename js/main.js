@@ -31,9 +31,8 @@ fitCanvas();
 Input.init(canvas);
 Meta.load();
 Sound.loadPrefs();
-// 자동재생 선시도: 브라우저가 허용하면(재방문 등) 타이틀곡이 로드 직후부터 나온다.
-// 차단되면 조용히 실패하고, 첫 입력의 unlock이 이어받는다.
-Sound.unlock();
+// boot 프레임이 타이틀곡을 예약하고, 첫 사용자 입력의 Sound.unlock()이
+// 그 입력 허용 구간 안에서 곧바로 재생한다.
 
 // M: 음소거 토글 (어느 화면에서나)
 window.addEventListener('keydown', (e) => {
