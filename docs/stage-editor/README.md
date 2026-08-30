@@ -36,7 +36,12 @@ until preview parity is proven.
    enter/pause/exit, U-turn, aimed fire, and ring fire. Entry/pause target
    controls follow the wave's travel axis. Death-shot explains that it needs a
    kill event and therefore does not fire in the collision-free preview.
-9. Timeline clips show inherited, patched, replaced, disabled, and
+9. A wave weapon can reference a Barrage Lab pattern. Choose an existing
+   pattern or create one, edit it in Barrage Lab, then use `시퀀서에 적용` to
+   return to the same wave, edit scope, and difficulty. The returned change is
+   one undoable command and the preview runs it through the shared
+   `BarrageRuntime`, including deterministic snapshot seeking.
+10. Timeline clips show inherited, patched, replaced, disabled, and
    active-difficulty-only states. The editor also supports duplicate/delete,
    undo/redo, Stage 3 JSON import, device autosave, and JSON export.
 
@@ -46,8 +51,9 @@ The simulator uses deterministic fixed steps and 5-second snapshots. The shared
 `js/stage/formation.js` resolves direction-aware V spacing, wall gaps, and enemy
 counts for both the compiler and editor. `js/stage/behavior.js` normalizes and
 validates movement/weapon fields from the shared registry metadata. It previews spawns, movement, legacy
-enemy fire, Stage 3's turtle ride, background scroll changes, warning, and boss
-entry. Player input, collision, damage, and live game-runtime replacement
+enemy fire, Barrage JSON through `js/stage/barrage.js`, Stage 3's turtle ride,
+background scroll changes, warning, and boss entry. Player input, collision,
+damage, and live game-runtime replacement
 remain intentionally outside this slice.
 
 ## Start here
@@ -87,5 +93,7 @@ and entry library slice adds eight ordinary enemy definitions, all five legacy
 entry directions, direction-aware formation rotation, and atomic dependency
 declarations. The movement/weapon slice adds parameter-aware Korean inspectors,
 shared validation, axis-aware pause targets, editable U-turn motion, difficulty
-patch support, and legacy-fire timing/count controls. Barrage Lab handoff and
-budget overlays are still pending.
+patch support, and legacy-fire timing/count controls. Its Barrage Lab slice adds
+existing/new pattern handoff, base or active-difficulty return, atomic dependency
+declaration and undo, and shared-runtime deterministic preview. Projectile/enemy
+budget overlays are the remaining M3 slice.

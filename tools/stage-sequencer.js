@@ -12,6 +12,13 @@
   ];
   const SECTION_COLORS = ['#55d9e8', '#ffd66e', '#ff87bd', '#8fa3e8', '#7dffd8'];
   const DIFFICULTY_IDS = ['easy', 'normal', 'hard'];
+  const query = new URLSearchParams(location.search);
+  const barrageReturn = query.get('barrageReturn') === '1' && StageBarrage.ID.test(query.get('pattern') || '') ? {
+    patternId: query.get('pattern'),
+    itemId: query.get('item') || '',
+    scope: query.get('scope') === 'difficulty' ? 'difficulty' : 'base',
+    difficulty: DIFFICULTY_IDS.includes(query.get('difficulty')) ? query.get('difficulty') : 'easy',
+  } : null;
   const $ = selector => document.querySelector(selector);
   const canvas = $('#preview');
   const ctx = canvas.getContext('2d');
@@ -95,7 +102,12 @@
   }
 
   function difficultyPatch(base, resolved) {
-    return objectDiff(base, resolved) || {};
+    const target = StageDocument.clone(resolved);
+    const baseWeapon = base?.payload?.weapon;
+    const targetWeapon = target?.payload?.weapon;
+    if (baseWeapon?.presetId && targetWeapon?.patternId) targetWeapon.presetId = null;
+    if (baseWeapon?.patternId && targetWeapon?.presetId) targetWeapon.patternId = null;
+    return objectDiff(base, target) || {};
   }
 
   function escapeHtml(value) {
@@ -206,6 +218,7 @@
       }
       stageDocument = new StageDocument.DocumentSession(initialStage);
       rawStage = stageDocument.stage;
+      if (barrageReturn) $('#previewDifficulty').value = barrageReturn.difficulty;
       sourceHash = stageHash(sourceStage);
       exportedHash = stored?.exportedHash || sourceHash;
       deviceSavedHash = stored?.stage ? stageDocument.stateHash() : sourceHash;
@@ -213,13 +226,14 @@
       $('#timeScrub').max = rawStage.timeline.duration;
       range = { id: 'full', name: '전체', start: 0, end: rawStage.timeline.duration };
       compileAtDifficulty($('#previewDifficulty').value, 0);
+      if (barrageReturn) applyBarrageReturn();
       renderSectionButtons();
       $('#exportStage').disabled = false;
       $('#loadingOverlay').classList.add('hidden');
       playing = true;
       updatePlayButton();
       updateEditorUi();
-      if (stored?.stage && initialStage === stored.stage) toast('기기에 저장된 초안을 복구했습니다');
+      if (!barrageReturn && stored?.stage && initialStage === stored.stage) toast('기기에 저장된 초안을 복구했습니다');
     } catch (error) {
       console.error(error);
       setStatus('불러오기 실패', 'error');
@@ -442,6 +456,22 @@
     )).join('');
   }
 
+  function barrageOptionList(selected) {
+    const patterns = StageBarrage.entries();
+    const known = new Set(patterns.map(pattern => pattern.id));
+    const values = selected && !known.has(selected)
+      ? [{ id: selected, name: selected, sourceLabel: '참조' }, ...patterns]
+      : patterns;
+    return '<option value="">패턴을 선택하세요…</option>' + values.map(pattern => (
+      `<option value="${escapeHtml(pattern.id)}" ${pattern.id === selected ? 'selected' : ''}>${escapeHtml(pattern.name)} · ${escapeHtml(pattern.sourceLabel)}</option>`
+    )).join('');
+  }
+
+  function barragePatternHint(id) {
+    const pattern = StageBarrage.get(id);
+    return pattern ? `${pattern.duration}초 · 발사기 ${pattern.emitters.length}개 · ${pattern.loop ? '반복' : '1회'}` : '저장된 패턴을 고르거나 새 패턴을 만드세요.';
+  }
+
   function behaviorFieldName(prefix, presetId, field) {
     return `${prefix}_${presetId}_${field.key}`;
   }
@@ -660,10 +690,18 @@
       } else {
         delete next.payload.movement.path;
       }
-      const weaponId = String(values.get('weapon'));
-      next.payload.weapon = readBehaviorPreset(
-        values, 'weaponPresets', 'weapon', weaponId, next.payload.weapon,
-      );
+      if (values.get('weaponMode') === 'pattern') {
+        next.payload.weapon = StageBarrage.normalizeReference({
+          patternId: String(values.get('barragePattern') || ''),
+          startDelay: Number(values.get('barrageStartDelay')),
+          stopWhenLeaving: values.has('barrageStopWhenLeaving'),
+        });
+      } else {
+        const weaponId = String(values.get('weapon'));
+        next.payload.weapon = readBehaviorPreset(
+          values, 'weaponPresets', 'weapon', weaponId, next.payload.weapon,
+        );
+      }
       next.timing.duration = formationId === 'wall-gap' ? 0 : (count - 1) * interval;
     } else if (next.type === 'environment' && next.payload?.pluginId === 'scroll-speed') {
       const multiplier = Math.max(0, Math.min(5, Number(values.get('scrollMultiplier')) || 0));
@@ -686,8 +724,70 @@
       params.pearlRing.speed = Math.max(0, Number(values.get('ringSpeed')) || 0);
     }
     next.timing.start = Math.max(0, Math.min(next.timing.start, rawStage.timeline.duration - next.timing.duration));
-    if (editScope === 'difficulty') replaceDifficultyItem(authored.id, next, `${activeDifficulty().name} 덮어쓰기`);
-    else replaceAuthoredItem(authored.id, next, '기본 클립 수정');
+    if (editScope === 'difficulty') return replaceDifficultyItem(authored.id, next, `${activeDifficulty().name} 덮어쓰기`);
+    return replaceAuthoredItem(authored.id, next, '기본 클립 수정');
+  }
+
+  function applyBarrageReturn() {
+    history.replaceState(null, '', location.pathname);
+    const authored = stageDocument?.findItem(barrageReturn.itemId);
+    if (!authored || authored.type !== 'wave') {
+      toast('돌아온 탄막을 적용할 웨이브를 찾지 못했습니다');
+      return false;
+    }
+    editScope = barrageReturn.scope;
+    selectedId = authored.id;
+    const next = StageDocument.clone(editScope === 'difficulty' ? (resolvedAuthoredItem(authored) || authored) : authored);
+    const previous = next.payload.weapon?.patternId ? next.payload.weapon : {};
+    next.payload.weapon = StageBarrage.normalizeReference({
+      patternId: barrageReturn.patternId,
+      startDelay: previous.startDelay ?? 0.6,
+      stopWhenLeaving: previous.stopWhenLeaving ?? true,
+    });
+    if (JSON.stringify(next) === JSON.stringify(authored)) {
+      selectItem(authored.id, false);
+      toast(`'${barrageReturn.patternId}' 탄막 편집을 마쳤습니다`);
+      return true;
+    }
+    const applied = editScope === 'difficulty'
+      ? replaceDifficultyItem(authored.id, next, `${activeDifficulty().name} 탄막 패턴 적용`)
+      : replaceAuthoredItem(authored.id, next, '탄막 패턴 적용');
+    if (applied) toast(`'${barrageReturn.patternId}' 탄막을 적용했습니다`);
+    return applied;
+  }
+
+  async function openBarrageLab(form, action) {
+    const authored = stageDocument?.findItem(form.dataset.itemId);
+    if (!authored) return;
+    const values = new FormData(form);
+    let patternId = String(values.get('barragePattern') || '');
+    if (action === 'new') {
+      const base = `${authored.id}-barrage`;
+      patternId = base;
+      let suffix = 2;
+      while (StageBarrage.get(patternId)) patternId = `${base}-${suffix++}`;
+    } else if (!patternId) {
+      toast('먼저 편집할 탄막 패턴을 고르세요');
+      return;
+    }
+    clearTimeout(autosaveTimer);
+    try {
+      const saved = await StagePersistence.saveDraft(stageDocument.stage, { exportedHash });
+      deviceSavedHash = stageHash(saved.stage);
+    } catch (error) {
+      console.error(error);
+      toast('시퀀서 초안을 저장하지 못해 공방을 열 수 없습니다');
+      return;
+    }
+    const params = new URLSearchParams({
+      returnTo: 'stage-sequencer',
+      item: authored.id,
+      scope: editScope,
+      difficulty: activeDifficulty().id,
+      pattern: patternId,
+    });
+    if (action === 'new') params.set('new', '1');
+    location.href = `tools/barrage-editor.html?${params}`;
   }
 
   function nudgeSelected(delta) {
@@ -746,6 +846,22 @@
         });
       });
     }
+
+    const weaponMode = form?.elements?.weaponMode;
+    if (weaponMode) {
+      form.querySelectorAll('[data-weapon-mode-section]').forEach(section => {
+        const active = section.dataset.weaponModeSection === weaponMode.value;
+        section.hidden = !active;
+        section.querySelectorAll('input, select, button').forEach(control => {
+          if (!active) control.disabled = true;
+          else if (section.dataset.weaponModeSection === 'pattern') control.disabled = false;
+          else if (control.name === 'weapon') control.disabled = false;
+        });
+      });
+      const patternSelect = form.elements.barragePattern;
+      const hint = form.querySelector('[data-barrage-hint]');
+      if (hint) hint.textContent = barragePatternHint(patternSelect?.value);
+    }
   }
 
   function bindInspectorForm() {
@@ -760,6 +876,8 @@
       form.elements.entryVertical.addEventListener('change', () => updateLibraryHints(form));
       form.elements.movement.addEventListener('change', () => updateLibraryHints(form));
       form.elements.weapon.addEventListener('change', () => updateLibraryHints(form));
+      form.elements.weaponMode.addEventListener('change', () => updateLibraryHints(form));
+      form.elements.barragePattern.addEventListener('change', () => updateLibraryHints(form));
       form.querySelectorAll('[data-behavior-key]').forEach(input => input.addEventListener('input', () => {
         input.dataset.authored = 'true';
       }));
@@ -786,6 +904,9 @@
     }));
     document.querySelectorAll('[data-path-action]').forEach(button => button.addEventListener('click', () => {
       editSelectedPath(button.dataset.pathAction);
+    }));
+    document.querySelectorAll('[data-barrage-action]').forEach(button => button.addEventListener('click', () => {
+      openBarrageLab(form, button.dataset.barrageAction);
     }));
     if (form) {
       const updateFormationCount = () => {
@@ -889,6 +1010,10 @@
     const formEntry = formItem.type === 'wave' ? StageEntry.normalize(formItem.payload.entry) : null;
     const formEntryDefinition = formEntry ? StageRegistry.get('entryPresets', formEntry.presetId) : null;
     const formEntryCoordinate = formEntryDefinition?.coordinate === 'x' ? formEntry.x : formEntry?.y;
+    const formWeaponMode = formItem.type === 'wave' && formItem.payload.weapon?.patternId ? 'pattern' : 'preset';
+    const formPatternId = formItem.type === 'wave'
+      ? formItem.payload.weapon?.patternId || StageBarrage.entries()[0]?.id || ''
+      : '';
     const formationCount = formFormation
       ? StageFormation.resolvedCount(formFormation, formItem.payload.spawn?.count)
       : 0;
@@ -993,8 +1118,23 @@
                 </div>
               </section>
             ` : ''}
-            <label>사격<select name="weapon">${definitionOptionList('weaponPresets', formItem.payload.weapon.presetId)}</select></label>
-            ${renderBehaviorSections('weaponPresets', formItem.payload.weapon, 'weapon', formEntryDefinition)}
+            <label>사격 방식<select name="weaponMode"><option value="preset" ${formWeaponMode === 'preset' ? 'selected' : ''}>기본 무기</option><option value="pattern" ${formWeaponMode === 'pattern' ? 'selected' : ''}>Barrage Lab 패턴</option></select></label>
+            <div class="weapon-mode-section" data-weapon-mode-section="preset" ${formWeaponMode === 'preset' ? '' : 'hidden'}>
+              <label>기본 무기<select name="weapon">${definitionOptionList('weaponPresets', formItem.payload.weapon.presetId || 'none')}</select></label>
+              ${renderBehaviorSections('weaponPresets', formItem.payload.weapon, 'weapon', formEntryDefinition)}
+            </div>
+            <section class="behavior-editor barrage-reference" data-weapon-mode-section="pattern" ${formWeaponMode === 'pattern' ? '' : 'hidden'}>
+              <label>탄막 패턴<select name="barragePattern">${barrageOptionList(formPatternId)}</select></label>
+              <p data-barrage-hint>${escapeHtml(barragePatternHint(formPatternId))}</p>
+              <div class="form-row two">
+                <label>첫 발 지연<input name="barrageStartDelay" type="number" min="0" max="120" step="0.05" value="${formItem.payload.weapon?.patternId ? (formItem.payload.weapon.startDelay ?? 0.6) : 0.6}"></label>
+                <label class="check-label"><input name="barrageStopWhenLeaving" type="checkbox" ${formItem.payload.weapon?.stopWhenLeaving !== false ? 'checked' : ''}> 화면 밖에서 정지</label>
+              </div>
+              <div class="barrage-actions">
+                <button type="button" data-barrage-action="edit" ${formPatternId ? '' : 'disabled'}>공방에서 편집</button>
+                <button type="button" data-barrage-action="new">새 패턴 만들기</button>
+              </div>
+            </section>
           ` : ''}
           ${formItem.type === 'environment' && formItem.payload?.pluginId === 'scroll-speed' ? `
             <label>배경 스크롤 배율<input name="scrollMultiplier" type="number" min="0" max="5" step="0.05" value="${formItem.payload.params.curve[0]?.value ?? 1}"></label>
@@ -1484,8 +1624,20 @@
       }
     }
     for (const bullet of simulation.bullets) {
+      if (bullet.kind === 'laser' && bullet.laser) {
+        const laser = StageBarrage.Runtime.laserState(bullet);
+        const endX = bullet.x + Math.cos(bullet.laser.angle) * bullet.laser.length;
+        const endY = bullet.y + Math.sin(bullet.laser.angle) * bullet.laser.length;
+        ctx.save();
+        ctx.globalAlpha = laser.alpha;
+        ctx.strokeStyle = laser.active ? '#ff8fbd' : '#9edcff';
+        ctx.lineWidth = laser.active ? bullet.laser.width : Math.max(2, bullet.laser.width * 0.25);
+        ctx.beginPath(); ctx.moveTo(bullet.x, bullet.y); ctx.lineTo(endX, endY); ctx.stroke();
+        ctx.restore();
+        continue;
+      }
       if (!Sprites.draw(ctx, `bullet.${bullet.kind}`, bullet.x, bullet.y, { t: bullet.age })) {
-        ctx.fillStyle = bullet.kind === 'spike' ? '#ffd6e8' : '#b9ebff'; ctx.beginPath(); ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = bullet.kind === 'spike' ? '#ffd6e8' : '#b9ebff'; ctx.beginPath(); ctx.arc(bullet.x, bullet.y, bullet.radius ?? bullet.r ?? 5, 0, Math.PI * 2); ctx.fill();
       }
     }
     for (const enemy of simulation.enemies) {

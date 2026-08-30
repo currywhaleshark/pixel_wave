@@ -12,6 +12,19 @@
   const LOCAL_PATTERNS_KEY = BarrageRuntime.STORAGE_KEY;
   const DRAFT_KEY = 'pixelWave.barrageDraft.v1';
   const LAST_PATTERN_KEY = 'pixelWave.barrageLastPattern.v1';
+  const query = new URLSearchParams(location.search);
+  const handoff = query.get('returnTo') === 'stage-sequencer' ? {
+    itemId: query.get('item') || '',
+    scope: query.get('scope') === 'difficulty' ? 'difficulty' : 'base',
+    difficulty: ['easy', 'normal', 'hard'].includes(query.get('difficulty')) ? query.get('difficulty') : 'easy',
+    patternId: cleanQueryId(query.get('pattern')),
+    createNew: query.get('new') === '1',
+  } : null;
+
+  function cleanQueryId(value) {
+    const id = String(value || '');
+    return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id) ? id : '';
+  }
 
   const defaultPattern = () => BarrageRuntime.normalize({
     version: 1, id: 'new-pattern', name: '새 탄막', description: '', duration: 12, loop: true, seed: 1,
@@ -532,6 +545,18 @@
     setStatus(`${fileName} 내보냄`, 'ok');
   }
 
+  async function applyToSequencer() {
+    if (!handoff || !(await savePattern())) return;
+    const params = new URLSearchParams({
+      barrageReturn: '1',
+      pattern: pattern.id,
+      item: handoff.itemId,
+      scope: handoff.scope,
+      difficulty: handoff.difficulty,
+    });
+    location.href = `stage-sequencer.html?${params}`;
+  }
+
   function escapeHtml(value) {
     return String(value).replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
   }
@@ -640,6 +665,7 @@
     if (!(await savePattern())) return;
     location.href = `../index.html?debug&barrage=${encodeURIComponent(pattern.id)}&diff=${difficulty}`;
   });
+  $('#applyToSequencer').addEventListener('click', applyToSequencer);
   $('#refreshLibrary').addEventListener('click', () => refreshLibrary());
   $('#patternLibrary').addEventListener('change', event => loadPattern(event.target.value));
   $('#restart').addEventListener('click', restartPreview);
@@ -679,9 +705,22 @@
   let lastPatternId = null;
   try { lastPatternId = localStorage.getItem(LAST_PATTERN_KEY); } catch (_) { /* 저장소 비활성 */ }
   const remembered = lastPatternId ? localPatterns()[lastPatternId] : null;
-  const initial = draft || remembered || globalThis.BARRAGE_PATTERN_DATA?.['pangpang-needle-fan'] || defaultPattern();
-  loadIntoUi(initial, !draft);
-  if (draft) setStatus('닫기 전 초안을 자동 복구함', 'dirty');
+  const requested = handoff?.patternId
+    ? localPatterns()[handoff.patternId] || globalThis.BARRAGE_PATTERN_DATA?.[handoff.patternId]
+    : null;
+  const newHandoffPattern = handoff?.createNew
+    ? { ...defaultPattern(), id: handoff.patternId || 'new-pattern', name: '새 웨이브 탄막' }
+    : null;
+  const initial = handoff
+    ? requested || newHandoffPattern || globalThis.BARRAGE_PATTERN_DATA?.['pangpang-needle-fan'] || defaultPattern()
+    : draft || remembered || globalThis.BARRAGE_PATTERN_DATA?.['pangpang-needle-fan'] || defaultPattern();
+  loadIntoUi(initial, handoff ? !!requested : !draft);
+  if (!handoff && draft) setStatus('닫기 전 초안을 자동 복구함', 'dirty');
+  if (handoff) {
+    $('#applyToSequencer').hidden = false;
+    $('#applyToSequencer').textContent = `${pattern.name} · 시퀀서에 적용`;
+    if (handoff.patternId && !requested && !handoff.createNew) loadPattern(handoff.patternId);
+  }
   refreshLibrary(initial.id);
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     navigator.serviceWorker.register('barrage-sw.js').catch(() => {});

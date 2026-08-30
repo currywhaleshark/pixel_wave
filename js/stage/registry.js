@@ -113,6 +113,7 @@
   }
 
   function knows(category, id) {
+    if (category === 'barragePatterns') return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(id || ''));
     return !!categories[category]?.has(id);
   }
 

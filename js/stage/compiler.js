@@ -11,6 +11,7 @@
   const FormationApi = root.StageFormation || (typeof require === 'function' ? require('./formation.js') : null);
   const EntryApi = root.StageEntry || (typeof require === 'function' ? require('./entry.js') : null);
   const BehaviorApi = root.StageBehavior || (typeof require === 'function' ? require('./behavior.js') : null);
+  const BarrageApi = root.StageBarrage || (typeof require === 'function' ? require('./barrage.js') : null);
   const { Random, hashString } = RandomApi;
   const ID = /^[a-z0-9][a-z0-9-]*$/;
   const REQUIRED_DEPENDENCIES = Object.freeze([
@@ -133,7 +134,10 @@
         }
         if (payload.weapon?.presetId) useDependency('weaponPresets', payload.weapon.presetId, label);
         for (const error of BehaviorApi.validateWeapon(payload.weapon)) errors.push(`${label}: ${error}`);
-        if (payload.weapon?.patternId) useDependency('barragePatterns', payload.weapon.patternId, label);
+        if (payload.weapon?.patternId) {
+          useDependency('barragePatterns', payload.weapon.patternId, label);
+          for (const error of BarrageApi.validateReference(payload.weapon)) errors.push(`${label}: ${error}`);
+        }
         if (payload.formation?.presetId !== 'wall-gap') {
           const count = finite(payload.spawn?.count, 0);
           const interval = finite(payload.spawn?.interval, -1);
@@ -164,6 +168,7 @@
   }
 
   function compileWeapon(raw, difficulty) {
+    if (raw?.patternId) return BarrageApi.compileReference(raw);
     const weapon = BehaviorApi.normalizeWeapon(raw || { presetId: 'none' });
     if (weapon.presetId === 'none') return { presetId: 'none' };
     const effective = BehaviorApi.effectiveWeapon(weapon);

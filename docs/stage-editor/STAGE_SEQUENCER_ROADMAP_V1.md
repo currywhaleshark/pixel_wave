@@ -441,7 +441,8 @@ Scope:
 - open a barrage pattern in Barrage Lab and return its ID;
 - projectile/enemy budget overlay.
 
-Implemented path, formation, library, and movement/weapon metadata slices:
+Implemented path, formation, library, movement/weapon metadata, and Barrage Lab
+round-trip slices:
 
 - `custom-path` movement with native normalized Stage JSON points;
 - shared path normalization, validation, easing, hold, and deterministic
@@ -475,9 +476,15 @@ Implemented path, formation, library, and movement/weapon metadata slices:
 - base and active-difficulty behavior authoring through the existing patch
   model, with atomic dependency declarations and undo;
 - explicit death-shot preview limits because M3 does not simulate player
-  collision, damage, or enemy death.
+  collision, damage, or enemy death;
+- existing-pattern and new-pattern handoff from the weapon inspector to Barrage
+  Lab, returning to the original wave, scope, and difficulty;
+- one-command pattern application with automatic `barragePatterns` dependency
+  declaration and undo;
+- shared `BarrageRuntime.Runner` execution, projectile updates, and serialized
+  runner state in deterministic seek snapshots.
 
-Still pending in M3: Barrage Lab round-trip and budget overlays.
+Still pending in M3: projectile/enemy budget overlays.
 
 Acceptance:
 

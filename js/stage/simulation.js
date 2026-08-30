@@ -8,6 +8,7 @@
   const RandomApi = root.StageRandom || (typeof require === 'function' ? require('./random.js') : null);
   const PathApi = root.StagePath || (typeof require === 'function' ? require('./path.js') : null);
   const BehaviorApi = root.StageBehavior || (typeof require === 'function' ? require('./behavior.js') : null);
+  const BarrageApi = root.StageBarrage || (typeof require === 'function' ? require('./barrage.js') : null);
   const { Random, hashString, mixSeed } = RandomApi;
   const EPS = 1e-9;
 
@@ -55,6 +56,7 @@
       this.player = { x: width * 0.2, y: height * 0.5, invulnerable: false };
       this.enemies = [];
       this.bullets = [];
+      this.barrageRunners = new Map();
       this.pearls = [];
       this.activeItems = new Map();
       this.messages = [];
@@ -108,6 +110,9 @@
           source.pathComplete = false;
         }
         this.enemies.push(source);
+        if (source.weapon?.patternId && source.weapon?.pattern) {
+          this.barrageRunners.set(source.id, this._createBarrageRunner(source));
+        }
         this.spawnedEnemyCount++;
         return;
       }
@@ -234,6 +239,30 @@
       }
     }
 
+    _spawnBarrageProjectile(projectile, patternId) {
+      this.bullets.push({
+        ...projectile,
+        age: projectile.barrage?.age || 0,
+        radius: projectile.r ?? 5,
+        patternId,
+      });
+      this.firedBulletCount++;
+    }
+
+    _createBarrageRunner(enemy, state = null) {
+      const runner = new BarrageApi.Runtime.Runner(enemy.weapon.pattern, {
+        emit: projectile => this._spawnBarrageProjectile(projectile, enemy.weapon.patternId),
+      });
+      if (state) {
+        runner.time = state.time;
+        runner.cursor = state.cursor;
+        runner.loops = state.loops;
+        runner.finished = state.finished;
+        runner.started = state.started;
+      }
+      return runner;
+    }
+
     _updateEnemy(enemy, dt) {
       enemy.age += dt;
       const movement = enemy.movement?.presetId || 'straight';
@@ -300,6 +329,23 @@
       if (enemy.pathComplete) return;
       const onScreen = enemy.x > 30 && enemy.x < this.compiled.viewport.width - 10;
       const canFire = movement !== 'enter-pause-exit' || enemy.state === 'pause';
+      if (enemy.weapon?.patternId) {
+        const runner = this.barrageRunners.get(enemy.id);
+        const canContinueOffScreen = enemy.weapon.stopWhenLeaving === false && runner?.started;
+        if (runner && canFire && (onScreen || canContinueOffScreen)) {
+          let activeDt = dt;
+          if (enemy.fireRemaining > 0) {
+            activeDt = Math.max(0, dt - enemy.fireRemaining);
+            enemy.fireRemaining -= dt;
+          }
+          if (activeDt > 0) runner.update(activeDt, {
+            source: enemy,
+            target: this.player,
+            difficulty: ['easy', 'normal', 'hard'].indexOf(this.compiled.difficulty.id),
+          });
+        }
+        return;
+      }
       if (enemy.weapon?.presetId !== 'none' && enemy.weapon?.presetId !== 'legacy-death-shot' && onScreen && canFire) {
         enemy.fireRemaining -= dt;
         if (enemy.fireRemaining <= 0) {
@@ -354,12 +400,32 @@
       for (const enemy of this.enemies) this._updateEnemy(enemy, dt);
       const { width, height } = this.compiled.viewport;
       this.enemies = this.enemies.filter(enemy => !enemy.pathComplete && enemy.x > -60 && enemy.x < width + 120 && enemy.y > -80 && enemy.y < height + 80);
+      const liveEnemyIds = new Set(this.enemies.map(enemy => enemy.id));
+      for (const id of this.barrageRunners.keys()) if (!liveEnemyIds.has(id)) this.barrageRunners.delete(id);
+      const spawnedProjectiles = [];
       for (const bullet of this.bullets) {
-        bullet.age += dt;
-        bullet.x += bullet.vx * dt;
-        bullet.y += bullet.vy * dt;
+        if (bullet.barrage) {
+          BarrageApi.Runtime.updateProjectile(bullet, dt, {
+            target: this.player,
+            spawn: projectile => spawnedProjectiles.push({
+              ...projectile,
+              age: projectile.barrage?.age || 0,
+              radius: projectile.r ?? 5,
+              patternId: bullet.patternId,
+            }),
+            spawnBudget: { remaining: 256 },
+            maxDepth: 2,
+          });
+          bullet.age = bullet.barrage.age;
+        } else {
+          bullet.age += dt;
+          bullet.x += bullet.vx * dt;
+          bullet.y += bullet.vy * dt;
+        }
       }
-      this.bullets = this.bullets.filter(bullet => bullet.x > -40 && bullet.x < width + 480 && bullet.y > -20 && bullet.y < height + 20);
+      this.firedBulletCount += spawnedProjectiles.length;
+      this.bullets.push(...spawnedProjectiles);
+      this.bullets = this.bullets.filter(bullet => !bullet.dead && bullet.x > -40 && bullet.x < width + 480 && bullet.y > -80 && bullet.y < height + 80);
       for (const pearl of this.pearls) {
         pearl.age += dt;
         pearl.x += pearl.vx * dt;
@@ -422,6 +488,13 @@
         player: this.player,
         enemies: this.enemies,
         bullets: this.bullets,
+        barrageRunners: [...this.barrageRunners.entries()].map(([id, runner]) => [id, {
+          time: runner.time,
+          cursor: runner.cursor,
+          loops: runner.loops,
+          finished: runner.finished,
+          started: runner.started,
+        }]),
         pearls: this.pearls,
         activeItems: [...this.activeItems.entries()],
         messages: this.messages,
@@ -443,6 +516,11 @@
       this.player = state.player;
       this.enemies = state.enemies;
       this.bullets = state.bullets;
+      this.barrageRunners = new Map();
+      for (const [id, runnerState] of state.barrageRunners || []) {
+        const enemy = this.enemies.find(item => item.id === id);
+        if (enemy?.weapon?.pattern) this.barrageRunners.set(id, this._createBarrageRunner(enemy, runnerState));
+      }
       this.pearls = state.pearls;
       this.activeItems = new Map(state.activeItems);
       this.messages = state.messages;
@@ -493,6 +571,11 @@
         boss: this.boss ? [this.boss.id, round(this.boss.x), round(this.boss.y)] : null,
         random: this.random.snapshot(),
       };
+      if (this.barrageRunners.size) {
+        compact.barrageRunners = [...this.barrageRunners.entries()].map(([id, runner]) => [
+          id, round(runner.time), runner.cursor, runner.loops, runner.finished, runner.started,
+        ]);
+      }
       return hashString(JSON.stringify(compact)).toString(16).padStart(8, '0');
     }
 

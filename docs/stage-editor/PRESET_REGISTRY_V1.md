@@ -301,6 +301,15 @@ The Stage 3 M3 inspector currently exposes `interval` and `startDelay` for
 `legacy-ring`. `legacy-death-shot` has no timed inspector fields because it is
 triggered by enemy death rather than the ordinary update timer.
 
+`js/stage/barrage.js` is the Stage-facing adapter for Barrage JSON. It merges
+bundled and device-local patterns, validates the exclusive weapon reference,
+and embeds a normalized pattern into compiler output. The Stage simulator owns
+the corresponding shared `BarrageRuntime.Runner`; it serializes runner cursor,
+loop, and timing state together with projectile state so a seek does not replay
+a simplified editor-only weapon implementation. Barrage Lab returns a saved
+pattern ID to the originating wave, base/difficulty scope, and difficulty. The
+Stage command model applies that result and its dependency atomically.
+
 ## 8. Item plugin
 
 Environment, gimmick, hazard, cue, and boss items share one lifecycle contract.

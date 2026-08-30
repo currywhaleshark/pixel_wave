@@ -1,4 +1,4 @@
-const CACHE = 'pixel-wave-stage-sequencer-m3-v4';
+const CACHE = 'pixel-wave-stage-sequencer-m3-v5';
 const SHELL = [
   './stage-sequencer.html',
   './stage-sequencer.css',
@@ -9,12 +9,15 @@ const SHELL = [
   '../js/assets.js',
   '../js/spriteRenderer.js',
   '../js/backgroundRenderer.js',
+  '../js/barragePatterns.generated.js',
+  '../js/barrage.js',
   '../js/stage/random.js',
   '../js/stage/entry.js',
   '../js/stage/path.js',
   '../js/stage/formation.js',
   '../js/stage/registry.js',
   '../js/stage/behavior.js',
+  '../js/stage/barrage.js',
   '../js/stage/compiler.js',
   '../js/stage/simulation.js',
   '../js/stage/document.js',
