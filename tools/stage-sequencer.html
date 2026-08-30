@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="스테이지 시퀀서">
   <base href="../">
-  <title>픽셀 파도 — 스테이지 시퀀서 M5</title>
+  <title>픽셀 파도 — 스테이지 시퀀서 M7</title>
   <link rel="manifest" href="tools/stage-sequencer-manifest.webmanifest">
   <link rel="icon" href="tools/barrage-icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="tools/stage-sequencer.css">
@@ -19,7 +19,7 @@
       <span class="brand-mark">≋</span>
       <div>
         <strong id="stageName">스테이지 시퀀서</strong>
-        <small>M5 · TERRAIN REVIEW</small>
+        <small>M7 · AUTHORING READY</small>
       </div>
     </div>
     <div class="top-actions">
@@ -79,15 +79,30 @@
           <button id="duplicateItem" type="button" disabled>복제</button>
           <button id="deleteItem" class="danger" type="button" disabled>삭제</button>
         </div>
+        <div class="toolbar-group selection-tools" aria-label="다중 클립 편집">
+          <button id="multiSelect" type="button" aria-pressed="false">여러 선택</button>
+          <button id="copyItems" type="button" disabled>복사</button>
+          <button id="pasteItems" type="button">붙여넣기</button>
+          <button id="shiftItemsBack" type="button" disabled aria-label="선택 클립을 1초 앞당기기">−1초</button>
+          <button id="shiftItemsForward" type="button" disabled aria-label="선택 클립을 1초 늦추기">＋1초</button>
+        </div>
         <div class="toolbar-group history-tools">
           <button id="undoEdit" type="button" title="실행 취소" disabled>↶</button>
           <button id="redoEdit" type="button" title="다시 실행" disabled>↷</button>
         </div>
         <div class="toolbar-group file-tools">
+          <button id="saveSectionTemplate" type="button">구간 저장</button>
+          <button id="applySectionTemplate" type="button">구간 붙이기</button>
           <button id="importStage" type="button">JSON 가져오기</button>
           <input id="importStageFile" type="file" accept="application/json,.json" hidden>
         </div>
+        <span id="selectionStatus" class="selection-status" role="status" aria-live="polite">선택 0</span>
         <span id="draftState" class="draft-state">원본</span>
+      </section>
+
+      <section id="schemaNotice" class="schema-notice panel" role="status" hidden>
+        <strong>Stage 스키마 변환 완료</strong>
+        <span id="schemaNoticeText"></span>
       </section>
 
       <section class="range-panel panel" aria-label="미리보기 구간">
@@ -205,8 +220,8 @@
   <script src="js/stage/budget.js?v=1"></script>
   <script src="js/stage/compiler.js?v=1"></script>
   <script src="js/stage/simulation.js?v=2"></script>
-  <script src="js/stage/document.js?v=2"></script>
-  <script src="js/stage/persistence.js?v=1"></script>
-  <script src="tools/stage-sequencer.js?v=14"></script>
+  <script src="js/stage/document.js?v=3"></script>
+  <script src="js/stage/persistence.js?v=2"></script>
+  <script src="tools/stage-sequencer.js?v=15"></script>
 </body>
 </html>

@@ -31,6 +31,31 @@
     return id;
   }
 
+  function createFragment(stage, ids) {
+    const wanted = new Set((ids || []).map(String));
+    const items = (stage?.items || []).filter(item => wanted.has(item.id)).map(clone);
+    const timed = items.filter(item => item.timing?.domain === 'time');
+    const origin = timed.length ? Math.min(...timed.map(item => Number(item.timing.start) || 0)) : 0;
+    return {
+      format: 'pixel-wave-stage-fragment',
+      schemaVersion: 1,
+      sourceStageId: stage?.id || null,
+      origin,
+      dependencies: clone(stage?.dependencies || {}),
+      items,
+    };
+  }
+
+  function mergeDependencies(base, incoming) {
+    const merged = clone(base || {});
+    for (const [key, values] of Object.entries(incoming || {})) {
+      if (!Array.isArray(values)) continue;
+      const current = Array.isArray(merged[key]) ? merged[key] : [];
+      merged[key] = [...new Set([...current, ...values])];
+    }
+    return merged;
+  }
+
   class DocumentSession {
     constructor(stage, options = {}) {
       this.historyLimit = Math.max(1, Number(options.historyLimit) || 100);
@@ -76,7 +101,7 @@
       this.stage.items[index] = clone(value);
     }
 
-    _apply(record, forward) {
+    _applyRecord(record, forward) {
       if (record.kind === 'replace-item') {
         const expected = forward ? record.before.id : record.after.id;
         this._replace(expected, forward ? record.after : record.before);
@@ -102,9 +127,18 @@
           const index = this.itemIndex(record.item.id);
           if (index >= 0) this.stage.items.splice(index, 1);
         } else this.stage.items.splice(record.index, 0, clone(record.item));
+      } else if (record.kind === 'replace-dependencies') {
+        this.stage.dependencies = clone(forward ? record.after : record.before);
+      } else if (record.kind === 'batch') {
+        const records = forward ? record.records : [...record.records].reverse();
+        for (const child of records) this._applyRecord(child, forward);
       } else {
         throw new Error(`알 수 없는 문서 명령 '${record.kind}'입니다.`);
       }
+    }
+
+    _apply(record, forward) {
+      this._applyRecord(record, forward);
       this.revision++;
     }
 
@@ -203,6 +237,77 @@
       return this._commit({ kind: 'remove-item', label, item: clone(this.stage.items[index]), index });
     }
 
+    commitBatch(records, label = '여러 클립 수정') {
+      const usable = (records || []).filter(Boolean);
+      if (!usable.length) return false;
+      return this._commit({ kind: 'batch', label, records: clone(usable) });
+    }
+
+    shiftItems(ids, requestedDelta, label = '여러 클립 이동') {
+      const wanted = new Set((ids || []).map(String));
+      const items = this.stage.items.filter(item => wanted.has(item.id) && item.timing?.domain === 'time');
+      if (!items.length) return 0;
+      const minimum = Math.min(...items.map(item => Number(item.timing.start) || 0));
+      const maximum = Math.max(...items.map(item => (Number(item.timing.start) || 0) + (Number(item.timing.duration) || 0)));
+      const delta = Math.max(-minimum, Math.min(Number(requestedDelta) || 0, this.stage.timeline.duration - maximum));
+      if (Math.abs(delta) < 1e-9) return 0;
+      const records = items.map(item => {
+        const after = clone(item);
+        after.timing.start = +((Number(after.timing.start) || 0) + delta).toFixed(3);
+        return { kind: 'replace-item', before: clone(item), after };
+      });
+      this.commitBatch(records, label);
+      return delta;
+    }
+
+    removeItems(ids, label = '여러 클립 삭제') {
+      const wanted = new Set((ids || []).map(String));
+      const records = this.stage.items
+        .map((item, index) => ({ item, index }))
+        .filter(entry => wanted.has(entry.item.id))
+        .sort((left, right) => right.index - left.index)
+        .map(entry => ({ kind: 'remove-item', item: clone(entry.item), index: entry.index }));
+      return this.commitBatch(records, label) ? records.length : 0;
+    }
+
+    pasteFragment(fragment, at = 0, label = '클립 조각 붙여넣기') {
+      if (fragment?.format !== 'pixel-wave-stage-fragment' || fragment.schemaVersion !== 1 || !Array.isArray(fragment.items)) {
+        throw new Error('지원하지 않는 클립 조각입니다.');
+      }
+      const used = new Set(this.stage.items.map(item => item.id));
+      const unique = preferred => {
+        const base = cleanId(preferred);
+        let id = base;
+        let suffix = 2;
+        while (used.has(id)) id = `${base}-${suffix++}`;
+        used.add(id);
+        return id;
+      };
+      const origin = Number(fragment.origin) || 0;
+      const insertions = fragment.items.map(source => {
+        const item = clone(source);
+        item.id = unique(`${source.id}-copy`);
+        item.name = `${source.name || source.id} 복사본`;
+        if (item.timing?.domain === 'time') {
+          const start = Math.max(0, Math.min(
+            this.stage.timeline.duration - (Number(item.timing.duration) || 0),
+            (Number(at) || 0) + (Number(item.timing.start) || 0) - origin,
+          ));
+          item.timing.start = +start.toFixed(3);
+        }
+        return item;
+      });
+      if (!insertions.length) return [];
+      const startIndex = this.stage.items.length;
+      const records = insertions.map((item, offset) => ({ kind: 'insert-item', item, index: startIndex + offset }));
+      const dependencies = mergeDependencies(this.stage.dependencies, fragment.dependencies);
+      if (!same(dependencies, this.stage.dependencies)) {
+        records.push({ kind: 'replace-dependencies', before: clone(this.stage.dependencies), after: dependencies });
+      }
+      this.commitBatch(records, label);
+      return clone(insertions);
+    }
+
     undo() {
       const record = this.history.pop();
       if (!record) return null;
@@ -223,7 +328,7 @@
     get canRedo() { return this.future.length > 0; }
   }
 
-  const api = Object.freeze({ DocumentSession, clone, cleanId, difficultyId });
+  const api = Object.freeze({ DocumentSession, clone, cleanId, difficultyId, createFragment, mergeDependencies });
   root.StageDocument = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -3,7 +3,7 @@
 Status: M1 complete; M2 core editing/difficulty/turtle slice complete; M3 wave
 authoring slice complete; M4 environment/special-system authoring complete;
 M5 terrain review and terrain-object binding complete; M6 opt-in production
-integration and parity bridge complete.
+integration and parity bridge complete; M7 authoring hardening complete.
 The shared scroll-curve, plugin-channel, runtime-state, and snapshot foundation
 is complete. This
 document orders the existing Stage JSON, preset registry, barrage runtime, and
@@ -619,6 +619,20 @@ Acceptance:
 - rollback is one configuration change, not a data migration.
 
 ### M7 — Authoring hardening
+
+Implemented:
+
+- additive multi-select, atomic bulk shift/delete, and one-step undo;
+- portable clipboard fragments with collision-safe IDs and dependency merging;
+- reusable current-range section templates placed at the playhead;
+- 44px touch controls, visible keyboard focus, pressed/selection semantics, and
+  keyboard copy/paste/delete/history shortcuts;
+- immediate synchronous recovery plus delayed IndexedDB/localStorage draft save,
+  newest-copy recovery, quota reporting, and export-independent failure state;
+- explicit unversioned v0 → v1 migration notice and newer-version refusal;
+- tested divergent-history synchronization conflict records that preserve both
+  local and remote versions; no hosted endpoint is required or enabled;
+- a 2,000-item validation/compile/bulk-command regression fixture.
 
 Scope:
 

@@ -68,6 +68,13 @@ current game runtime has not been replaced; the editor remains isolated under
     the opt-in production bridge. The equivalent full-stage URL is
     `index.html?debug&stageRuntime=data&stage=stage3&diff=0`. Removing
     `stageRuntime=data` always restores the legacy runtime.
+16. M7 adds `여러 선택`, one-step bulk movement/deletion, portable clip
+    fragments, and reusable section templates. `Ctrl/Cmd+C`, `Ctrl/Cmd+V`,
+    `Ctrl/Cmd+Z`, `Shift+Ctrl/Cmd+Z`, `Delete`, and touch controls share the
+    same command history. Every dirty edit writes an immediate recovery copy
+    before the delayed draft save; the storage badge reports quota use and JSON
+    export remains enabled if browser storage fills. Legacy unversioned imports
+    show the v0 → v1 migration notice instead of silently changing data.
 
 The simulator uses deterministic fixed steps and 5-second snapshots. The shared
 `js/stage/path.js` module normalizes, validates, and samples custom paths,
@@ -138,3 +145,9 @@ M6 adds the production `data/stages/stage3.v1.json`, generated browser registry,
 opt-in game adapter, three-difficulty legacy/data parity diagnostics, and a
 full/selected-range game test bridge. Production URLs remain on the legacy
 Spawner by default.
+M7 completes authoring hardening with atomic multi-item commands, cross-stage
+clipboard fragments with dependency merging, section templates, synchronous
+crash recovery, quota diagnostics, explicit v0 → v1 migration, accessible
+selection state, and a 2,000-item limit regression. Hosted synchronization is
+optional; its conflict resolver returns both immutable versions and never picks
+a winner when histories diverge.

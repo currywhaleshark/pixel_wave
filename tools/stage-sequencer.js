@@ -42,6 +42,8 @@
   let selectedTerrainSocket = null;
   let terrainForceMode = false;
   let selectedId = null;
+  const selectedIds = new Set();
+  let multiSelectMode = false;
   let playing = false;
   let previewSpeed = 1;
   let range = { id: 'full', name: '전체', start: 0, end: 120 };
@@ -223,10 +225,18 @@
 
   function updateEditorUi() {
     const item = stageDocument?.findItem(selectedId);
+    const selectedItems = stageDocument ? [...selectedIds].map(id => stageDocument.findItem(id)).filter(Boolean) : [];
+    const editableItems = selectedItems.filter(isEditableItem);
     $('#undoEdit').disabled = !stageDocument?.canUndo;
     $('#redoEdit').disabled = !stageDocument?.canRedo;
     $('#duplicateItem').disabled = !item || !isEditableItem(item);
-    $('#deleteItem').disabled = !item || !isEditableItem(item) || item.id === 's3-scroll-base';
+    $('#deleteItem').disabled = !editableItems.some(entry => entry.id !== 's3-scroll-base');
+    $('#copyItems').disabled = editableItems.length === 0;
+    $('#shiftItemsBack').disabled = !editableItems.some(entry => entry.timing?.domain === 'time');
+    $('#shiftItemsForward').disabled = $('#shiftItemsBack').disabled;
+    $('#multiSelect').classList.toggle('active', multiSelectMode);
+    $('#multiSelect').setAttribute('aria-pressed', String(multiSelectMode));
+    $('#selectionStatus').textContent = `선택 ${selectedItems.length}`;
     if (!stageDocument) return;
     const hash = stageDocument.stateHash();
     const state = $('#draftState');
@@ -240,18 +250,40 @@
   function scheduleAutosave() {
     if (!stageDocument) return;
     clearTimeout(autosaveTimer);
+    try {
+      StagePersistence.saveRecovery(stageDocument.stage, { exportedHash, revision: stageDocument.revision });
+    } catch (error) {
+      console.error(error);
+      $('#draftState').title = '복구 저장공간이 부족합니다. JSON 내보내기를 사용하세요.';
+    }
     updateEditorUi();
     autosaveTimer = setTimeout(async () => {
       const expectedHash = stageDocument.stateHash();
       try {
-        await StagePersistence.saveDraft(stageDocument.stage, { exportedHash });
+        await StagePersistence.saveDraft(stageDocument.stage, { exportedHash, revision: stageDocument.revision });
         if (stageDocument.stateHash() === expectedHash) deviceSavedHash = expectedHash;
+        const estimate = await StagePersistence.storageEstimate();
+        $('#draftState').title = estimate.supported
+          ? `저장공간 ${Math.round(estimate.usage / 1024 / 1024)}MB / ${Math.round(estimate.quota / 1024 / 1024)}MB`
+          : '기기 초안과 긴급 복구본 저장 중';
         updateEditorUi();
       } catch (error) {
         console.error(error);
-        toast('기기 자동저장에 실패했습니다');
+        $('#draftState').textContent = '저장 실패 · JSON 가능';
+        $('#draftState').classList.add('unexported');
+        toast('저장공간이 부족합니다. JSON 내보내기는 계속 사용할 수 있습니다');
       }
     }, 500);
+  }
+
+  function showSchemaNotice(migration) {
+    const notice = $('#schemaNotice');
+    if (!migration?.migrated) {
+      notice.hidden = true;
+      return;
+    }
+    $('#schemaNoticeText').textContent = `v${migration.from} → v${migration.to} · ${migration.changes.join(' ')}`;
+    notice.hidden = false;
   }
 
   function updateGameTestLink() {
@@ -279,17 +311,20 @@
     rawStage = stageDocument?.stage || rawStage;
     compiled = StageCompiler.compile(rawStage, { difficulty });
     channelConflicts = StagePlugin.findChannelConflicts(compiled.items);
-    simulation = new StageSimulation.Simulation(compiled, { fixedStep: 1 / 60, snapshotInterval: 5, terrainProfile });
-    const snapshotCount = simulation.buildSnapshotCache();
+    const largeDocument = rawStage.items.length > 500;
+    simulation = new StageSimulation.Simulation(compiled, { fixedStep: 1 / 60, snapshotInterval: largeDocument ? 15 : 5, terrainProfile });
+    const snapshotCount = simulation.buildSnapshotCache(simulation.snapshotInterval, { analyzeBudget: !largeDocument });
     simulation.seek(Math.min(preserveTime, compiled.timeline.duration));
     refreshBudgetReport();
     updateGameTestLink();
-    setStatus(channelConflicts.length
+    setStatus(largeDocument
+      ? `대형 문서 ${rawStage.items.length}개 · 간소화 미리보기`
+      : channelConflicts.length
       ? `채널 충돌 ${channelConflicts.length} · 스냅샷 ${snapshotCount}`
       : `검증 완료 · 스냅샷 ${snapshotCount}`, channelConflicts.length ? 'warning' : '');
     renderChannelConflicts();
     renderTimeline();
-    selectItem(selectedId, false);
+    selectItem(selectedId, false, false, true);
     updateUi();
     updateEditorUi();
   }
@@ -298,7 +333,8 @@
     try {
       const response = await fetch(STAGE_URL, { cache: 'no-cache' });
       if (!response.ok) throw new Error(`Stage JSON HTTP ${response.status}`);
-      sourceStage = await response.json();
+      const sourceMigration = StagePersistence.migrateStage(await response.json());
+      sourceStage = sourceMigration.stage;
       const report = StageCompiler.validate(sourceStage);
       if (report.errors.length) throw new Error(report.errors.join('\n'));
       terrainProfile = null;
@@ -317,9 +353,18 @@
       }
       const stored = await StagePersistence.loadDraft(sourceStage.id);
       let initialStage = sourceStage;
+      let migrationState = sourceMigration;
+      let migrationNotice = sourceMigration.migrated ? sourceMigration.changes.join(' ') : '';
       if (stored?.stage) {
-        const storedReport = StageCompiler.validate(stored.stage);
-        if (!storedReport.errors.length) initialStage = stored.stage;
+        const storedMigration = StagePersistence.migrateStage(stored.stage);
+        const storedReport = StageCompiler.validate(storedMigration.stage);
+        if (!storedReport.errors.length) {
+          initialStage = storedMigration.stage;
+          if (storedMigration.migrated) {
+            migrationState = storedMigration;
+            migrationNotice = storedMigration.changes.join(' ');
+          }
+        }
       }
       stageDocument = new StageDocument.DocumentSession(initialStage);
       rawStage = stageDocument.stage;
@@ -333,6 +378,7 @@
       $('#terrainReviewToggle').hidden = !terrainProfile;
       range = { id: 'full', name: '전체', start: 0, end: rawStage.timeline.duration };
       compileAtDifficulty($('#previewDifficulty').value, 0);
+      showSchemaNotice(migrationState);
       if (barrageReturn) applyBarrageReturn();
       renderSectionButtons();
       $('#exportStage').disabled = false;
@@ -340,7 +386,8 @@
       playing = true;
       updatePlayButton();
       updateEditorUi();
-      if (!barrageReturn && stored?.stage && initialStage === stored.stage) toast('기기에 저장된 초안을 복구했습니다');
+      if (migrationNotice) toast(`스키마를 v1으로 변환했습니다: ${migrationNotice}`);
+      else if (!barrageReturn && stored?.stage) toast(stored.storage === 'recovery' ? '강제 종료 전 복구본을 불러왔습니다' : '기기에 저장된 초안을 복구했습니다');
     } catch (error) {
       console.error(error);
       setStatus('불러오기 실패', 'error');
@@ -418,7 +465,8 @@
       moved: false,
     };
     clip.setPointerCapture(event.pointerId);
-    selectItem(item.id, false);
+    if (!selectedIds.has(item.id) && !multiSelectMode && !event.ctrlKey && !event.metaKey && !event.shiftKey) selectItem(item.id, false);
+    else selectedId = item.id;
     playing = false;
     updatePlayButton();
   }
@@ -453,6 +501,13 @@
     const item = stageDocument.findItem(drag.itemId);
     if (!item || Math.abs(drag.nextStart - drag.originalStart) < 1e-9) {
       renderTimeline();
+      return;
+    }
+    if (drag.scope === 'base' && selectedIds.size > 1 && selectedIds.has(item.id)) {
+      const count = selectedIds.size;
+      const delta = stageDocument.shiftItems([...selectedIds], drag.nextStart - drag.originalStart, '선택 클립 이동');
+      if (Math.abs(delta) > 1e-9) afterDocumentChange(`${count}개 클립을 ${delta > 0 ? '뒤로' : '앞으로'} 옮겼습니다`, item.id, drag.nextStart);
+      else renderTimeline();
       return;
     }
     const next = drag.scope === 'difficulty'
@@ -559,13 +614,15 @@
         const durationWidth = item.timing.duration * PIXELS_PER_SECOND;
         clip.type = 'button';
         const conflicts = channelConflicts.some(conflict => conflict.itemIds.includes(item.id));
-        clip.className = `timeline-clip difficulty-${item._difficultyState} ${item.timing.duration === 0 ? 'instant' : ''} ${item.id === selectedId ? 'selected' : ''} ${conflicts ? 'channel-conflict' : ''}`;
+        clip.className = `timeline-clip difficulty-${item._difficultyState} ${item.timing.duration === 0 ? 'instant' : ''} ${item.id === selectedId ? 'selected' : ''} ${selectedIds.has(item.id) ? 'multi-selected' : ''} ${conflicts ? 'channel-conflict' : ''}`;
         clip.dataset.itemId = item.id;
         clip.style.left = `${item.timing.start * PIXELS_PER_SECOND}px`;
         clip.style.top = `${5 + laneIndex * 28}px`;
         clip.style.width = `${Math.max(item.timing.duration === 0 ? 11 : 16, durationWidth)}px`;
         clip.style.setProperty('--clip-color', track.color);
         clip.title = `${item.name} · ${item.timing.start.toFixed(2)}초 · ${itemSummary(item)} · ${item._difficultyState}${conflicts ? ' · 독점 채널 충돌' : ''}`;
+        clip.setAttribute('aria-label', clip.title);
+        clip.setAttribute('aria-pressed', String(selectedIds.has(item.id)));
         if (item.timing.duration > 0) clip.textContent = item.name;
         clip.addEventListener('pointerdown', event => beginClipDrag(event, item, clip));
         clip.addEventListener('pointermove', moveClipDrag);
@@ -574,7 +631,7 @@
         clip.addEventListener('click', event => {
           event.stopPropagation();
           if (clip.dataset.dragged) return;
-          selectItem(item.id, true);
+          selectItem(item.id, true, multiSelectMode || event.ctrlKey || event.metaKey || event.shiftKey);
           simulation.seek(item.timing.start);
           playing = false;
           updatePlayButton();
@@ -743,6 +800,8 @@
   function afterDocumentChange(label, focusId = selectedId, seekAt = simulation?.time || 0) {
     rawStage = stageDocument.stage;
     selectedId = stageDocument.findItem(focusId) ? focusId : null;
+    for (const id of [...selectedIds]) if (!stageDocument.findItem(id)) selectedIds.delete(id);
+    if (selectedId) selectedIds.add(selectedId);
     $('#stageName').textContent = rawStage.name;
     $('#timeScrub').max = rawStage.timeline.duration;
     compileAtDifficulty($('#previewDifficulty').value, seekAt);
@@ -1341,13 +1400,29 @@
     }
   }
 
-  function selectItem(id, openInspector = true) {
+  function selectItem(id, openInspector = true, additive = false, preserveGroup = false) {
     if (selectedId !== id) {
       selectedPathPoint = 0;
       selectedCurvePoint = 0;
     }
-    selectedId = stageDocument?.findItem(id) ? id : null;
-    document.querySelectorAll('.timeline-clip').forEach(clip => clip.classList.toggle('selected', clip.dataset.itemId === selectedId));
+    const validId = stageDocument?.findItem(id) ? id : null;
+    if (!preserveGroup) {
+      if (additive && validId) {
+        if (selectedIds.has(validId)) selectedIds.delete(validId);
+        else selectedIds.add(validId);
+      } else {
+        selectedIds.clear();
+        if (validId) selectedIds.add(validId);
+      }
+    }
+    selectedId = validId && selectedIds.has(validId) ? validId : ([...selectedIds].at(-1) || null);
+    document.querySelectorAll('.timeline-clip').forEach(clip => {
+      const active = clip.dataset.itemId === selectedId;
+      const included = selectedIds.has(clip.dataset.itemId);
+      clip.classList.toggle('selected', active);
+      clip.classList.toggle('multi-selected', included);
+      clip.setAttribute('aria-pressed', String(included));
+    });
     const authored = stageDocument?.findItem(selectedId);
     if (!authored) {
       $('#selectedName').textContent = '클립을 선택하세요';
@@ -2438,13 +2513,104 @@
     }
   }
 
+  function editableSelection() {
+    return [...selectedIds]
+      .map(id => stageDocument?.findItem(id))
+      .filter(item => item && isEditableItem(item));
+  }
+
+  function toggleMultiSelect() {
+    multiSelectMode = !multiSelectMode;
+    if (!multiSelectMode && selectedId) {
+      selectedIds.clear();
+      selectedIds.add(selectedId);
+      renderTimeline();
+    }
+    updateEditorUi();
+    toast(multiSelectMode ? '여러 선택: 클립을 차례로 누르세요' : '단일 선택으로 돌아왔습니다');
+  }
+
+  function copySelected() {
+    const items = editableSelection();
+    if (!items.length) return;
+    try {
+      const fragment = StageDocument.createFragment(stageDocument.stage, items.map(item => item.id));
+      StagePersistence.saveClipboard(fragment);
+      toast(`${items.length}개 클립을 복사했습니다 · 다른 스테이지에서도 붙여넣기 가능`);
+    } catch (error) {
+      console.error(error);
+      toast(`복사할 수 없습니다: ${error.message}`);
+    }
+  }
+
+  function pasteFragment(fragment, label = '클립 조각 붙여넣기') {
+    if (!fragment) {
+      toast('복사된 클립 조각이 없습니다');
+      return;
+    }
+    try {
+      const inserted = stageDocument.pasteFragment(fragment, simulation?.time || 0, label);
+      validateStageCandidate(stageDocument.stage);
+      selectedIds.clear();
+      inserted.forEach(item => selectedIds.add(item.id));
+      selectedId = inserted.at(-1)?.id || null;
+      afterDocumentChange(`${inserted.length}개 클립을 붙였습니다`, selectedId, inserted[0]?.timing?.start || simulation?.time || 0);
+    } catch (error) {
+      if (stageDocument?.history.at(-1)?.label === label) stageDocument.undo();
+      console.error(error);
+      toast(`붙여넣을 수 없습니다: ${error.message}`);
+    }
+  }
+
+  function shiftSelection(delta) {
+    const ids = editableSelection().filter(item => item.timing?.domain === 'time').map(item => item.id);
+    if (!ids.length) return;
+    const applied = stageDocument.shiftItems(ids, delta, '선택 클립 이동');
+    if (Math.abs(applied) < 1e-9) {
+      toast('타임라인 경계라 더 옮길 수 없습니다');
+      return;
+    }
+    afterDocumentChange(`${ids.length}개 클립 ${applied > 0 ? '+' : ''}${applied.toFixed(1)}초`, selectedId, simulation?.time || 0);
+  }
+
+  function saveSectionTemplate() {
+    const ids = stageDocument.stage.items
+      .filter(item => isEditableItem(item) && item.id !== 's3-scroll-base' && item.timing?.domain === 'time'
+        && item.timing.start >= range.start && item.timing.start < range.end)
+      .map(item => item.id);
+    if (!ids.length) {
+      toast('현재 구간에 저장할 편집 가능 클립이 없습니다');
+      return;
+    }
+    try {
+      const fragment = StageDocument.createFragment(stageDocument.stage, ids);
+      StagePersistence.saveTemplate({
+        format: 'pixel-wave-stage-section-template', schemaVersion: 1,
+        name: range.name, duration: range.end - range.start, fragment,
+      });
+      toast(`'${range.name}' 구간 템플릿 ${ids.length}개를 저장했습니다`);
+    } catch (error) {
+      console.error(error);
+      toast(`구간을 저장할 수 없습니다: ${error.message}`);
+    }
+  }
+
+  function applySectionTemplate() {
+    const template = StagePersistence.loadTemplate();
+    if (!template?.fragment) {
+      toast('저장된 구간 템플릿이 없습니다');
+      return;
+    }
+    pasteFragment(template.fragment, `구간 템플릿: ${template.name || '이름 없음'}`);
+  }
+
   function deleteSelected() {
-    const item = stageDocument?.findItem(selectedId);
-    if (!item || !isEditableItem(item) || item.id === 's3-scroll-base') return;
-    const removedName = item.name;
-    stageDocument.removeItem(item.id);
+    const items = editableSelection().filter(item => item.id !== 's3-scroll-base');
+    if (!items.length) return;
+    stageDocument.removeItems(items.map(item => item.id), items.length > 1 ? '여러 클립 삭제' : '클립 삭제');
+    selectedIds.clear();
     selectedId = null;
-    afterDocumentChange(`'${removedName}' 삭제 · undo 가능`, null, simulation?.time || 0);
+    afterDocumentChange(`${items.length}개 클립 삭제 · undo 가능`, null, simulation?.time || 0);
   }
 
   function undoEdit() {
@@ -2460,7 +2626,8 @@
   async function importStageFile(file) {
     if (!file) return;
     try {
-      const imported = JSON.parse(await file.text());
+      const migration = StagePersistence.migrateStage(JSON.parse(await file.text()));
+      const imported = migration.stage;
       if (sourceStage && imported.id !== sourceStage.id) throw new Error(`M2는 아직 '${sourceStage.id}' 문서만 편집합니다.`);
       validateStageCandidate(imported);
       stageDocument = new StageDocument.DocumentSession(imported);
@@ -2470,13 +2637,15 @@
       exportedHash = sourceHash;
       deviceSavedHash = sourceHash;
       selectedId = null;
+      selectedIds.clear();
       range = { id: 'full', name: '전체', start: 0, end: rawStage.timeline.duration };
       $('#stageName').textContent = rawStage.name;
       $('#timeScrub').max = rawStage.timeline.duration;
       compileAtDifficulty($('#previewDifficulty').value, 0);
+      showSchemaNotice(migration);
       renderSectionButtons();
       await StagePersistence.saveDraft(rawStage, { exportedHash });
-      toast(`${file.name}을 가져왔습니다`);
+      toast(migration.migrated ? `${file.name}을 v1으로 변환해 가져왔습니다` : `${file.name}을 가져왔습니다`);
     } catch (error) {
       console.error(error);
       toast(`JSON을 가져올 수 없습니다: ${error.message}`);
@@ -2575,6 +2744,13 @@
   document.querySelectorAll('[data-dialog-close]').forEach(button => button.addEventListener('click', () => $('#addWaveDialog').close()));
   $('#duplicateItem').addEventListener('click', duplicateSelected);
   $('#deleteItem').addEventListener('click', deleteSelected);
+  $('#multiSelect').addEventListener('click', toggleMultiSelect);
+  $('#copyItems').addEventListener('click', copySelected);
+  $('#pasteItems').addEventListener('click', () => pasteFragment(StagePersistence.loadClipboard()));
+  $('#shiftItemsBack').addEventListener('click', () => shiftSelection(-1));
+  $('#shiftItemsForward').addEventListener('click', () => shiftSelection(1));
+  $('#saveSectionTemplate').addEventListener('click', saveSectionTemplate);
+  $('#applySectionTemplate').addEventListener('click', applySectionTemplate);
   $('#undoEdit').addEventListener('click', undoEdit);
   $('#redoEdit').addEventListener('click', redoEdit);
   $('#importStage').addEventListener('click', () => $('#importStageFile').click());
@@ -2583,11 +2759,35 @@
   $('#exportStage').addEventListener('click', exportStage);
   document.addEventListener('keydown', event => {
     const typing = event.target instanceof Element && event.target.closest('input, select, textarea');
-    if (!(event.ctrlKey || event.metaKey) || typing) return;
-    if (event.key.toLowerCase() !== 'z') return;
-    event.preventDefault();
-    if (event.shiftKey) redoEdit();
-    else undoEdit();
+    if (typing) return;
+    const command = event.ctrlKey || event.metaKey;
+    const key = event.key.toLowerCase();
+    if (command && key === 'z') {
+      event.preventDefault();
+      if (event.shiftKey) redoEdit();
+      else undoEdit();
+    } else if (command && key === 'c') {
+      event.preventDefault();
+      copySelected();
+    } else if (command && key === 'v') {
+      event.preventDefault();
+      pasteFragment(StagePersistence.loadClipboard());
+    } else if (command && key === 'a' && multiSelectMode) {
+      event.preventDefault();
+      selectedIds.clear();
+      stageDocument.stage.items.filter(isEditableItem).forEach(item => selectedIds.add(item.id));
+      selectedId = [...selectedIds].at(-1) || null;
+      renderTimeline();
+      selectItem(selectedId, false, false, true);
+    } else if (event.key === 'Delete' || event.key === 'Backspace') {
+      event.preventDefault();
+      deleteSelected();
+    }
+  });
+
+  addEventListener('beforeunload', () => {
+    if (!stageDocument) return;
+    try { StagePersistence.saveRecovery(stageDocument.stage, { exportedHash, revision: stageDocument.revision }); } catch (_error) { /* JSON 내보내기는 계속 가능 */ }
   });
 
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('tools/stage-sequencer-sw.js').catch(() => {});

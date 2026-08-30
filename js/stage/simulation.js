@@ -548,7 +548,7 @@
       return this;
     }
 
-    buildSnapshotCache(interval = this.snapshotInterval) {
+    buildSnapshotCache(interval = this.snapshotInterval, options = {}) {
       this.snapshotCache.clear();
       this.reset();
       this.snapshotCache.set(0, this.createSnapshot());
@@ -557,7 +557,9 @@
         this.snapshotCache.set(round(at, 6), this.createSnapshot());
       }
       this.reset();
-      this.budgetAnalysis = this.analyzeBudget(0, this.compiled.timeline.duration);
+      this.budgetAnalysis = options.analyzeBudget === false
+        ? null
+        : this.analyzeBudget(0, this.compiled.timeline.duration);
       return this.snapshotCache.size;
     }
 

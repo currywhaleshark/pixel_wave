@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const { DocumentSession } = require('../js/stage/document.js');
+const { DocumentSession, createFragment } = require('../js/stage/document.js');
 const StageCompiler = require('../js/stage/compiler.js');
 const { Simulation } = require('../js/stage/simulation.js');
 
@@ -26,6 +26,31 @@ const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/sta
   assert.equal(document.stateHash(), originalHash);
   assert.equal(document.redo(), '웨이브 수정');
   assert.equal(document.findItem(original.id).name, '수정한 웨이브');
+}
+
+{
+  const document = new DocumentSession(source);
+  const ids = ['s3-w001', 's3-w002'];
+  const before = ids.map(id => document.findItem(id).timing.start);
+  assert.equal(document.shiftItems(ids, 2), 2);
+  assert.deepEqual(ids.map(id => document.findItem(id).timing.start), before.map(value => value + 2));
+  assert.equal(document.undo(), '여러 클립 이동');
+  assert.deepEqual(ids.map(id => document.findItem(id).timing.start), before);
+
+  const fragment = createFragment(document.stage, ids);
+  fragment.dependencies.enemyKinds.push('jelly');
+  const copies = document.pasteFragment(fragment, 20);
+  assert.equal(copies.length, 2);
+  assert.deepEqual(copies.map(item => item.timing.start), [20, 22]);
+  assert.ok(document.stage.dependencies.enemyKinds.includes('jelly'));
+  assert.equal(document.undo(), '클립 조각 붙여넣기');
+  assert.ok(!document.stage.dependencies.enemyKinds.includes('jelly'));
+  assert.ok(copies.every(item => !document.findItem(item.id)));
+
+  assert.equal(document.removeItems(ids), 2);
+  assert.ok(ids.every(id => !document.findItem(id)));
+  document.undo();
+  assert.ok(ids.every(id => document.findItem(id)));
 }
 
 {
@@ -167,6 +192,24 @@ async function testPersistenceFallback() {
   const loaded = await Persistence.loadDraft(source.id);
   assert.equal(loaded.stage.items.length, 41);
   assert.equal(loaded.exportedHash, 'abc123');
+  const recoveryStage = JSON.parse(JSON.stringify(source));
+  recoveryStage.name = '강제 종료 복구본';
+  Persistence.saveRecovery(recoveryStage, { revision: 7 });
+  assert.equal(Persistence.loadRecovery(source.id).stage.name, '강제 종료 복구본');
+  const legacy = JSON.parse(JSON.stringify(source));
+  delete legacy.schemaVersion;
+  legacy.items[0].timing.domain = undefined;
+  const migration = Persistence.migrateStage(legacy);
+  assert.equal(migration.migrated, true);
+  assert.equal(migration.stage.schemaVersion, 1);
+  assert.equal(migration.stage.items[0].timing.domain, 'time');
+  const conflict = Persistence.resolveSyncConflict(
+    { id: 'stage3', revision: 4, baseRevision: 2, stage: source },
+    { id: 'stage3', revision: 5, baseRevision: 3, stage: recoveryStage },
+  );
+  assert.equal(conflict.winner, null);
+  assert.equal(conflict.conflict.local.revision, 4);
+  assert.equal(conflict.conflict.remote.revision, 5);
   await Persistence.deleteDraft(source.id);
   assert.equal(await Persistence.loadDraft(source.id), null);
   delete global.localStorage;

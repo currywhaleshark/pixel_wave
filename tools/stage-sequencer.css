@@ -176,6 +176,7 @@ input[type='range'] { width: 100%; min-height: 40px; margin: 0; accent-color: va
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 .toolbar-group { display: flex; align-items: center; gap: 5px; }
 .toolbar-group button, .dialog-actions button, .dialog-close, .inspector-actions button, .nudge-tools button,
@@ -192,6 +193,9 @@ input[type='range'] { width: 100%; min-height: 40px; margin: 0; accent-color: va
 .toolbar-group button.danger, .inspector-actions button.danger { color: #ffdce2; border-color: #7b4054; background: #402139; }
 .history-tools button { width: 44px; padding: 0; color: var(--gold); font-size: 18px; }
 .file-tools { margin-left: auto; }
+.selection-tools button { color: #d9ccff; border-color: #5e4c85; background: #211c42; }
+.selection-tools button.active { color: #07172d; border-color: #f0dcff; background: #caa8ff; }
+.selection-status { flex: 0 0 auto; color: #bba7db; font-size: 8px; }
 .draft-state {
   flex: 0 0 auto;
   padding: 5px 8px;
@@ -201,6 +205,9 @@ input[type='range'] { width: 100%; min-height: 40px; margin: 0; accent-color: va
   font-size: 8px;
 }
 .draft-state.unexported { color: var(--gold); border-color: #6d5c32; }
+.schema-notice { padding: 9px 11px; border-color: #6d5c32; color: #f0dea1; background: #2a2519; }
+.schema-notice strong { margin-right: 8px; }
+.schema-notice span { color: #cfc39b; font-size: 8px; }
 
 .range-panel { padding: 9px; }
 .range-heading, .timeline-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -269,6 +276,11 @@ input[type='range'] { width: 100%; min-height: 40px; margin: 0; accent-color: va
   touch-action: pan-y;
 }
 .timeline-clip.selected { outline: 2px solid #fff; z-index: 2; }
+.timeline-clip.multi-selected { outline: 2px solid #caa8ff; outline-offset: 1px; z-index: 2; }
+.timeline-clip:focus-visible, button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
 .timeline-clip.difficulty-inherited { filter: saturate(0.35); opacity: 0.8; }
 .timeline-clip.difficulty-patched { border: 2px solid var(--gold); box-shadow: inset 2px 0 var(--clip-color), 0 0 6px #ffd66e66; }
 .timeline-clip.difficulty-replaced { color: #172137; border-color: #fff0b4; background: var(--gold); box-shadow: inset 3px 0 #fff0b4; }
@@ -521,10 +533,14 @@ input[type='range'] { width: 100%; min-height: 40px; margin: 0; accent-color: va
   .primary-tools button { flex: 1; min-width: 0; min-height: 44px; padding-inline: 5px; font-size: 8px; }
   .history-tools { justify-self: end; }
   .history-tools button { min-height: 44px; }
-  .file-tools { margin: 0; }
+  .selection-tools { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .selection-tools button { min-width: 0; min-height: 44px; padding-inline: 3px; font-size: 7px; }
+  .file-tools { grid-column: 1 / -1; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .file-tools button { min-height: 44px; font-size: 8px; }
+  .selection-status { justify-self: start; }
   .draft-state { justify-self: end; font-size: 7px; }
   .range-panel, .timeline { padding: 7px; }
+  .schema-notice { font-size: 9px; }
   .range-heading span { font-size: 7px; }
   .section-button { min-height: 44px; padding-inline: 8px; font-size: 8px; }
   .range-tools button { min-height: 44px; font-size: 8px; }
