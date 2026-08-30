@@ -6,7 +6,9 @@ until preview parity is proven.
 
 ## Run M3
 
-1. Run `python server.py` at the repository root.
+1. On Windows, double-click `run-stage-sequencer.bat` at the repository root.
+   It starts the server and opens the editor. Alternatively run
+   `python server.py` manually.
 2. Open `http://localhost:8321/tools/stage-sequencer.html` on desktop or mobile.
 3. Use the section chips or `IN`/`OUT` marks for a looping range, switch
    difficulty, and select a timeline clip to edit it.
