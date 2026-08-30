@@ -23,6 +23,14 @@
       .replace(/^-+|-+$/g, '') || 'item';
   }
 
+  function difficultyId(value) {
+    const id = String(value || '');
+    if (!['easy', 'normal', 'hard'].includes(id)) {
+      throw new Error(`알 수 없는 난이도 '${id}'입니다.`);
+    }
+    return id;
+  }
+
   class DocumentSession {
     constructor(stage, options = {}) {
       this.historyLimit = Math.max(1, Number(options.historyLimit) || 100);
@@ -105,6 +113,27 @@
       return this._commit({ kind: 'replace-item', label, before: clone(before), after });
     }
 
+    setDifficultyOverride(id, difficulty, override, label = '난이도 덮어쓰기') {
+      const item = this.findItem(id);
+      if (!item) throw new Error(`클립 '${id}'을 찾을 수 없습니다.`);
+      const target = difficultyId(difficulty);
+      const next = clone(item);
+      next.difficulty = clone(next.difficulty || {});
+      next.difficulty[target] = clone(override || {});
+      return this.replaceItem(id, next, label);
+    }
+
+    clearDifficultyOverride(id, difficulty, label = '난이도 상속 복원') {
+      const item = this.findItem(id);
+      if (!item) throw new Error(`클립 '${id}'을 찾을 수 없습니다.`);
+      const target = difficultyId(difficulty);
+      if (!item.difficulty?.[target]) return false;
+      const next = clone(item);
+      delete next.difficulty[target];
+      if (!Object.keys(next.difficulty).length) delete next.difficulty;
+      return this.replaceItem(id, next, label);
+    }
+
     insertItem(item, index = this.stage.items.length, label = '클립 추가') {
       const next = clone(item);
       next.id = this.uniqueId(next.id);
@@ -152,7 +181,7 @@
     get canRedo() { return this.future.length > 0; }
   }
 
-  const api = Object.freeze({ DocumentSession, clone, cleanId });
+  const api = Object.freeze({ DocumentSession, clone, cleanId, difficultyId });
   root.StageDocument = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);

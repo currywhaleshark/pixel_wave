@@ -11,7 +11,7 @@
     { id: 'boss', label: '보스', types: ['boss'], color: '#8fa3e8' },
   ];
   const SECTION_COLORS = ['#55d9e8', '#ffd66e', '#ff87bd', '#8fa3e8', '#7dffd8'];
-  const EDITABLE_TYPES = new Set(['wave', 'environment', 'cue']);
+  const DIFFICULTY_IDS = ['easy', 'normal', 'hard'];
   const $ = selector => document.querySelector(selector);
   const canvas = $('#preview');
   const ctx = canvas.getContext('2d');
@@ -33,6 +33,48 @@
   let autosaveTimer = 0;
   let toastTimer = 0;
   let clipDrag = null;
+  let editScope = 'base';
+
+  function isEditableItem(item) {
+    return ['wave', 'environment', 'cue'].includes(item?.type)
+      || (item?.type === 'gimmick' && item.payload?.pluginId === 'turtle-ride');
+  }
+
+  function activeDifficulty() {
+    return StageRegistry.difficulty($('#previewDifficulty').value);
+  }
+
+  function difficultyState(item, difficultyId = activeDifficulty().id) {
+    const override = item?.difficulty?.[difficultyId];
+    if (override?.enabled === false || (!override && item?.enabled === false)) return 'disabled';
+    if (item?.enabled === false && override?.enabled === true) return 'only';
+    if (override?.mode === 'replace') return 'replaced';
+    if (override?.mode === 'patch') return 'patched';
+    return 'inherited';
+  }
+
+  function resolvedAuthoredItem(item, difficulty = activeDifficulty()) {
+    return item ? StageCompiler.resolveDifficulty(item, difficulty) : null;
+  }
+
+  function objectDiff(base, value) {
+    if (JSON.stringify(base) === JSON.stringify(value)) return undefined;
+    if (Array.isArray(base) || Array.isArray(value)) return StageDocument.clone(value);
+    if (value && typeof value === 'object') {
+      const output = {};
+      for (const key of Object.keys(value)) {
+        if (['id', 'type', 'enabled', 'difficulty'].includes(key)) continue;
+        const difference = objectDiff(base?.[key], value[key]);
+        if (difference !== undefined) output[key] = difference;
+      }
+      return Object.keys(output).length ? output : undefined;
+    }
+    return StageDocument.clone(value);
+  }
+
+  function difficultyPatch(base, resolved) {
+    return objectDiff(base, resolved) || {};
+  }
 
   function escapeHtml(value) {
     return String(value ?? '')
@@ -84,8 +126,8 @@
     const item = stageDocument?.findItem(selectedId);
     $('#undoEdit').disabled = !stageDocument?.canUndo;
     $('#redoEdit').disabled = !stageDocument?.canRedo;
-    $('#duplicateItem').disabled = !item || !EDITABLE_TYPES.has(item.type);
-    $('#deleteItem').disabled = !item || !EDITABLE_TYPES.has(item.type) || item.id === 's3-scroll-base';
+    $('#duplicateItem').disabled = !item || !isEditableItem(item);
+    $('#deleteItem').disabled = !item || !isEditableItem(item) || item.id === 's3-scroll-base';
     if (!stageDocument) return;
     const hash = stageDocument.stateHash();
     const state = $('#draftState');
@@ -215,15 +257,17 @@
 
   function beginClipDrag(event, item, clip) {
     const authored = stageDocument?.findItem(item.id);
-    if (!authored || !EDITABLE_TYPES.has(authored.type) || event.button !== 0) return;
+    const resolved = resolvedAuthoredItem(authored);
+    if (!authored || !resolved || resolved.enabled === false || !isEditableItem(authored) || event.button !== 0) return;
     clipDrag = {
       pointerId: event.pointerId,
       clip,
       itemId: item.id,
       startX: event.clientX,
-      originalStart: authored.timing.start,
-      nextStart: authored.timing.start,
-      duration: authored.timing.duration,
+      originalStart: editScope === 'difficulty' ? resolved.timing.start : authored.timing.start,
+      nextStart: editScope === 'difficulty' ? resolved.timing.start : authored.timing.start,
+      duration: editScope === 'difficulty' ? resolved.timing.duration : authored.timing.duration,
+      scope: editScope,
       moved: false,
     };
     clip.setPointerCapture(event.pointerId);
@@ -264,9 +308,22 @@
       renderTimeline();
       return;
     }
-    const next = StageDocument.clone(item);
+    const next = drag.scope === 'difficulty'
+      ? StageDocument.clone(resolvedAuthoredItem(item) || item)
+      : StageDocument.clone(item);
     next.timing.start = drag.nextStart;
-    replaceAuthoredItem(item.id, next, '클립 시간 이동');
+    if (drag.scope === 'difficulty') replaceDifficultyItem(item.id, next, '난이도 클립 시간 이동');
+    else replaceAuthoredItem(item.id, next, '클립 시간 이동');
+  }
+
+  function timelineItem(authored) {
+    const state = difficultyState(authored);
+    const resolved = resolvedAuthoredItem(authored);
+    const compiledItem = compiled.items.find(item => item.id === authored.id);
+    const item = StageDocument.clone(compiledItem || resolved || authored);
+    item._difficultyState = state;
+    item._difficultyDisabled = !resolved || resolved.enabled === false;
+    return item;
   }
 
   function renderTimeline() {
@@ -300,14 +357,16 @@
     const tracks = $('#timelineTracks');
     tracks.innerHTML = '';
     for (const track of TRACKS) {
-      const trackItems = compiled.items.filter(item => track.types.includes(item.type));
+      const trackItems = StageCompiler.stableSort(rawStage.items.filter(item => track.types.includes(item.type)))
+        .map(timelineItem);
       const layout = layoutItems(trackItems);
       const laneCount = Math.max(1, ...layout.map(entry => entry.lane + 1));
       const row = document.createElement('div');
       row.className = 'timeline-track';
       const label = document.createElement('div');
       label.className = 'track-label';
-      label.textContent = `${track.label} ${trackItems.length}`;
+      const enabledCount = trackItems.filter(item => !item._difficultyDisabled).length;
+      label.textContent = `${track.label} ${enabledCount}/${trackItems.length}`;
       const lane = document.createElement('div');
       lane.className = 'track-lane';
       lane.style.height = `${Math.max(35, laneCount * 28 + 7)}px`;
@@ -323,13 +382,13 @@
         const clip = document.createElement('button');
         const durationWidth = item.timing.duration * PIXELS_PER_SECOND;
         clip.type = 'button';
-        clip.className = `timeline-clip ${item.timing.duration === 0 ? 'instant' : ''} ${item.id === selectedId ? 'selected' : ''}`;
+        clip.className = `timeline-clip difficulty-${item._difficultyState} ${item.timing.duration === 0 ? 'instant' : ''} ${item.id === selectedId ? 'selected' : ''}`;
         clip.dataset.itemId = item.id;
         clip.style.left = `${item.timing.start * PIXELS_PER_SECOND}px`;
         clip.style.top = `${5 + laneIndex * 28}px`;
         clip.style.width = `${Math.max(item.timing.duration === 0 ? 11 : 16, durationWidth)}px`;
         clip.style.setProperty('--clip-color', track.color);
-        clip.title = `${item.name} · ${item.timing.start.toFixed(2)}초 · ${itemSummary(item)}`;
+        clip.title = `${item.name} · ${item.timing.start.toFixed(2)}초 · ${itemSummary(item)} · ${item._difficultyState}`;
         if (item.timing.duration > 0) clip.textContent = item.name;
         clip.addEventListener('pointerdown', event => beginClipDrag(event, item, clip));
         clip.addEventListener('pointermove', moveClipDrag);
@@ -355,14 +414,18 @@
     return (values || []).map(value => `<option value="${escapeHtml(value)}" ${value === selected ? 'selected' : ''}>${escapeHtml(value)}</option>`).join('');
   }
 
+  function validateStageCandidate(candidate) {
+    const report = StageCompiler.validate(candidate);
+    if (report.errors.length) throw new Error(report.errors[0]);
+    for (const difficulty of DIFFICULTY_IDS) StageCompiler.compile(candidate, { difficulty });
+  }
+
   function validateReplacement(id, nextItem) {
     const candidate = stageDocument.snapshot();
     const index = candidate.items.findIndex(item => item.id === id);
     if (index < 0) throw new Error(`클립 '${id}'을 찾을 수 없습니다.`);
     candidate.items[index] = nextItem;
-    const report = StageCompiler.validate(candidate);
-    if (report.errors.length) throw new Error(report.errors[0]);
-    StageCompiler.compile(candidate, { difficulty: $('#previewDifficulty').value });
+    validateStageCandidate(candidate);
   }
 
   function afterDocumentChange(label, focusId = selectedId, seekAt = simulation?.time || 0) {
@@ -390,11 +453,34 @@
     return false;
   }
 
+  function replaceDifficultyItem(id, nextResolvedItem, label) {
+    try {
+      const authored = stageDocument.findItem(id);
+      if (!authored) throw new Error(`클립 '${id}'을 찾을 수 없습니다.`);
+      const difficulty = activeDifficulty().id;
+      const override = { enabled: true, mode: 'patch', patch: difficultyPatch(authored, nextResolvedItem) };
+      const candidate = stageDocument.snapshot();
+      const index = candidate.items.findIndex(item => item.id === id);
+      candidate.items[index].difficulty = StageDocument.clone(candidate.items[index].difficulty || {});
+      candidate.items[index].difficulty[difficulty] = override;
+      validateStageCandidate(candidate);
+      if (stageDocument.setDifficultyOverride(id, difficulty, override, label)) {
+        afterDocumentChange(label, id, nextResolvedItem.timing.start);
+        return true;
+      }
+    } catch (error) {
+      console.error(error);
+      toast(`수정할 수 없습니다: ${error.message}`);
+    }
+    return false;
+  }
+
   function commitInspectorForm(form) {
-    const item = stageDocument.findItem(form.dataset.itemId);
-    if (!item) return;
+    const authored = stageDocument.findItem(form.dataset.itemId);
+    if (!authored) return;
     const values = new FormData(form);
-    const next = StageDocument.clone(item);
+    const difficultyItem = resolvedAuthoredItem(authored);
+    const next = StageDocument.clone(editScope === 'difficulty' ? (difficultyItem || authored) : authored);
     next.name = String(values.get('name') || next.name).trim() || next.name;
     next.timing.start = Math.max(0, Number(values.get('start')) || 0);
     next.timing.duration = Math.max(0, Number(values.get('duration')) || 0);
@@ -420,20 +506,36 @@
     } else if (next.type === 'cue' && next.payload?.params) {
       next.payload.params.message = String(values.get('message') || '');
       next.payload.params.color = String(values.get('color') || '#ff8f8f');
+    } else if (next.type === 'gimmick' && next.payload?.pluginId === 'turtle-ride') {
+      const params = next.payload.params;
+      params.scrollMultiplier = Math.max(0, Math.min(8, Number(values.get('scrollMultiplier')) || 0));
+      params.playerInvulnerable = values.has('playerInvulnerable');
+      params.pearlTrail.interval = Math.max(0.03, Number(values.get('trailInterval')) || 0.03);
+      params.pearlTrail.speed = Math.max(0, Number(values.get('trailSpeed')) || 0);
+      params.pearlTrail.amplitudeY = Math.max(0, Math.min(1, Number(values.get('trailAmplitude')) || 0));
+      params.pearlTrail.frequency = Math.max(0, Number(values.get('trailFrequency')) || 0);
+      params.pearlRing.firstDelay = Math.max(0, Number(values.get('ringFirstDelay')) || 0);
+      params.pearlRing.interval = Math.max(0.1, Number(values.get('ringInterval')) || 0.1);
+      params.pearlRing.count = Math.max(1, Math.round(Number(values.get('ringCount')) || 1));
+      params.pearlRing.radius = Math.max(0, Number(values.get('ringRadius')) || 0);
+      params.pearlRing.speed = Math.max(0, Number(values.get('ringSpeed')) || 0);
     }
     next.timing.start = Math.max(0, Math.min(next.timing.start, rawStage.timeline.duration - next.timing.duration));
-    replaceAuthoredItem(item.id, next, '클립 수정');
+    if (editScope === 'difficulty') replaceDifficultyItem(authored.id, next, `${activeDifficulty().name} 덮어쓰기`);
+    else replaceAuthoredItem(authored.id, next, '기본 클립 수정');
   }
 
   function nudgeSelected(delta) {
     const item = stageDocument?.findItem(selectedId);
-    if (!item || !EDITABLE_TYPES.has(item.type)) return;
-    const next = StageDocument.clone(item);
+    if (!item || !isEditableItem(item)) return;
+    const next = StageDocument.clone(editScope === 'difficulty' ? (resolvedAuthoredItem(item) || item) : item);
     next.timing.start = Math.max(0, Math.min(
       rawStage.timeline.duration - next.timing.duration,
       next.timing.start + delta,
     ));
-    replaceAuthoredItem(item.id, next, `${delta > 0 ? '+' : ''}${delta}초 이동`);
+    const label = `${delta > 0 ? '+' : ''}${delta}초 이동`;
+    if (editScope === 'difficulty') replaceDifficultyItem(item.id, next, `${activeDifficulty().name} ${label}`);
+    else replaceAuthoredItem(item.id, next, label);
   }
 
   function bindInspectorForm() {
@@ -443,73 +545,138 @@
       commitInspectorForm(form);
     });
     document.querySelectorAll('[data-nudge]').forEach(button => button.addEventListener('click', () => nudgeSelected(Number(button.dataset.nudge))));
+    document.querySelectorAll('[data-edit-scope]').forEach(button => button.addEventListener('click', () => {
+      editScope = button.dataset.editScope;
+      selectItem(selectedId, false);
+    }));
+    document.querySelectorAll('[data-difficulty-action]').forEach(button => button.addEventListener('click', () => {
+      const item = stageDocument?.findItem(selectedId);
+      if (!item) return;
+      const difficulty = activeDifficulty();
+      if (button.dataset.difficultyAction === 'inherit') {
+        if (stageDocument.clearDifficultyOverride(item.id, difficulty.id)) {
+          editScope = 'base';
+          afterDocumentChange(`${difficulty.name}을 기본값 상속으로 되돌렸습니다`, item.id, simulation?.time || 0);
+        }
+      } else if (button.dataset.difficultyAction === 'disable') {
+        stageDocument.setDifficultyOverride(item.id, difficulty.id, { enabled: false }, `${difficulty.name}에서 끄기`);
+        afterDocumentChange(`${difficulty.name}에서 클립을 껐습니다`, item.id, simulation?.time || 0);
+      }
+    }));
   }
 
   function selectItem(id, openInspector = true) {
-    selectedId = compiled?.items.some(item => item.id === id) ? id : null;
+    selectedId = stageDocument?.findItem(id) ? id : null;
     document.querySelectorAll('.timeline-clip').forEach(clip => clip.classList.toggle('selected', clip.dataset.itemId === selectedId));
-    const item = compiled?.items.find(entry => entry.id === selectedId);
-    if (!item) {
+    const authored = stageDocument?.findItem(selectedId);
+    if (!authored) {
       $('#selectedName').textContent = '클립을 선택하세요';
       $('#selectedTiming').textContent = '클립을 선택하세요';
       $('#inspectorBody').innerHTML = '<div class="empty-inspector">타임라인 클립을 선택하면 시간을 옮기고 속성을 편집할 수 있습니다.</div>';
       updateEditorUi();
       return;
     }
-    const authored = stageDocument.findItem(item.id);
-    const editable = !!authored && EDITABLE_TYPES.has(authored.type);
+    const difficulty = activeDifficulty();
+    const resolved = resolvedAuthoredItem(authored, difficulty);
+    const compiledItem = compiled?.items.find(entry => entry.id === selectedId);
+    const item = compiledItem || resolved || authored;
+    const formItem = editScope === 'difficulty' ? (resolved || authored) : authored;
+    const state = difficultyState(authored, difficulty.id);
+    const stateLabels = { inherited: '상속', patched: '수정', replaced: '교체', disabled: '꺼짐', only: '전용' };
+    const editable = isEditableItem(authored);
     $('#selectedName').textContent = item.name;
     $('#selectedTiming').textContent = `${item.timing.start.toFixed(2)}초 · ${item.type}`;
     let fields = '';
     if (editable) {
       const durationReadonly = authored.type === 'wave' ? 'readonly' : '';
       fields = `
+        <section class="difficulty-editor difficulty-${state}">
+          <div class="difficulty-editor-heading">
+            <strong>편집 범위</strong><span>${escapeHtml(difficulty.name)} · ${stateLabels[state]}</span>
+          </div>
+          <div class="scope-switch" role="group" aria-label="편집 범위">
+            <button type="button" data-edit-scope="base" class="${editScope === 'base' ? 'active' : ''}">기본값</button>
+            <button type="button" data-edit-scope="difficulty" class="${editScope === 'difficulty' ? 'active' : ''}">${escapeHtml(difficulty.name)}</button>
+          </div>
+          <p>${editScope === 'base'
+            ? '모든 난이도가 상속하는 원본을 수정합니다.'
+            : state === 'disabled'
+              ? '현재 꺼져 있습니다. 아래 값을 적용하면 이 난이도에서 다시 켜집니다.'
+              : '현재 난이도에만 적용할 차이를 수정합니다.'}</p>
+          <div class="difficulty-actions">
+            <button type="button" data-difficulty-action="disable" ${state === 'disabled' ? 'disabled' : ''}>이 난이도에서 끄기</button>
+            <button type="button" data-difficulty-action="inherit" ${!authored.difficulty?.[difficulty.id] ? 'disabled' : ''}>상속으로 복원</button>
+          </div>
+        </section>
         <form id="clipEditForm" class="inspector-form" data-item-id="${escapeHtml(authored.id)}">
-          <label>클립 이름<input name="name" maxlength="80" value="${escapeHtml(authored.name)}" required></label>
+          <label>클립 이름<input name="name" maxlength="80" value="${escapeHtml(formItem.name)}" required></label>
           <div class="form-row two">
-            <label>시작(초)<input name="start" type="number" min="0" max="${rawStage.timeline.duration}" step="0.05" value="${authored.timing.start}" required></label>
-            <label>길이(초)<input name="duration" type="number" min="0" max="${rawStage.timeline.duration}" step="0.05" value="${authored.timing.duration}" ${durationReadonly} required></label>
+            <label>시작(초)<input name="start" type="number" min="0" max="${rawStage.timeline.duration}" step="0.05" value="${formItem.timing.start}" required></label>
+            <label>길이(초)<input name="duration" type="number" min="0" max="${rawStage.timeline.duration}" step="0.05" value="${formItem.timing.duration}" ${durationReadonly} required></label>
           </div>
           <div class="nudge-tools" aria-label="클립 시간 이동">
             <button type="button" data-nudge="-1">−1초</button><button type="button" data-nudge="-0.1">−0.1</button>
             <button type="button" data-nudge="0.1">+0.1</button><button type="button" data-nudge="1">+1초</button>
           </div>
-          ${authored.type === 'wave' ? `
+          ${formItem.type === 'wave' ? `
             <div class="form-row three">
-              <label>적<select name="enemyKind">${optionList(rawStage.dependencies.enemyKinds, authored.payload.enemy.kind)}</select></label>
-              <label>체력<input name="hp" type="number" min="0.1" max="1000000" step="1" value="${authored.payload.enemy.hp}"></label>
-              <label>속도<input name="speed" type="number" min="0" max="2000" step="1" value="${authored.payload.enemy.speed}"></label>
+              <label>적<select name="enemyKind">${optionList(rawStage.dependencies.enemyKinds, formItem.payload.enemy.kind)}</select></label>
+              <label>체력<input name="hp" type="number" min="0.1" max="1000000" step="1" value="${formItem.payload.enemy.hp}"></label>
+              <label>속도<input name="speed" type="number" min="0" max="2000" step="1" value="${formItem.payload.enemy.speed}"></label>
             </div>
             <div class="form-row three">
-              <label>마릿수<input name="count" type="number" min="1" max="256" step="1" value="${authored.resolvedCount ?? authored.payload.spawn.count ?? 1}"></label>
-              <label>간격<input name="interval" type="number" min="0" max="30" step="0.05" value="${authored.payload.spawn.interval ?? 0}"></label>
-              <label>높이<input name="y" type="number" min="0" max="1" step="0.05" value="${authored.payload.entry.y ?? 0.5}"></label>
+              <label>마릿수<input name="count" type="number" min="1" max="256" step="1" value="${formItem.payload.spawn.count ?? 1}"></label>
+              <label>간격<input name="interval" type="number" min="0" max="30" step="0.05" value="${formItem.payload.spawn.interval ?? 0}"></label>
+              <label>높이<input name="y" type="number" min="0" max="1" step="0.05" value="${formItem.payload.entry.y ?? 0.5}"></label>
             </div>
-            <label>편대<select name="formation">${optionList(rawStage.dependencies.formationPresets, authored.payload.formation.presetId)}</select></label>
-            <label>이동<select name="movement">${optionList(rawStage.dependencies.movementPresets, authored.payload.movement.presetId)}</select></label>
-            <label>사격<select name="weapon">${optionList(rawStage.dependencies.weaponPresets, authored.payload.weapon.presetId)}</select></label>
+            <label>편대<select name="formation">${optionList(rawStage.dependencies.formationPresets, formItem.payload.formation.presetId)}</select></label>
+            <label>이동<select name="movement">${optionList(rawStage.dependencies.movementPresets, formItem.payload.movement.presetId)}</select></label>
+            <label>사격<select name="weapon">${optionList(rawStage.dependencies.weaponPresets, formItem.payload.weapon.presetId)}</select></label>
           ` : ''}
-          ${authored.type === 'environment' && authored.payload?.pluginId === 'scroll-speed' ? `
-            <label>배경 스크롤 배율<input name="scrollMultiplier" type="number" min="0" max="5" step="0.05" value="${authored.payload.params.curve[0]?.value ?? 1}"></label>
+          ${formItem.type === 'environment' && formItem.payload?.pluginId === 'scroll-speed' ? `
+            <label>배경 스크롤 배율<input name="scrollMultiplier" type="number" min="0" max="5" step="0.05" value="${formItem.payload.params.curve[0]?.value ?? 1}"></label>
           ` : ''}
-          ${authored.type === 'cue' && authored.payload?.params ? `
-            <label>표시 문구<input name="message" value="${escapeHtml(authored.payload.params.message || '')}"></label>
-            <label>표시 색상<input name="color" type="color" value="${escapeHtml(authored.payload.params.color || '#ff8f8f')}"></label>
+          ${formItem.type === 'cue' && formItem.payload?.params ? `
+            <label>표시 문구<input name="message" value="${escapeHtml(formItem.payload.params.message || '')}"></label>
+            <label>표시 색상<input name="color" type="color" value="${escapeHtml(formItem.payload.params.color || '#ff8f8f')}"></label>
           ` : ''}
-          <div class="inspector-actions"><button class="accent" type="submit">수정 적용</button></div>
+          ${formItem.type === 'gimmick' && formItem.payload?.pluginId === 'turtle-ride' ? `
+            <div class="form-section-title">거북 택시 주행</div>
+            <div class="form-row two">
+              <label>스크롤 배율<input name="scrollMultiplier" type="number" min="0" max="8" step="0.1" value="${formItem.payload.params.scrollMultiplier ?? 1}"></label>
+              <label class="check-label"><input name="playerInvulnerable" type="checkbox" ${formItem.payload.params.playerInvulnerable ? 'checked' : ''}> 탑승 중 무적</label>
+            </div>
+            <div class="form-section-title">진주 궤적</div>
+            <div class="form-row two">
+              <label>생성 간격<input name="trailInterval" type="number" min="0.03" max="5" step="0.01" value="${formItem.payload.params.pearlTrail.interval}"></label>
+              <label>진행 속도<input name="trailSpeed" type="number" min="0" max="1000" step="5" value="${formItem.payload.params.pearlTrail.speed}"></label>
+              <label>물결 폭<input name="trailAmplitude" type="number" min="0" max="1" step="0.05" value="${formItem.payload.params.pearlTrail.amplitudeY}"></label>
+              <label>물결 빈도<input name="trailFrequency" type="number" min="0" max="10" step="0.1" value="${formItem.payload.params.pearlTrail.frequency}"></label>
+            </div>
+            <div class="form-section-title">진주 링</div>
+            <div class="form-row two">
+              <label>첫 링 지연<input name="ringFirstDelay" type="number" min="0" max="30" step="0.1" value="${formItem.payload.params.pearlRing.firstDelay}"></label>
+              <label>링 간격<input name="ringInterval" type="number" min="0.1" max="30" step="0.1" value="${formItem.payload.params.pearlRing.interval}"></label>
+              <label>진주 수<input name="ringCount" type="number" min="1" max="64" step="1" value="${formItem.payload.params.pearlRing.count}"></label>
+              <label>링 반지름<input name="ringRadius" type="number" min="0" max="400" step="1" value="${formItem.payload.params.pearlRing.radius}"></label>
+              <label>진행 속도<input name="ringSpeed" type="number" min="0" max="1000" step="5" value="${formItem.payload.params.pearlRing.speed}"></label>
+            </div>
+          ` : ''}
+          <div class="inspector-actions"><button class="accent" type="submit">${editScope === 'difficulty' ? `${escapeHtml(difficulty.name)}에 적용` : '기본값에 적용'}</button></div>
         </form>`;
     } else {
-      fields = '<div class="readonly-notice">이 클립은 M2 첫 단계에서 읽기 전용입니다. 잡몹·환경·연출 클립부터 편집을 엽니다.</div>';
+      fields = '<div class="readonly-notice">아직 읽기 전용인 클립입니다. 현재는 잡몹·환경·연출과 거북 택시를 편집할 수 있습니다.</div>';
     }
     $('#inspectorBody').innerHTML = `
       <div class="inspector-grid">
         <div class="info-card"><small>종류</small><strong>${escapeHtml(item.type)}</strong></div>
         <div class="info-card"><small>시간</small><strong>${item.timing.start.toFixed(2)}–${(item.timing.start + item.timing.duration).toFixed(2)}초</strong></div>
-        <div class="info-card"><small>난이도</small><strong>${escapeHtml(compiled.difficulty.name)}</strong></div>
-        <div class="info-card"><small>컴파일 결과</small><strong>${escapeHtml(itemSummary(item))}</strong></div>
+        <div class="info-card"><small>난이도</small><strong>${escapeHtml(difficulty.name)} · ${stateLabels[state]}</strong></div>
+        <div class="info-card"><small>컴파일 결과</small><strong>${resolved && resolved.enabled !== false ? escapeHtml(itemSummary(item)) : '이 난이도에서 꺼짐'}</strong></div>
       </div>
       ${fields}
-      <details><summary>원본 payload JSON</summary><pre class="payload-summary">${escapeHtml(JSON.stringify(authored?.payload || item.payload, null, 2))}</pre></details>`;
+      <details><summary>원본 payload JSON</summary><pre class="payload-summary">${escapeHtml(JSON.stringify(authored.payload, null, 2))}</pre></details>
+      ${authored.difficulty?.[difficulty.id] ? `<details><summary>${escapeHtml(difficulty.name)} override JSON</summary><pre class="payload-summary">${escapeHtml(JSON.stringify(authored.difficulty[difficulty.id], null, 2))}</pre></details>` : ''}`;
     bindInspectorForm();
     updateEditorUi();
     if (openInspector && matchMedia('(max-width: 980px)').matches) setInspectorOpen(true);
@@ -704,7 +871,7 @@
       ray: { hp: 4, speed: 150 },
       big: { hp: 48, speed: 105 },
     }[enemyKind] || { hp: 2, speed: 150 };
-    return {
+    const item = {
       id: stageDocument.uniqueId(`${rawStage.id}-wave`),
       type: 'wave',
       name: String(values.get('name') || '새 잡몹 웨이브').trim() || '새 잡몹 웨이브',
@@ -719,6 +886,12 @@
         weapon: { presetId: 'none' },
       },
     };
+    if (values.get('scope') === 'active') {
+      const difficulty = activeDifficulty().id;
+      item.enabled = false;
+      item.difficulty = { [difficulty]: { enabled: true, mode: 'patch', patch: {} } };
+    }
+    return item;
   }
 
   function addWaveFromDialog(form) {
@@ -726,12 +899,11 @@
       const item = createWaveFromForm(form);
       const candidate = stageDocument.snapshot();
       candidate.items.push(item);
-      const report = StageCompiler.validate(candidate);
-      if (report.errors.length) throw new Error(report.errors[0]);
-      StageCompiler.compile(candidate, { difficulty: $('#previewDifficulty').value });
+      validateStageCandidate(candidate);
       const inserted = stageDocument.insertItem(item, stageDocument.stage.items.length, '잡몹 웨이브 추가');
       $('#addWaveDialog').close();
-      afterDocumentChange('잡몹 웨이브를 추가했습니다', inserted.id, inserted.timing.start);
+      const suffix = item.enabled === false ? ` · ${activeDifficulty().name} 전용` : '';
+      afterDocumentChange(`잡몹 웨이브를 추가했습니다${suffix}`, inserted.id, inserted.timing.start);
     } catch (error) {
       console.error(error);
       toast(`추가할 수 없습니다: ${error.message}`);
@@ -740,7 +912,7 @@
 
   function duplicateSelected() {
     const item = stageDocument?.findItem(selectedId);
-    if (!item || !EDITABLE_TYPES.has(item.type)) return;
+    if (!item || !isEditableItem(item)) return;
     try {
       const copy = stageDocument.duplicateItem(item.id, { startOffset: 1 });
       afterDocumentChange('클립을 복제했습니다', copy.id, copy.timing.start);
@@ -752,7 +924,7 @@
 
   function deleteSelected() {
     const item = stageDocument?.findItem(selectedId);
-    if (!item || !EDITABLE_TYPES.has(item.type) || item.id === 's3-scroll-base') return;
+    if (!item || !isEditableItem(item) || item.id === 's3-scroll-base') return;
     const removedName = item.name;
     stageDocument.removeItem(item.id);
     selectedId = null;
@@ -773,10 +945,8 @@
     if (!file) return;
     try {
       const imported = JSON.parse(await file.text());
-      const report = StageCompiler.validate(imported);
-      if (report.errors.length) throw new Error(report.errors[0]);
       if (sourceStage && imported.id !== sourceStage.id) throw new Error(`M2는 아직 '${sourceStage.id}' 문서만 편집합니다.`);
-      StageCompiler.compile(imported, { difficulty: $('#previewDifficulty').value });
+      validateStageCandidate(imported);
       stageDocument = new StageDocument.DocumentSession(imported);
       rawStage = stageDocument.stage;
       sourceStage = StageDocument.clone(imported);
@@ -859,6 +1029,7 @@
     if (!simulation) return;
     const form = $('#addWaveForm');
     form.elements.start.value = Math.min(rawStage.timeline.duration, simulation.time).toFixed(2);
+    $('#activeDifficultyOnlyOption').textContent = `${activeDifficulty().name} 전용`;
     $('#addWaveDialog').showModal();
   });
   $('#addWaveForm').addEventListener('submit', event => {
