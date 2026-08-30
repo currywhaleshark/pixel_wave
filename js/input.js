@@ -95,6 +95,9 @@ const Input = {
       }
     }, { passive: false });
     const endTouch = (e) => {
+      // iOS WebKit은 media.play()를 touchend 같은 직접 제스처에서 허용한다.
+      // touchstart에서 시도한 재생이 막혔더라도 손을 떼는 순간 다시 깨운다.
+      Sound.unlock();
       for (const t of e.changedTouches) {
         if (t.identifier === this.moveTouchId) {
           this.moveTouchId = null;

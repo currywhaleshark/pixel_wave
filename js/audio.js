@@ -122,7 +122,12 @@ const Sound = {
 
   playBgm(key, fade = 1.2) {
     if (this.currentKey === key) return;
-    if (!this.ctx) { this.pendingBgm = key; this.currentKey = key; return; }
+    if (!this.ctx) {
+      this.pendingBgm = key;
+      this.currentKey = key;
+      if (key) this.track(key); // 모바일 첫 제스처 전에 요소와 URL을 미리 준비한다
+      return;
+    }
     const prev = this.currentKey;
     this.currentKey = key;
     if (prev) this.fadeOut(prev, fade);

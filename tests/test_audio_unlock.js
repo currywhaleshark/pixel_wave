@@ -60,7 +60,8 @@ vm.runInContext(fs.readFileSync(path.join(root, 'js/audio.js'), 'utf8'), context
 vm.runInContext('Sound.playBgm("title")', context);
 assert.equal(vm.runInContext('Sound.pendingBgm', context), 'title');
 assert.equal(vm.runInContext('Sound.currentKey', context), 'title');
-assert.equal(createdAudio.length, 0, '잠금 전에는 HTMLAudio를 시작하지 않는다');
+assert.equal(createdAudio.length, 1, '모바일 첫 입력 전에 타이틀 Audio 요소를 준비한다');
+assert.equal(createdAudio[0].playCalls, 0, '잠금 전에는 준비한 Audio를 재생하지 않는다');
 
 vm.runInContext('Sound.unlock()', context);
 assert.equal(vm.runInContext('Sound.pendingBgm', context), null);
@@ -71,5 +72,12 @@ assert.equal(createdAudio[0].playCalls, 1, '첫 입력 안에서 예약된 타�
 
 vm.runInContext('Sound.unlock()', context);
 assert.equal(createdAudio[0].playCalls, 1, '재생 중인 곡은 후속 입력에서 다시 시작하지 않는다');
+
+const inputSource = fs.readFileSync(path.join(root, 'js/input.js'), 'utf8');
+assert.match(
+  inputSource,
+  /const endTouch = \(e\) => \{\s*\/\/[^\n]*\n\s*\/\/[^\n]*\n\s*Sound\.unlock\(\)/,
+  '모바일은 touchend의 직접 사용자 제스처에서도 오디오를 깨운다',
+);
 
 console.log('audio unlock: ok');
