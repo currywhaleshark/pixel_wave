@@ -379,7 +379,7 @@ const Game = {
     if (r.pearlT <= 0) {
       r.pearlT = 0.13;
       const y = CFG.H * 0.5 + Math.sin(r.t * 1.6 + r.trailPhase) * CFG.H * 0.3;
-      this.pearls.push(new Pearl(CFG.W + 12, y, { vx: -330, vy: 0, life: 6, stream: true }));
+      this.pearls.push(new Pearl(CFG.W + 12, y, { vx: -CFG.ridePearlSpeed, vy: 0, life: 6, stream: true }));
     }
     // 가끔 진주 링 (보너스 안의 보너스)
     r.ringT -= dt;
@@ -389,7 +389,7 @@ const Game = {
       for (let i = 0; i < 10; i++) {
         const a = (i / 10) * 6.28;
         this.pearls.push(new Pearl(CFG.W + 40 + Math.cos(a) * 55, cy + Math.sin(a) * 55,
-          { vx: -330, vy: 0, life: 6, stream: true }));
+          { vx: -CFG.ridePearlSpeed, vy: 0, life: 6, stream: true }));
       }
     }
     if (r.t >= r.dur) {

@@ -267,8 +267,10 @@ class Pearl {
       const k = Math.min(1, dt * 12);
       this.vx += (dx / d * spd - this.vx) * k;
       this.vy += (dy / d * spd - this.vy) * k;
-    } else if (this.stream) {
-      // 트레일 진주 (거북 택시 구간): 감속 없이 흘러감
+    } else if (this.stream || (typeof Game !== 'undefined' && Game.ride)) {
+      // 거북 택시 구간: 적 드롭을 포함한 느슨한 진주가 트레일과 같은 속도로 흘러간다.
+      this.vx = -CFG.ridePearlSpeed;
+      this.vy *= Math.max(0, 1 - 2.2 * dt);
     } else {
       // 스크롤 흐름: 인어가 오른쪽으로 나아가므로 떠 있는 것들은 왼쪽으로 흘러감 (배경과 동일)
       this.vx += (-30 - this.vx) * 1.2 * dt;

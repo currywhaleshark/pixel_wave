@@ -18,6 +18,7 @@ const Backgrounds = {
     },
     2: {
       prefix: 'background.stage3',
+      scrollScale: 1.25,
       seaSpeed: 0.035,
       far: [0.12, 245, 0.24], mid: [0.34, 270, 0.40], near: [0.84, 270, 1],
       fx: { shaft: '#77e1d6', mote: '#a6eadb', bubble: '#d5f4e7', cutout: '#0a7f94' },
@@ -56,14 +57,15 @@ const Backgrounds = {
     const ids = Object.fromEntries(['sea', 'far', 'mid', 'near'].map(layer => [layer, `${stage.prefix}.${layer}`]));
     if (!Object.values(ids).every(id => Assets.ready(id))) return false;
     const u = CFG.pxUnit;
+    const scroll = game.scroll * (stage.scrollScale ?? 1);
     ctx.save();
     ctx.imageSmoothingEnabled = false;
-    this.drawStrip(ctx, Assets.image(ids.sea), game.scroll, stage.seaSpeed, 270, 1, u);
-    this.drawLight(ctx, game, u, stage.fx);
-    this.drawStrip(ctx, Assets.image(ids.far), game.scroll, ...stage.far, u);
+    this.drawStrip(ctx, Assets.image(ids.sea), scroll, stage.seaSpeed, 270, 1, u);
+    this.drawLight(ctx, game, u, stage.fx, scroll);
+    this.drawStrip(ctx, Assets.image(ids.far), scroll, ...stage.far, u);
     this.drawMotes(ctx, game, u, stage.fx);
-    this.drawStrip(ctx, Assets.image(ids.mid), game.scroll, ...stage.mid, u);
-    this.drawStrip(ctx, Assets.image(ids.near), game.scroll, ...stage.near, u);
+    this.drawStrip(ctx, Assets.image(ids.mid), scroll, ...stage.mid, u);
+    this.drawStrip(ctx, Assets.image(ids.near), scroll, ...stage.near, u);
     if (stage.surface) this.drawStormSurface(ctx, game);
     ctx.restore();
     return true;
@@ -103,8 +105,8 @@ const Backgrounds = {
     }
   },
 
-  drawLight(ctx, game, u, palette) {
-    const worldScroll = game.scroll / u;
+  drawLight(ctx, game, u, palette, scroll = game.scroll) {
+    const worldScroll = scroll / u;
     ctx.fillStyle = palette.shaft;
     for (let i = 0; i < 3; i++) {
       const x = Math.round(((i * 239 - worldScroll * 0.025) % 720 + 720) % 720) - 70;
