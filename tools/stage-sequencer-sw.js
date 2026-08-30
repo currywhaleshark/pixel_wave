@@ -1,4 +1,4 @@
-const CACHE = 'pixel-wave-stage-sequencer-m4-v3';
+const CACHE = 'pixel-wave-stage-sequencer-m5-v1';
 const SHELL = [
   './stage-sequencer.html',
   './stage-sequencer.css',
@@ -8,6 +8,8 @@ const SHELL = [
   '../js/config.js',
   '../js/assets.js',
   '../js/spriteRenderer.js',
+  '../js/stage/layerTransform.js',
+  '../js/stage/terrain.js',
   '../js/backgroundRenderer.js',
   '../js/barragePatterns.generated.js',
   '../js/barrage.js',
@@ -25,6 +27,7 @@ const SHELL = [
   '../js/stage/document.js',
   '../js/stage/persistence.js',
   '../docs/stage-editor/stage3.v1.draft.json',
+  '../docs/stage-editor/coverage-stage1-terrain.v1.draft.json',
   '../docs/stage-editor/coverage-stage5-wreck.v1.draft.json',
   '../docs/stage-editor/coverage-stage6-storm.v1.draft.json',
   '../assets/fonts/Galmuri11.woff2',
@@ -34,6 +37,12 @@ const SHELL = [
   '../assets/backgrounds/stage3-far-strip.png',
   '../assets/backgrounds/stage3-mid-strip.png',
   '../assets/backgrounds/stage3-near-strip.png',
+  '../data/terrain-profiles/stage1-near-v1.json',
+  '../assets/backgrounds/stage1-near-terrain-mask.png',
+  '../assets/backgrounds/stage1-sea-strip.png',
+  '../assets/backgrounds/stage1-far-strip.png',
+  '../assets/backgrounds/stage1-mid-strip.png',
+  '../assets/backgrounds/stage1-near-strip.png',
   '../assets/backgrounds/stage5-sea-strip.png',
   '../assets/backgrounds/stage5-far-strip.png',
   '../assets/backgrounds/stage5-mid-strip.png',

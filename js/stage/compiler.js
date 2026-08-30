@@ -13,6 +13,8 @@
   const BehaviorApi = root.StageBehavior || (typeof require === 'function' ? require('./behavior.js') : null);
   const BarrageApi = root.StageBarrage || (typeof require === 'function' ? require('./barrage.js') : null);
   const PluginApi = root.StagePlugin || (typeof require === 'function' ? require('./plugin.js') : null);
+  const TerrainApi = root.StageTerrain || (typeof require === 'function' ? require('./terrain.js') : null);
+  const LayerTransformApi = root.StageLayerTransform || (typeof require === 'function' ? require('./layerTransform.js') : null);
   const { Random, hashString } = RandomApi;
   const ID = /^[a-z0-9][a-z0-9-]*$/;
   const REQUIRED_DEPENDENCIES = Object.freeze([
@@ -85,6 +87,11 @@
         }
       }
     }
+    if (stage.background?.terrainProfileId) {
+      if (!dependencies?.terrainProfiles?.includes(stage.background.terrainProfileId)) {
+        errors.push(`background가 선언하지 않은 terrainProfiles '${stage.background.terrainProfileId}'을 사용합니다.`);
+      }
+    }
 
     if (!Array.isArray(stage.sections)) errors.push('sections 배열이 필요합니다.');
     else {
@@ -148,6 +155,10 @@
         }
       } else if (item?.type === 'terrain-object') {
         useDependency('terrainObjects', item.payload?.objectId, label);
+        if (item.timing?.domain !== 'distance') errors.push(`${label} 지형 오브젝트 timing.domain은 distance여야 합니다.`);
+        const terrainReport = TerrainApi.validateItem(item, null);
+        errors.push(...terrainReport.errors.map(error => `${label}: ${error}`));
+        warnings.push(...terrainReport.warnings.map(warning => `${label}: ${warning}`));
       } else if (item?.payload?.pluginId) {
         useDependency('itemPlugins', item.payload.pluginId, label);
         for (const error of PluginApi.validateItem(item)) errors.push(`${label}: ${error}`);
@@ -272,6 +283,34 @@
     return { 'item-start': 0, 'spawn-enemy': 1, cue: 2, boss: 3, 'item-end': 4 }[event.type] ?? 9;
   }
 
+  function projectTerrainTime(item, stage) {
+    const layerId = item.payload?.anchor?.layer || 'near';
+    const layer = LayerTransformApi.layerConfig(stage.background?.presetId, layerId);
+    if (!layer) return stage.timeline.duration;
+    const unit = LayerTransformApi.PIXEL_UNIT;
+    const objectNativeX = Math.floor(finite(item.timing?.start) / unit);
+    const targetNativeScroll = Math.max(0, objectNativeX - stage.viewport.width / unit);
+    const targetScroll = targetNativeScroll * unit / Math.max(1e-9, layer.speed * (layer.scrollScale || 1));
+    const active = new Map();
+    let state = PluginApi.initialRuntimeState();
+    let scroll = 0;
+    const step = 1 / 60;
+    for (let time = 0; time < stage.timeline.duration; time += step) {
+      const middle = time + step * 0.5;
+      active.clear();
+      for (const candidate of stage.items) {
+        if (candidate.timing?.domain !== 'time' || candidate.enabled === false) continue;
+        const start = finite(candidate.timing.start);
+        const end = start + finite(candidate.timing.duration);
+        if (middle >= start && middle < end) active.set(candidate.id, { start, type: candidate.type, payload: candidate.payload });
+      }
+      state = PluginApi.evaluateRuntimeState(state, active, middle, step, stage.viewport);
+      scroll += finite(stage.background?.baseScrollSpeed) * state.scrollMultiplier * step;
+      if (scroll >= targetScroll) return Math.min(stage.timeline.duration, time + step);
+    }
+    return stage.timeline.duration;
+  }
+
   function compile(rawStage, options = {}) {
     const sourceReport = validate(rawStage);
     if (sourceReport.errors.length && options.allowInvalid !== true) {
@@ -305,6 +344,10 @@
         items.push({ ...item, resolvedCount: wave.resolvedCount });
         events.push(...wave.events);
         resolvedEnemyCount += wave.resolvedCount;
+        continue;
+      }
+      if (item.type === 'terrain-object') {
+        items.push({ ...item, projectedTime: projectTerrainTime(item, stage) });
         continue;
       }
       items.push(item);

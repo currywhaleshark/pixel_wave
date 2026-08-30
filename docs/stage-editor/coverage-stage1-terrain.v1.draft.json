@@ -56,12 +56,13 @@
       "id": "s1-turret-01",
       "type": "terrain-object",
       "name": "첫 산호 포대",
-      "timing": { "domain": "distance", "start": 2640.5, "duration": 0 },
+      "timing": { "domain": "distance", "start": 2640, "duration": 0 },
       "payload": {
         "objectId": "coral-turret",
         "anchor": {
           "layer": "near",
-          "surface": "floor",
+          "surface": "socket",
+          "socketId": "coral-turret-small-floor-x01320",
           "offsetX": 0,
           "offsetY": 0
         },
@@ -78,12 +79,13 @@
       "id": "s1-turret-02",
       "type": "terrain-object",
       "name": "두 번째 산호 포대",
-      "timing": { "domain": "distance", "start": 3802.85, "duration": 0 },
+      "timing": { "domain": "distance", "start": 3802, "duration": 0 },
       "payload": {
         "objectId": "coral-turret",
         "anchor": {
           "layer": "near",
-          "surface": "floor",
+          "surface": "socket",
+          "socketId": "coral-turret-small-floor-x00461",
           "offsetX": 0,
           "offsetY": 0
         },
@@ -100,12 +102,13 @@
       "id": "s1-turret-03",
       "type": "terrain-object",
       "name": "세 번째 산호 포대",
-      "timing": { "domain": "distance", "start": 3895.1, "duration": 0 },
+      "timing": { "domain": "distance", "start": 3894, "duration": 0 },
       "payload": {
         "objectId": "coral-turret",
         "anchor": {
           "layer": "near",
-          "surface": "floor",
+          "surface": "socket",
+          "socketId": "coral-turret-small-floor-x00507",
           "offsetX": 0,
           "offsetY": 0
         },

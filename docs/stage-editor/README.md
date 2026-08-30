@@ -6,7 +6,7 @@ simulation, and deterministic special-system seeking. The
 current game runtime has not been replaced; the editor remains isolated under
 `tools/` until preview parity is proven.
 
-## Run M4
+## Run the editor
 
 1. On Windows, double-click `run-stage-sequencer.bat` at the repository root.
    It starts the server and opens the editor. Alternatively run
@@ -60,6 +60,10 @@ current game runtime has not been replaced; the editor remains isolated under
     fixtures. Registered environment and hazard plugins use one metadata-driven
     inspector. Exclusive state-channel overlaps appear above the timeline; each
     warning has buttons that select and seek to both conflicting clips.
+14. Append `?stage=stage1` to open the M5 terrain fixture. Toggle `지형 검토`
+    to see the cyan structural contour and reviewed sockets. Terrain clips are
+    projected from absolute layer distance onto the timeline; their inspector
+    selects approved sockets and edits offset, HP, and fire interval.
 
 The simulator uses deterministic fixed steps and 5-second snapshots. The shared
 `js/stage/path.js` module normalizes, validates, and samples custom paths,
@@ -122,3 +126,7 @@ fixtures without changing their payloads, and adds actionable exclusive-channel
 conflict warnings. The final M4 slice runs those plugins through one deterministic
 runtime state, snapshots darkness/current/hazards, and renders Stage 5 wrecks plus
 Stage 6 current, telegraph, and strike states in the preview.
+M5 adds a deterministic Stage 1 structural-mask generator, checked-in approved
+profile and override sidecar, shared layer transform, terrain semantic lint,
+review overlay, explicit coral-turret sockets, distance-to-time projection, and
+snapshot-safe terrain rendering.

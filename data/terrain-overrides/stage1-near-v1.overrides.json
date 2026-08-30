@@ -1,0 +1,52 @@
+{
+  "format": "pixel-wave-terrain-overrides",
+  "schemaVersion": 1,
+  "profileId": "stage1-near-v1",
+  "assetSha256": "eca0508362c00b25051bf215bb0ea17d2a1d5849c530f674acd6a15494642c2b",
+  "surfacePatches": [],
+  "excludeRanges": [
+    {
+      "id": "stage1-auto-review-complete",
+      "surface": "floor",
+      "classId": "coral-turret-small",
+      "startX": 0,
+      "endX": 1439,
+      "reason": "Stage 1 포대는 화면 구성에 맞춰 검토한 세 위치만 사용한다."
+    }
+  ],
+  "approvedSocketIds": [],
+  "excludedSocketIds": [],
+  "forcedSockets": [
+    {
+      "id": "coral-turret-small-floor-x01320",
+      "classId": "coral-turret-small",
+      "surface": "floor",
+      "x": 1320,
+      "y": 107,
+      "normal": { "x": 0, "y": -1 },
+      "tags": ["stage1", "turret"],
+      "reason": "첫 포대의 기존 등장 시각과 넓은 산호 받침을 함께 보존한다."
+    },
+    {
+      "id": "coral-turret-small-floor-x00461",
+      "classId": "coral-turret-small",
+      "surface": "floor",
+      "x": 461,
+      "y": 101,
+      "normal": { "x": 0, "y": -1 },
+      "tags": ["stage1", "turret"],
+      "reason": "두 번째 포대의 기존 등장 시각에 가장 가까운 안정된 받침이다."
+    },
+    {
+      "id": "coral-turret-small-floor-x00507",
+      "classId": "coral-turret-small",
+      "surface": "floor",
+      "x": 507,
+      "y": 107,
+      "normal": { "x": 0, "y": -1 },
+      "tags": ["stage1", "turret"],
+      "reason": "세 번째 포대가 앞 포대와 겹치지 않는 넓은 산호 받침이다."
+    }
+  ],
+  "notes": "자동 후보는 검토 참고용으로만 사용하고, Stage 1의 세 포대는 명시적으로 승인한 소켓에 고정한다."
+}

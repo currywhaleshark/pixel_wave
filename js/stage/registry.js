@@ -6,6 +6,7 @@
   'use strict';
 
   const PluginApi = root.StagePlugin || (typeof require === 'function' ? require('./plugin.js') : null);
+  const TerrainApi = root.StageTerrain || (typeof require === 'function' ? require('./terrain.js') : null);
 
   const DIFFICULTIES = Object.freeze([
     Object.freeze({ id: 'easy', name: '이지', color: '#7dffd8', fireInt: 1, ebSpd: 1, ringN: 0, bigHp: 1 }),
@@ -82,6 +83,10 @@
         fields: Object.freeze([]),
       }),
     ]),
+    terrainObjects: Object.freeze(Object.values(TerrainApi.OBJECTS)),
+    terrainProfiles: Object.freeze([
+      Object.freeze({ id: 'stage1-near-v1', name: 'Stage 1 전경 지형', description: '검토 완료된 산호초 near 레이어 프로필' }),
+    ]),
   });
 
   const categories = Object.freeze({
@@ -92,9 +97,9 @@
     weaponPresets: new Set(definitions.weaponPresets.map(item => item.id)),
     barragePatterns: new Set(),
     itemPlugins: new Set(Object.keys(PluginApi.definitions)),
-    terrainObjects: new Set(),
-    terrainProfiles: new Set(),
-    bosses: new Set(['ssing', 'buu', 'ureu']),
+    terrainObjects: new Set(definitions.terrainObjects.map(item => item.id)),
+    terrainProfiles: new Set(definitions.terrainProfiles.map(item => item.id)),
+    bosses: new Set(['pangpang', 'ssing', 'buu', 'ureu']),
   });
 
   const itemPriority = Object.freeze({

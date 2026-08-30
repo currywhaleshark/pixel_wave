@@ -3,6 +3,7 @@
 
   const query = new URLSearchParams(location.search);
   const STAGE_FIXTURES = Object.freeze({
+    stage1: 'docs/stage-editor/coverage-stage1-terrain.v1.draft.json',
     stage3: 'docs/stage-editor/stage3.v1.draft.json',
     stage5: 'docs/stage-editor/coverage-stage5-wreck.v1.draft.json',
     stage6: 'docs/stage-editor/coverage-stage6-storm.v1.draft.json',
@@ -13,6 +14,7 @@
     { id: 'environment', label: '환경', types: ['environment'], color: '#55d9e8' },
     { id: 'gimmick', label: '특수', types: ['gimmick', 'hazard'], color: '#ffd66e' },
     { id: 'wave', label: '잡몹', types: ['wave'], color: '#ff87bd' },
+    { id: 'terrain', label: '지형', types: ['terrain-object'], color: '#55d9e8' },
     { id: 'cue', label: '연출', types: ['cue'], color: '#ff8f8f' },
     { id: 'boss', label: '보스', types: ['boss'], color: '#8fa3e8' },
   ];
@@ -35,6 +37,10 @@
   let simulation = null;
   let budgetReport = null;
   let channelConflicts = [];
+  let terrainProfile = null;
+  let terrainReview = false;
+  let selectedTerrainSocket = null;
+  let terrainForceMode = false;
   let selectedId = null;
   let playing = false;
   let previewSpeed = 1;
@@ -55,7 +61,7 @@
   let editScope = 'base';
 
   function isEditableItem(item) {
-    if (item?.type === 'wave' || item?.type === 'cue') return true;
+    if (item?.type === 'wave' || item?.type === 'cue' || item?.type === 'terrain-object') return true;
     return !!StagePlugin.definition(item?.payload?.pluginId)?.editor;
   }
 
@@ -261,7 +267,7 @@
     rawStage = stageDocument?.stage || rawStage;
     compiled = StageCompiler.compile(rawStage, { difficulty });
     channelConflicts = StagePlugin.findChannelConflicts(compiled.items);
-    simulation = new StageSimulation.Simulation(compiled, { fixedStep: 1 / 60, snapshotInterval: 5 });
+    simulation = new StageSimulation.Simulation(compiled, { fixedStep: 1 / 60, snapshotInterval: 5, terrainProfile });
     const snapshotCount = simulation.buildSnapshotCache();
     simulation.seek(Math.min(preserveTime, compiled.timeline.duration));
     refreshBudgetReport();
@@ -282,6 +288,20 @@
       sourceStage = await response.json();
       const report = StageCompiler.validate(sourceStage);
       if (report.errors.length) throw new Error(report.errors.join('\n'));
+      terrainProfile = null;
+      const profileId = sourceStage.background?.terrainProfileId;
+      if (profileId) {
+        const profileResponse = await fetch(`data/terrain-profiles/${profileId}.json`, { cache: 'no-cache' });
+        if (!profileResponse.ok) throw new Error(`Terrain Profile HTTP ${profileResponse.status}`);
+        terrainProfile = await profileResponse.json();
+        const terrainReport = StageTerrain.validateProfile(terrainProfile);
+        for (const item of sourceStage.items.filter(entry => entry.type === 'terrain-object')) {
+          const itemReport = StageTerrain.validateItem(item, terrainProfile);
+          terrainReport.errors.push(...itemReport.errors);
+          terrainReport.warnings.push(...itemReport.warnings);
+        }
+        if (terrainReport.errors.length) throw new Error(terrainReport.errors.join('\n'));
+      }
       const stored = await StagePersistence.loadDraft(sourceStage.id);
       let initialStage = sourceStage;
       if (stored?.stage) {
@@ -297,6 +317,7 @@
       $('#stageName').textContent = rawStage.name;
       canvas.setAttribute('aria-label', `${rawStage.name} 미리보기`);
       $('#timeScrub').max = rawStage.timeline.duration;
+      $('#terrainReviewToggle').hidden = !terrainProfile;
       range = { id: 'full', name: '전체', start: 0, end: rawStage.timeline.duration };
       compileAtDifficulty($('#previewDifficulty').value, 0);
       if (barrageReturn) applyBarrageReturn();
@@ -369,7 +390,7 @@
   function beginClipDrag(event, item, clip) {
     const authored = stageDocument?.findItem(item.id);
     const resolved = resolvedAuthoredItem(authored);
-    if (!authored || !resolved || resolved.enabled === false || !isEditableItem(authored) || event.button !== 0) return;
+    if (!authored || !resolved || resolved.enabled === false || !isEditableItem(authored) || authored.type === 'terrain-object' || event.button !== 0) return;
     clipDrag = {
       pointerId: event.pointerId,
       clip,
@@ -432,6 +453,10 @@
     const resolved = resolvedAuthoredItem(authored);
     const compiledItem = compiled.items.find(item => item.id === authored.id);
     const item = StageDocument.clone(compiledItem || resolved || authored);
+    if (item.type === 'terrain-object') {
+      item._distanceStart = item.timing.start;
+      item.timing = { domain: 'time', start: item.projectedTime ?? 0, duration: 0 };
+    }
     item._difficultyState = state;
     item._difficultyDisabled = !resolved || resolved.enabled === false;
     return item;
@@ -581,6 +606,25 @@
       <div class="plugin-editor-heading"><strong>${escapeHtml(definition.name)}</strong><span>${escapeHtml(item.payload.pluginId)}</span></div>
       <p>${escapeHtml(definition.description)}</p>
       <div class="plugin-field-grid">${fields}</div>
+    </section>`;
+  }
+
+  function renderTerrainEditor(item) {
+    if (item.type !== 'terrain-object' || !terrainProfile) return '';
+    const definition = StageTerrain.OBJECTS[item.payload.objectId];
+    const sockets = terrainProfile.sockets.filter(socket => (
+      socket.reviewStatus === 'approved' && socket.classId === definition?.placementClassId
+    ));
+    const options = sockets.map(socket => `<option value="${escapeHtml(socket.id)}" ${socket.id === item.payload.anchor?.socketId ? 'selected' : ''}>${escapeHtml(socket.id)} · X ${socket.x}</option>`).join('');
+    return `<section class="terrain-review-card">
+      <strong>지형 부착</strong>
+      <p>승인된 소켓만 선택할 수 있습니다. 거리를 바꾸면 같은 X의 소켓을 함께 선택해야 합니다.</p>
+      <label>승인 소켓<select name="terrainSocket" required>${options}</select></label>
+      <div class="form-row two">
+        <label>세로 보정<input name="terrainOffsetY" type="number" min="-540" max="540" step="2" value="${item.payload.anchor?.offsetY || 0}"></label>
+        <label>체력<input name="terrainHp" type="number" min="0.1" max="1000000" step="0.1" value="${item.payload.hp || 1}"></label>
+      </div>
+      <label>발사 간격<input name="terrainWeaponInterval" type="number" min="0.03" max="120" step="0.01" value="${item.payload.weapon?.interval || 2}"></label>
     </section>`;
   }
 
@@ -831,6 +875,22 @@
         );
       }
       next.timing.duration = formationId === 'wall-gap' ? 0 : (count - 1) * interval;
+    } else if (next.type === 'terrain-object') {
+      const socketId = String(values.get('terrainSocket') || '');
+      const socket = terrainProfile?.sockets.find(entry => entry.id === socketId);
+      const nativeX = Math.round(next.timing.start / StageLayerTransform.PIXEL_UNIT);
+      const loop = Math.max(0, Math.floor(nativeX / Math.max(1, terrainProfile?.binding?.width || 1)));
+      next.timing.start = socket
+        ? (loop * terrainProfile.binding.width + socket.x) * StageLayerTransform.PIXEL_UNIT
+        : nativeX * StageLayerTransform.PIXEL_UNIT;
+      next.timing.duration = 0;
+      next.payload.anchor.surface = 'socket';
+      next.payload.anchor.socketId = socketId;
+      next.payload.anchor.offsetY = Math.round(Number(values.get('terrainOffsetY')) || 0);
+      next.payload.hp = Math.max(0.1, Number(values.get('terrainHp')) || 1);
+      next.payload.weapon.interval = Math.max(0.03, Number(values.get('terrainWeaponInterval')) || 2);
+      const terrainReport = StageTerrain.validateItem(next, terrainProfile);
+      if (terrainReport.errors.length) throw new Error(terrainReport.errors.join(' / '));
     } else if (next.type === 'environment' && next.payload?.pluginId === 'scroll-speed') {
       const previousDuration = editScope === 'difficulty'
         ? (difficultyItem?.timing?.duration ?? authored.timing.duration)
@@ -875,7 +935,9 @@
         StagePlugin.setPath(next.payload.params, field.path, StagePlugin.coerceField(field, value));
       }
     }
-    next.timing.start = Math.max(0, Math.min(next.timing.start, rawStage.timeline.duration - next.timing.duration));
+    if (next.type !== 'terrain-object') {
+      next.timing.start = Math.max(0, Math.min(next.timing.start, rawStage.timeline.duration - next.timing.duration));
+    }
     if (editScope === 'difficulty') return replaceDifficultyItem(authored.id, next, `${activeDifficulty().name} 덮어쓰기`);
     return replaceAuthoredItem(authored.id, next, '기본 클립 수정');
   }
@@ -1306,10 +1368,13 @@
     const stateLabels = { inherited: '상속', patched: '수정', replaced: '교체', disabled: '꺼짐', only: '전용' };
     const editable = isEditableItem(authored);
     $('#selectedName').textContent = item.name;
-    $('#selectedTiming').textContent = `${item.timing.start.toFixed(2)}초 · ${item.type}`;
+    $('#selectedTiming').textContent = item.type === 'terrain-object'
+      ? `거리 ${item.timing.start.toFixed(0)} · 도착 ${formatTime(item.projectedTime || 0)}`
+      : `${item.timing.start.toFixed(2)}초 · ${item.type}`;
     let fields = '';
     if (editable) {
-      const durationReadonly = authored.type === 'wave' ? 'readonly' : '';
+      const durationReadonly = authored.type === 'wave' || authored.type === 'terrain-object' ? 'readonly' : '';
+      const terrainTiming = authored.type === 'terrain-object';
       fields = `
         <section class="difficulty-editor difficulty-${state}">
           <div class="difficulty-editor-heading">
@@ -1332,10 +1397,10 @@
         <form id="clipEditForm" class="inspector-form" data-item-id="${escapeHtml(authored.id)}">
           <label>클립 이름<input name="name" maxlength="80" value="${escapeHtml(formItem.name)}" required></label>
           <div class="form-row two">
-            <label>시작(초)<input name="start" type="number" min="0" max="${rawStage.timeline.duration}" step="0.001" value="${formItem.timing.start}" required></label>
+            <label>${terrainTiming ? '레이어 거리' : '시작(초)'}<input name="start" type="number" min="0" max="${terrainTiming ? 10000000 : rawStage.timeline.duration}" step="${terrainTiming ? 2 : 0.001}" value="${formItem.timing.start}" required></label>
             <label>길이(초)<input name="duration" type="number" min="0" max="${rawStage.timeline.duration}" step="0.001" value="${formItem.timing.duration}" ${durationReadonly} required></label>
           </div>
-          <div class="nudge-tools" aria-label="클립 시간 이동">
+          <div class="nudge-tools" aria-label="${terrainTiming ? '지형 거리 이동' : '클립 시간 이동'}">
             <button type="button" data-nudge="-1">−1초</button><button type="button" data-nudge="-0.1">−0.1</button>
             <button type="button" data-nudge="0.1">+0.1</button><button type="button" data-nudge="1">+1초</button>
           </div>
@@ -1422,6 +1487,7 @@
           ${formItem.type === 'environment' && formItem.payload?.pluginId === 'scroll-speed' ? `
             ${curveEditorMarkup(formItem)}
           ` : ''}
+          ${renderTerrainEditor(formItem)}
           ${renderGenericPluginEditor(formItem)}
           ${formItem.type === 'cue' && formItem.payload?.params ? `
             <label>표시 문구<input name="message" value="${escapeHtml(formItem.payload.params.message || '')}"></label>
@@ -1457,7 +1523,9 @@
     $('#inspectorBody').innerHTML = `
       <div class="inspector-grid">
         <div class="info-card"><small>종류</small><strong>${escapeHtml(item.type)}</strong></div>
-        <div class="info-card"><small>시간</small><strong>${item.timing.start.toFixed(2)}–${(item.timing.start + item.timing.duration).toFixed(2)}초</strong></div>
+        <div class="info-card"><small>${item.type === 'terrain-object' ? '거리' : '시간'}</small><strong>${item.type === 'terrain-object'
+          ? `${item.timing.start.toFixed(0)} · 도착 ${formatTime(item.projectedTime || 0)}`
+          : `${item.timing.start.toFixed(2)}–${(item.timing.start + item.timing.duration).toFixed(2)}초`}</strong></div>
         <div class="info-card"><small>난이도</small><strong>${escapeHtml(difficulty.name)} · ${stateLabels[state]}</strong></div>
         <div class="info-card"><small>컴파일 결과</small><strong>${resolved && resolved.enabled !== false ? escapeHtml(itemSummary(item)) : '이 난이도에서 꺼짐'}</strong></div>
       </div>
@@ -1658,6 +1726,155 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.restore();
     }
+  }
+
+  function drawTerrainObjects() {
+    for (const terrain of simulation?.terrainObjects || []) {
+      if (terrain.drawX < -80 || terrain.drawX > canvas.width + 80) continue;
+      const selected = terrain.itemId === selectedId;
+      if (!Sprites.draw(ctx, terrain.definition.spriteId, terrain.drawX, terrain.drawY, {
+        outline: selected ? '#ffffff' : undefined,
+        outlineAlpha: selected ? 0.95 : undefined,
+      })) {
+        ctx.save();
+        ctx.fillStyle = '#ffb56e';
+        ctx.fillRect(terrain.drawX - 16, terrain.drawY - 14, 32, 28);
+        ctx.restore();
+      }
+    }
+  }
+
+  function terrainSocketScreenPosition(socket) {
+    if (!terrainProfile || !simulation) return null;
+    const layer = StageLayerTransform.layerConfig(terrainProfile.binding.backgroundPresetId, terrainProfile.binding.layer);
+    const offset = StageLayerTransform.stripOffset(
+      simulation.scroll * (layer.scrollScale || 1), layer.speed,
+      StageLayerTransform.PIXEL_UNIT, terrainProfile.binding.width,
+    );
+    const nativeX = StageLayerTransform.positiveMod(socket.x - offset, terrainProfile.binding.width);
+    return {
+      x: nativeX * StageLayerTransform.PIXEL_UNIT,
+      y: (layer.baseline - terrainProfile.binding.height + socket.y) * StageLayerTransform.PIXEL_UNIT,
+    };
+  }
+
+  function drawTerrainReviewOverlay() {
+    if (!terrainReview || !terrainProfile || !simulation) return;
+    const layer = StageLayerTransform.layerConfig(terrainProfile.binding.backgroundPresetId, terrainProfile.binding.layer);
+    const unit = StageLayerTransform.PIXEL_UNIT;
+    const width = terrainProfile.binding.width;
+    const offset = StageLayerTransform.stripOffset(simulation.scroll * (layer.scrollScale || 1), layer.speed, unit, width);
+    const floor = terrainProfile.surfaces.floor.samples;
+    ctx.save();
+    ctx.strokeStyle = '#55f3ff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    let drawing = false;
+    for (let screenNativeX = 0; screenNativeX <= canvas.width / unit; screenNativeX += 2) {
+      const profileX = StageLayerTransform.positiveMod(offset + screenNativeX, width);
+      const sample = floor[profileX];
+      if (sample === null) { drawing = false; continue; }
+      const x = screenNativeX * unit;
+      const y = (layer.baseline - terrainProfile.binding.height + sample) * unit;
+      if (!drawing) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      drawing = true;
+    }
+    ctx.stroke();
+    for (const socket of terrainProfile.sockets) {
+      const point = terrainSocketScreenPosition(socket);
+      if (!point || point.x < -20 || point.x > canvas.width + 20) continue;
+      const selected = socket.id === selectedTerrainSocket;
+      ctx.fillStyle = socket.reviewStatus === 'approved' ? '#7dffd8' : '#ffd66e';
+      ctx.strokeStyle = selected ? '#ffffff' : '#07172d';
+      ctx.lineWidth = selected ? 4 : 2;
+      ctx.beginPath(); ctx.arc(point.x, point.y, selected ? 12 : 9, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function renderTerrainReviewInspector() {
+    if (!terrainProfile) return;
+    const socket = terrainProfile.sockets.find(entry => entry.id === selectedTerrainSocket);
+    $('#selectedName').textContent = socket ? '지형 소켓' : '지형 검토';
+    $('#selectedTiming').textContent = `${terrainProfile.binding.layer} · ${terrainProfile.review.status}`;
+    $('#inspectorBody').innerHTML = socket ? `
+      <section class="terrain-review-card">
+        <strong>${escapeHtml(socket.id)}</strong>
+        <p>${socket.surface} · X ${socket.x} · Y ${socket.y} · 점수 ${Number(socket.score).toFixed(2)}</p>
+        <p>${socket.source === 'manual' ? '수동 강제 소켓' : '자동 후보'} · ${socket.reviewStatus === 'approved' ? '승인됨' : '검토 대기'}</p>
+        <div class="terrain-review-actions">
+          <button type="button" data-terrain-review="approve">승인</button>
+          <button type="button" data-terrain-review="reject">제외</button>
+        </div>
+      </section>` : `
+      <section class="terrain-review-card">
+        <strong>${escapeHtml(terrainProfile.name)}</strong>
+        <p>청록 윤곽은 추출된 바닥입니다. 노란 점은 검토 대기, 초록 점은 승인 소켓입니다.</p>
+        <p>현재 ${terrainProfile.sockets.length}개 · 검토 대기 ${terrainProfile.sockets.filter(entry => entry.reviewStatus === 'pending').length}개</p>
+        <button type="button" data-terrain-review="force">${terrainForceMode ? '윤곽을 눌러 강제 소켓 추가' : '강제 소켓 추가'}</button>
+      </section>`;
+    $('#inspectorBody').querySelectorAll('[data-terrain-review]').forEach(button => button.addEventListener('click', () => {
+      const action = button.dataset.terrainReview;
+      if (action === 'force') {
+        terrainForceMode = !terrainForceMode;
+        renderTerrainReviewInspector();
+        return;
+      }
+      if (!socket) return;
+      if (action === 'approve') socket.reviewStatus = 'approved';
+      if (action === 'reject') {
+        terrainProfile.sockets = terrainProfile.sockets.filter(entry => entry.id !== socket.id);
+        selectedTerrainSocket = null;
+      }
+      terrainProfile.review.pendingSocketCount = terrainProfile.sockets.filter(entry => entry.reviewStatus === 'pending').length;
+      terrainProfile.review.status = terrainProfile.review.pendingSocketCount ? 'needs-review' : 'approved';
+      if (terrainProfile.review.status === 'approved') terrainProfile.review.reviewedAssetSha256 = terrainProfile.binding.assetSha256;
+      renderTerrainReviewInspector();
+      renderPreview();
+    }));
+    setInspectorOpen(true);
+  }
+
+  function handleTerrainReviewPointer(event) {
+    if (!terrainReview || !terrainProfile || event.button !== 0) return;
+    const pointer = pointerCanvasPosition(event);
+    let nearest = null;
+    let distance = Infinity;
+    for (const socket of terrainProfile.sockets) {
+      const position = terrainSocketScreenPosition(socket);
+      const candidate = position ? Math.hypot(pointer.x - position.x, pointer.y - position.y) : Infinity;
+      if (candidate < distance) { nearest = socket; distance = candidate; }
+    }
+    if (nearest && distance <= 24 * previewPixelScale()) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      selectedTerrainSocket = nearest.id;
+      terrainForceMode = false;
+      renderTerrainReviewInspector();
+      renderPreview();
+      return;
+    }
+    if (!terrainForceMode) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const layer = StageLayerTransform.layerConfig(terrainProfile.binding.backgroundPresetId, terrainProfile.binding.layer);
+    const unit = StageLayerTransform.PIXEL_UNIT;
+    const offset = StageLayerTransform.stripOffset(simulation.scroll * (layer.scrollScale || 1), layer.speed, unit, terrainProfile.binding.width);
+    const x = StageLayerTransform.positiveMod(offset + Math.round(pointer.x / unit), terrainProfile.binding.width);
+    const y = terrainProfile.surfaces.floor.samples[x];
+    if (!Number.isFinite(y)) { toast('이 위치에는 바닥 윤곽이 없습니다'); return; }
+    const id = `coral-turret-small-floor-x${String(x).padStart(5, '0')}-manual`;
+    terrainProfile.sockets = terrainProfile.sockets.filter(entry => entry.id !== id);
+    terrainProfile.sockets.push({
+      id, classId: 'coral-turret-small', surface: 'floor', x, y,
+      normal: { x: 0, y: -1 }, score: 1, source: 'manual', reviewStatus: 'approved',
+      tags: ['manual-review'], notes: 'Stage Sequencer에서 강제 추가',
+    });
+    terrainProfile.sockets.sort((left, right) => left.x - right.x || left.id.localeCompare(right.id));
+    selectedTerrainSocket = id;
+    terrainForceMode = false;
+    renderTerrainReviewInspector();
+    renderPreview();
   }
 
   function previewPixelScale() {
@@ -2004,16 +2221,20 @@
 
   function renderPreview() {
     drawFallbackBackground();
+    let drewBackground = false;
     if (simulation && typeof Backgrounds !== 'undefined') {
-      Backgrounds.draw(ctx, {
+      drewBackground = Backgrounds.draw(ctx, {
         stageIdx: previewStageIndex(),
         state: 'play',
         scroll: simulation.scroll,
         stageT: simulation.time,
         stormScale: simulation.pluginState?.stormScale || 0,
+        drawBeforeNear: drawTerrainObjects,
       });
     }
     if (!simulation) return;
+    if (!drewBackground) drawTerrainObjects();
+    drawTerrainReviewOverlay();
     drawSpeedLines();
     drawPluginBackdrop();
 
@@ -2297,6 +2518,7 @@
     updateUi(false);
   });
   $('#timeScrub').addEventListener('pointerdown', () => { playing = false; updatePlayButton(); });
+  canvas.addEventListener('pointerdown', handleTerrainReviewPointer);
   canvas.addEventListener('pointerdown', beginPathDrag);
   canvas.addEventListener('pointermove', movePathDrag);
   canvas.addEventListener('pointerup', endPathDrag);
@@ -2313,6 +2535,16 @@
   });
   $('#markRangeIn').addEventListener('click', () => markCustomRange('in'));
   $('#markRangeOut').addEventListener('click', () => markCustomRange('out'));
+  $('#terrainReviewToggle').addEventListener('click', event => {
+    terrainReview = !terrainReview;
+    event.currentTarget.classList.toggle('active', terrainReview);
+    event.currentTarget.setAttribute('aria-pressed', String(terrainReview));
+    selectedTerrainSocket = null;
+    terrainForceMode = false;
+    if (terrainReview) renderTerrainReviewInspector();
+    else selectItem(selectedId, false);
+    renderPreview();
+  });
   populateAddWaveLibrary();
   $('#addWave').addEventListener('click', () => {
     if (!simulation) return;

@@ -72,14 +72,9 @@ duration equals its phase total.
 
 ## Remaining pre-runtime requirements
 
-- Generate and validate `stage1-near-v1` from the foreground strip alpha mask.
-- Use `TERRAIN_PROFILE_V1.md` as the generation contract. Stage 1 should emit a
-  structural mask from its background build because visible alpha cannot
-  distinguish load-bearing reef from decorative coral.
-- Register `coral-turret` through the stage's `terrainObjects` dependency.
-- After profile review, replace the fixture's temporary direct `floor` anchors
-  with approved socket IDs. Until then the fixture validates data conversion,
-  not final visual attachment.
+- The Stage 1 structural mask, `stage1-near-v1` profile, explicit sockets, and
+  `coral-turret` registry entry are complete. Regeneration is deterministic and
+  stale source/override hashes fail validation.
 - Define parameter schemas for every registry v1 entry.
 - Expand the M1 Stage 3 registry into the production registry and add parameter
   schemas for every entry.
@@ -90,6 +85,5 @@ duration equals its phase total.
 ## Verdict
 
 Stage JSON v1 can represent the tested wave, terrain, obstacle, environment,
-gimmick, cue, hazard, and boss-start cases. The only unverified spatial portion
-is the coral turret's final Y alignment because the terrain profile generator
-has not been designed or implemented yet.
+gimmick, cue, hazard, and boss-start cases. Coral-turret X/Y attachment is now
+verified through reviewed sockets and the shared background-layer transform.

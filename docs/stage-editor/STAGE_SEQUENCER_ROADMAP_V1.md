@@ -1,7 +1,8 @@
 # Pixel Wave Stage Sequencer Roadmap v1
 
 Status: M1 complete; M2 core editing/difficulty/turtle slice complete; M3 wave
-authoring slice complete; M4 environment/special-system authoring complete.
+authoring slice complete; M4 environment/special-system authoring complete;
+M5 terrain review and terrain-object binding complete.
 The shared scroll-curve, plugin-channel, runtime-state, and snapshot foundation
 is complete. This
 document orders the existing Stage JSON, preset registry, barrage runtime, and
@@ -550,6 +551,23 @@ Acceptance:
 - conflicting exclusive state channels produce actionable validation.
 
 ### M5 — Terrain review and terrain objects
+
+Implemented:
+
+- deterministic bottom-connected structural mask and surface extraction for
+  the 1440×128 Stage 1 near strip;
+- placement-class support/depth/flatness/clearance scoring that does not accept
+  narrow coral tips, plus a reproducible override sidecar;
+- three explicitly reviewed coral-turret sockets and socket anchors in the
+  Stage 1 coverage fixture;
+- semantic profile/item validation and stale source/override hash checks;
+- one shared strip/terrain layer transform used by the background renderer and
+  terrain-object simulation;
+- distance-to-time projection, snapshot-safe placement, and scroll-speed parity
+  tests;
+- cyan contour/socket review overlay with approve, exclude, and force controls;
+- metadata-driven coral-turret inspector for approved socket, vertical offset,
+  HP, and fire interval.
 
 Scope:
 

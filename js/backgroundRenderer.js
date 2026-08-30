@@ -65,6 +65,7 @@ const Backgrounds = {
     this.drawStrip(ctx, Assets.image(ids.far), scroll, ...stage.far, u);
     this.drawMotes(ctx, game, u, stage.fx);
     this.drawStrip(ctx, Assets.image(ids.mid), scroll, ...stage.mid, u);
+    if (typeof game.drawBeforeNear === 'function') game.drawBeforeNear(ctx);
     this.drawStrip(ctx, Assets.image(ids.near), scroll, ...stage.near, u);
     if (stage.surface) this.drawStormSurface(ctx, game);
     ctx.restore();
@@ -122,7 +123,9 @@ const Backgrounds = {
 
   drawStrip(ctx, image, scroll, speed, baseline, opacity, u) {
     const stripWidth = image.width;
-    const offset = Math.floor(((scroll / u * speed) % stripWidth + stripWidth) % stripWidth);
+    const offset = typeof StageLayerTransform !== 'undefined'
+      ? StageLayerTransform.stripOffset(scroll, speed, u, stripWidth)
+      : Math.floor(((scroll / u * speed) % stripWidth + stripWidth) % stripWidth);
     const start = -offset;
     const y = baseline - image.height;
     const previousAlpha = ctx.globalAlpha;

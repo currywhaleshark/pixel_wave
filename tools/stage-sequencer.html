@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="스테이지 시퀀서">
   <base href="../">
-  <title>픽셀 파도 — 스테이지 시퀀서 M4</title>
+  <title>픽셀 파도 — 스테이지 시퀀서 M5</title>
   <link rel="manifest" href="tools/stage-sequencer-manifest.webmanifest">
   <link rel="icon" href="tools/barrage-icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="tools/stage-sequencer.css">
@@ -19,7 +19,7 @@
       <span class="brand-mark">≋</span>
       <div>
         <strong id="stageName">스테이지 시퀀서</strong>
-        <small>M4 · ENVIRONMENT EDITOR</small>
+        <small>M5 · TERRAIN REVIEW</small>
       </div>
     </div>
     <div class="top-actions">
@@ -75,6 +75,7 @@
       <section class="editor-toolbar panel" aria-label="스테이지 편집 도구">
         <div class="toolbar-group primary-tools">
           <button id="addWave" type="button">＋ 잡몹</button>
+          <button id="terrainReviewToggle" type="button" hidden>지형 검토</button>
           <button id="duplicateItem" type="button" disabled>복제</button>
           <button id="deleteItem" class="danger" type="button" disabled>삭제</button>
         </div>
@@ -188,7 +189,9 @@
   <script src="js/config.js?v=3"></script>
   <script src="js/assets.js?v=30"></script>
   <script src="js/spriteRenderer.js?v=3"></script>
-  <script src="js/backgroundRenderer.js?v=15"></script>
+  <script src="js/stage/layerTransform.js?v=1"></script>
+  <script src="js/stage/terrain.js?v=1"></script>
+  <script src="js/backgroundRenderer.js?v=16"></script>
   <script src="js/barragePatterns.generated.js?v=3"></script>
   <script src="js/barrage.js?v=3"></script>
   <script src="js/stage/random.js?v=1"></script>
@@ -204,6 +207,6 @@
   <script src="js/stage/simulation.js?v=2"></script>
   <script src="js/stage/document.js?v=2"></script>
   <script src="js/stage/persistence.js?v=1"></script>
-  <script src="tools/stage-sequencer.js?v=12"></script>
+  <script src="tools/stage-sequencer.js?v=13"></script>
 </body>
 </html>

@@ -11,6 +11,7 @@
   const BarrageApi = root.StageBarrage || (typeof require === 'function' ? require('./barrage.js') : null);
   const BudgetApi = root.StageBudget || (typeof require === 'function' ? require('./budget.js') : null);
   const PluginApi = root.StagePlugin || (typeof require === 'function' ? require('./plugin.js') : null);
+  const TerrainApi = root.StageTerrain || (typeof require === 'function' ? require('./terrain.js') : null);
   const { Random, hashString, mixSeed } = RandomApi;
   const EPS = 1e-9;
 
@@ -32,6 +33,7 @@
       this.itemById = new Map(compiled.items.map(item => [item.id, item]));
       this.budgetLimits = BudgetApi.normalizeLimits(options.budgetLimits);
       this.budgetAnalysis = null;
+      this.terrainProfile = options.terrainProfile || null;
       this.reset();
     }
 
@@ -53,11 +55,13 @@
       this.boss = null;
       this.warningUntil = 0;
       this.pluginState = PluginApi.initialRuntimeState();
+      this.terrainObjects = TerrainApi.resolveObjects(this.compiled.items, this.terrainProfile, this.scroll);
       this.spawnedEnemyCount = 0;
       this.firedBulletCount = 0;
       this.budgetTracker = new BudgetApi.Tracker(this.budgetLimits);
       this._processEventsAtCurrentTime();
       this.pluginState = PluginApi.evaluateRuntimeState(this.pluginState, this.activeItems, this.time, 0, this.compiled.viewport);
+      this.terrainObjects = TerrainApi.resolveObjects(this.compiled.items, this.terrainProfile, this.scroll);
       this.budgetTracker.observe(this.time, { enemies: this.enemies.length, projectiles: this.bullets.length });
       return this;
     }
@@ -436,6 +440,7 @@
       this.messages = this.messages.filter(message => message.until > toTime);
       if (this.boss) this.boss.age += dt;
       this.pluginState = PluginApi.evaluateRuntimeState(this.pluginState, this.activeItems, toTime, dt, this.compiled.viewport);
+      this.terrainObjects = TerrainApi.resolveObjects(this.compiled.items, this.terrainProfile, this.scroll);
     }
 
     _stepTo(targetTime) {
@@ -505,6 +510,7 @@
         boss: this.boss,
         warningUntil: this.warningUntil,
         pluginState: this.pluginState,
+        terrainObjects: this.terrainObjects,
         spawnedEnemyCount: this.spawnedEnemyCount,
         firedBulletCount: this.firedBulletCount,
         budget: this.budgetTracker.snapshot(),
@@ -535,6 +541,7 @@
       this.pluginState = state.pluginState || PluginApi.evaluateRuntimeState(
         PluginApi.initialRuntimeState(), this.activeItems, this.time, 0, this.compiled.viewport,
       );
+      this.terrainObjects = state.terrainObjects || TerrainApi.resolveObjects(this.compiled.items, this.terrainProfile, this.scroll);
       this.spawnedEnemyCount = state.spawnedEnemyCount;
       this.firedBulletCount = state.firedBulletCount;
       this.budgetTracker = new BudgetApi.Tracker(this.budgetLimits).restore(state.budget);
@@ -601,6 +608,7 @@
           ...this.pluginState.lightning.map(entry => [entry.itemId, entry.phase, round(entry.phaseProgress)]),
           ...this.pluginState.wrecks.map(entry => [entry.itemId, round(entry.x), round(entry.y)]),
         ],
+        terrain: this.terrainObjects.map(entry => [entry.itemId, round(entry.drawX), round(entry.drawY), entry.profileX]),
         random: this.random.snapshot(),
       };
       if (this.barrageRunners.size) {
@@ -623,6 +631,7 @@
         budget: this.budgetTracker.report(),
         budgetAnalysis: this.budgetAnalysis,
         pluginState: clone(this.pluginState),
+        terrainObjects: clone(this.terrainObjects),
         stateHash: this.stateHash(),
       };
     }

@@ -100,6 +100,8 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   const html = fs.readFileSync(path.join(root, 'tools/stage-sequencer.html'), 'utf8');
   const required = [
     'js/stage/random.js',
+    'js/stage/layerTransform.js',
+    'js/stage/terrain.js',
     'js/stage/entry.js',
     'js/stage/path.js',
     'js/stage/formation.js',
@@ -124,8 +126,8 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(html.indexOf('js/stage/budget.js') < html.indexOf('js/stage/simulation.js'));
   assert.ok(html.indexOf('js/stage/plugin.js') < html.indexOf('js/stage/compiler.js'));
   assert.ok(html.indexOf('js/stage/compiler.js') < html.indexOf('tools/stage-sequencer.js'));
-  assert.ok(html.includes('<title>픽셀 파도 — 스테이지 시퀀서 M4</title>'));
-  assert.ok(html.includes('M4 · ENVIRONMENT EDITOR'));
+  assert.ok(html.includes('<title>픽셀 파도 — 스테이지 시퀀서 M5</title>'));
+  assert.ok(html.includes('M5 · TERRAIN REVIEW'));
   assert.ok(html.includes('id="markRangeIn"'));
   assert.ok(html.includes('id="markRangeOut"'));
   assert.ok(html.includes('id="addWave"'));
@@ -133,7 +135,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(html.includes('id="importStageFile"'));
   assert.ok(html.includes('class="difficulty-legend"'));
   assert.ok(html.includes('id="activeDifficultyOnlyOption"'));
-  assert.ok(html.includes('tools/stage-sequencer.js?v=12'));
+  assert.ok(html.includes('tools/stage-sequencer.js?v=13'));
   const sequencer = fs.readFileSync(path.join(root, 'tools/stage-sequencer.js'), 'utf8');
   assert.ok(sequencer.includes('data-difficulty-action="disable"'));
   assert.ok(sequencer.includes("pluginId === 'turtle-ride'"));
@@ -160,6 +162,9 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(sequencer.includes('function renderChannelConflicts()'));
   assert.ok(sequencer.includes('function drawPluginBackdrop()'));
   assert.ok(sequencer.includes('function drawPluginForeground()'));
+  assert.ok(sequencer.includes('function drawTerrainReviewOverlay()'));
+  assert.ok(sequencer.includes('function handleTerrainReviewPointer(event)'));
+  assert.ok(sequencer.includes("stage1: 'docs/stage-editor/coverage-stage1-terrain.v1.draft.json'"));
   assert.ok(sequencer.includes('step="0.001" value="${formItem.timing.duration}"'));
   assert.ok(sequencer.includes("stage6: 'docs/stage-editor/coverage-stage6-storm.v1.draft.json'"));
   assert.ok(sequencer.includes('ensureWaveDependencies(candidate'));
@@ -175,7 +180,9 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(serviceWorker.includes('../js/stage/barrage.js'));
   assert.ok(serviceWorker.includes('../js/stage/budget.js'));
   assert.ok(serviceWorker.includes('../js/stage/plugin.js'));
-  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m4-v3'));
+  assert.ok(serviceWorker.includes('../js/stage/layerTransform.js'));
+  assert.ok(serviceWorker.includes('../js/stage/terrain.js'));
+  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m5-v1'));
   assert.ok(serviceWorker.includes('coverage-stage5-wreck.v1.draft.json'));
   assert.ok(serviceWorker.includes('assets/backgrounds/stage6-near-strip.png'));
 }
