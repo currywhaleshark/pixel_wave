@@ -133,7 +133,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(html.includes('id="importStageFile"'));
   assert.ok(html.includes('class="difficulty-legend"'));
   assert.ok(html.includes('id="activeDifficultyOnlyOption"'));
-  assert.ok(html.includes('tools/stage-sequencer.js?v=11'));
+  assert.ok(html.includes('tools/stage-sequencer.js?v=12'));
   const sequencer = fs.readFileSync(path.join(root, 'tools/stage-sequencer.js'), 'utf8');
   assert.ok(sequencer.includes('data-difficulty-action="disable"'));
   assert.ok(sequencer.includes("pluginId === 'turtle-ride'"));
@@ -158,6 +158,8 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(sequencer.includes("commitScopedItem(authored, next, '스크롤 곡선 점 추가')"));
   assert.ok(sequencer.includes('renderGenericPluginEditor(formItem)'));
   assert.ok(sequencer.includes('function renderChannelConflicts()'));
+  assert.ok(sequencer.includes('function drawPluginBackdrop()'));
+  assert.ok(sequencer.includes('function drawPluginForeground()'));
   assert.ok(sequencer.includes('step="0.001" value="${formItem.timing.duration}"'));
   assert.ok(sequencer.includes("stage6: 'docs/stage-editor/coverage-stage6-storm.v1.draft.json'"));
   assert.ok(sequencer.includes('ensureWaveDependencies(candidate'));
@@ -173,7 +175,9 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(serviceWorker.includes('../js/stage/barrage.js'));
   assert.ok(serviceWorker.includes('../js/stage/budget.js'));
   assert.ok(serviceWorker.includes('../js/stage/plugin.js'));
-  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m4-v2'));
+  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m4-v3'));
+  assert.ok(serviceWorker.includes('coverage-stage5-wreck.v1.draft.json'));
+  assert.ok(serviceWorker.includes('assets/backgrounds/stage6-near-strip.png'));
 }
 
 console.log('stage runtime: ok', results);

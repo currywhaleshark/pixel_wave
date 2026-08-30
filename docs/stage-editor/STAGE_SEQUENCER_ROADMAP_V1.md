@@ -1,8 +1,9 @@
 # Pixel Wave Stage Sequencer Roadmap v1
 
 Status: M1 complete; M2 core editing/difficulty/turtle slice complete; M3 wave
-authoring slice complete; M4 environment/special-system authoring is underway.
-The shared scroll-curve and plugin-channel foundation is complete. This
+authoring slice complete; M4 environment/special-system authoring complete.
+The shared scroll-curve, plugin-channel, runtime-state, and snapshot foundation
+is complete. This
 document orders the existing Stage JSON, preset registry, barrage runtime, and
 terrain-profile designs into usable vertical releases. It does not authorize
 changing current stage gameplay yet.
@@ -519,6 +520,17 @@ Implemented second slice:
 - composable versus exclusive state-channel declarations, deterministic overlap
   analysis, warning clips, and buttons that select and seek to both owners;
 - millisecond clip timing input for legacy obstacle durations such as 11.579s.
+
+Implemented final slice:
+
+- shared deterministic runtime state for scroll, darkness, storm current,
+  invulnerability, lightning, and wreck corridors;
+- snapshot/restore coverage inside active Stage 5 and Stage 6 plugin clips;
+- deterministic storm-surface animation driven by stage time;
+- canvas visualization for wreck geometry, current direction, lightning
+  telegraph/strike phases, and darkness;
+- background selection follows the fixture's stage preset instead of a fixed
+  Stage 3 preview.
 
 Scope:
 

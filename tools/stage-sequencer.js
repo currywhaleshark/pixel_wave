@@ -1568,6 +1568,98 @@
     ctx.restore();
   }
 
+  function previewStageIndex() {
+    const match = String(compiled?.background?.presetId || '').match(/stage(\d+)/i);
+    return match ? Math.max(0, Number(match[1]) - 1) : 2;
+  }
+
+  function drawPluginBackdrop() {
+    const state = simulation?.pluginState;
+    if (!state) return;
+    if (state.drawCurrentIndicator && (Math.abs(state.current.x) > 0.1 || Math.abs(state.current.y) > 0.1)) {
+      const speed = Math.hypot(state.current.x, state.current.y);
+      const length = Math.min(90, 24 + speed * 0.45);
+      const angle = Math.atan2(state.current.y, state.current.x);
+      const x = canvas.width - 78;
+      const y = 68;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(205,235,255,0.8)';
+      ctx.fillStyle = 'rgba(7,23,45,0.7)';
+      ctx.lineWidth = 3;
+      ctx.fillRect(x - 48, y - 25, 96, 50);
+      ctx.beginPath();
+      ctx.moveTo(x - Math.cos(angle) * length * 0.5, y - Math.sin(angle) * length * 0.5);
+      ctx.lineTo(x + Math.cos(angle) * length * 0.5, y + Math.sin(angle) * length * 0.5);
+      ctx.stroke();
+      ctx.translate(x + Math.cos(angle) * length * 0.5, y + Math.sin(angle) * length * 0.5);
+      ctx.rotate(angle);
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-12, -7); ctx.lineTo(-12, 7); ctx.closePath(); ctx.fillStyle = '#cdefff'; ctx.fill();
+      ctx.restore();
+    }
+    for (const bolt of state.lightning) {
+      if (bolt.phase !== 'telegraph') continue;
+      const pulse = 0.2 + 0.25 * Math.sin(simulation.time * 28) ** 2;
+      ctx.save();
+      ctx.fillStyle = `rgba(190,225,255,${pulse})`;
+      ctx.fillRect(bolt.x - bolt.width * 0.5, 0, bolt.width, canvas.height);
+      ctx.strokeStyle = 'rgba(230,245,255,0.9)';
+      ctx.setLineDash([12, 10]);
+      ctx.strokeRect(bolt.x - bolt.width * 0.5, 1, bolt.width, canvas.height - 2);
+      ctx.restore();
+    }
+    for (const wreck of state.wrecks) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(wreck.x - wreck.width * 0.5, wreck.y - wreck.height * 0.5, wreck.width, wreck.height);
+      ctx.clip();
+      let drewSprite = false;
+      for (let y = wreck.y - wreck.height * 0.5 + 16; y < wreck.y + wreck.height * 0.5 + 16; y += 32) {
+        drewSprite = Sprites.draw(ctx, 'enemy.wreck', wreck.x, y, { frame: Math.abs(hashCode(wreck.itemId)) % 4 }) || drewSprite;
+      }
+      if (!drewSprite) {
+        ctx.fillStyle = '#263d4b';
+        ctx.fillRect(wreck.x - wreck.width * 0.5, wreck.y - wreck.height * 0.5, wreck.width, wreck.height);
+        ctx.strokeStyle = '#65818a';
+        ctx.lineWidth = 4;
+        for (let y = wreck.y - wreck.height * 0.5; y < wreck.y + wreck.height * 0.5; y += 22) {
+          ctx.beginPath(); ctx.moveTo(wreck.x - wreck.width * 0.5, y); ctx.lineTo(wreck.x + wreck.width * 0.5, y + 8); ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+  }
+
+  function hashCode(value) {
+    let hash = 0;
+    for (const character of String(value || '')) hash = ((hash << 5) - hash + character.charCodeAt(0)) | 0;
+    return hash;
+  }
+
+  function drawPluginForeground() {
+    const state = simulation?.pluginState;
+    if (!state) return;
+    for (const bolt of state.lightning) {
+      if (bolt.phase !== 'strike') continue;
+      const alpha = Math.max(0.15, 1 - bolt.phaseProgress);
+      ctx.save();
+      ctx.fillStyle = `rgba(225,245,255,${0.42 * alpha})`;
+      ctx.fillRect(bolt.x - bolt.width * 0.5, 0, bolt.width, canvas.height);
+      ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+      ctx.lineWidth = Math.max(5, bolt.width * 0.22);
+      ctx.beginPath();
+      ctx.moveTo(bolt.x, 0);
+      for (let y = 0; y <= canvas.height; y += 36) ctx.lineTo(bolt.x + Math.sin(y * 0.13 + simulation.time * 47) * bolt.width * 0.18, y);
+      ctx.stroke();
+      ctx.restore();
+    }
+    if (state.darkness > 0.001) {
+      ctx.save();
+      ctx.fillStyle = `rgba(1,8,18,${Math.max(0, Math.min(0.9, state.darkness))})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
+    }
+  }
+
   function previewPixelScale() {
     const rect = canvas.getBoundingClientRect();
     return rect.width > 0 ? canvas.width / rect.width : 1;
@@ -1914,15 +2006,16 @@
     drawFallbackBackground();
     if (simulation && typeof Backgrounds !== 'undefined') {
       Backgrounds.draw(ctx, {
-        stageIdx: 2,
+        stageIdx: previewStageIndex(),
         state: 'play',
         scroll: simulation.scroll,
         stageT: simulation.time,
-        stormScale: 1,
+        stormScale: simulation.pluginState?.stormScale || 0,
       });
     }
     if (!simulation) return;
     drawSpeedLines();
+    drawPluginBackdrop();
 
     for (const pearl of simulation.pearls) {
       if (!Sprites.draw(ctx, 'pearl.small', pearl.x, pearl.y, { t: pearl.age })) {
@@ -1967,6 +2060,7 @@
     }
     drawFormationOverlay();
     drawPathOverlay();
+    drawPluginForeground();
 
     if (simulation.warningUntil > simulation.time) {
       const flash = 0.7 + Math.sin(simulation.time * 10) * 0.3;

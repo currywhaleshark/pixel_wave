@@ -128,4 +128,34 @@ const coverage6 = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/
   assert.equal(simulation.stateHash(), hash, '활성 곡선 안 seek 복원은 전체 재생과 같아야 한다');
 }
 
+{
+  const simulation = new Simulation(StageCompiler.compile(coverage5, { difficulty: 'normal' }));
+  simulation.buildSnapshotCache();
+  simulation.seek(8.5);
+  assert.ok(simulation.pluginState.darkness > 0.29 && simulation.pluginState.darkness <= 0.3);
+  assert.equal(simulation.pluginState.wrecks.length, 1);
+  assert.equal(simulation.pluginState.wrecks[0].side, 'bottom');
+  assert.ok(Math.abs(simulation.pluginState.wrecks[0].x - 949.5) < 1e-6);
+  const activeHash = simulation.stateHash();
+  simulation.seek(37);
+  simulation.seek(8.5);
+  assert.equal(simulation.stateHash(), activeHash, '난파선 내부 seek가 동일한 플러그인 상태를 복원해야 한다');
+}
+
+{
+  const simulation = new Simulation(StageCompiler.compile(coverage6, { difficulty: 'hard' }));
+  simulation.buildSnapshotCache();
+  simulation.seek(19.75);
+  assert.equal(simulation.pluginState.lightning[0].phase, 'telegraph');
+  assert.ok(Math.abs(simulation.pluginState.current.x) > 1);
+  assert.equal(simulation.pluginState.stormScale, 1);
+  simulation.seek(20.55);
+  assert.equal(simulation.pluginState.lightning[0].phase, 'strike');
+  const strikeSnapshot = simulation.createSnapshot();
+  const strikeHash = simulation.stateHash();
+  simulation.seek(60);
+  simulation.restore(strikeSnapshot);
+  assert.equal(simulation.stateHash(), strikeHash, '번개 타격 상태 snapshot/restore가 정확해야 한다');
+}
+
 console.log('stage plugin: ok');

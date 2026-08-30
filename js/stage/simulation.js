@@ -52,10 +52,12 @@
       this.ride = null;
       this.boss = null;
       this.warningUntil = 0;
+      this.pluginState = PluginApi.initialRuntimeState();
       this.spawnedEnemyCount = 0;
       this.firedBulletCount = 0;
       this.budgetTracker = new BudgetApi.Tracker(this.budgetLimits);
       this._processEventsAtCurrentTime();
+      this.pluginState = PluginApi.evaluateRuntimeState(this.pluginState, this.activeItems, this.time, 0, this.compiled.viewport);
       this.budgetTracker.observe(this.time, { enemies: this.enemies.length, projectiles: this.bullets.length });
       return this;
     }
@@ -386,7 +388,13 @@
 
     _updateState(dt, fromTime, toTime) {
       const middle = fromTime + dt * 0.5;
-      this.scroll += (this.compiled.background.baseScrollSpeed || 0) * this._scrollMultiplier(middle) * dt;
+      const midpointPluginState = PluginApi.evaluateRuntimeState(this.pluginState, this.activeItems, middle, 0, this.compiled.viewport);
+      this.scroll += (this.compiled.background.baseScrollSpeed || 0) * midpointPluginState.scrollMultiplier * dt;
+      this.player.x += midpointPluginState.current.x * midpointPluginState.influence.player.x * dt;
+      this.player.y += midpointPluginState.current.y * midpointPluginState.influence.player.y * dt;
+      this.player.x = Math.max(0, Math.min(this.compiled.viewport.width, this.player.x));
+      this.player.y = Math.max(0, Math.min(this.compiled.viewport.height, this.player.y));
+      this.player.invulnerable = midpointPluginState.playerInvulnerable;
       this._updateRide(toTime);
       for (const enemy of this.enemies) this._updateEnemy(enemy, dt);
       const { width, height } = this.compiled.viewport;
@@ -395,6 +403,8 @@
       for (const id of this.barrageRunners.keys()) if (!liveEnemyIds.has(id)) this.barrageRunners.delete(id);
       const spawnedProjectiles = [];
       for (const bullet of this.bullets) {
+        bullet.x += midpointPluginState.current.x * midpointPluginState.influence.enemyProjectile.x * dt;
+        bullet.y += midpointPluginState.current.y * midpointPluginState.influence.enemyProjectile.y * dt;
         if (bullet.barrage) {
           BarrageApi.Runtime.updateProjectile(bullet, dt, {
             target: this.player,
@@ -425,6 +435,7 @@
       this.pearls = this.pearls.filter(pearl => pearl.age < pearl.life && pearl.x > -40 && pearl.x < width + 100);
       this.messages = this.messages.filter(message => message.until > toTime);
       if (this.boss) this.boss.age += dt;
+      this.pluginState = PluginApi.evaluateRuntimeState(this.pluginState, this.activeItems, toTime, dt, this.compiled.viewport);
     }
 
     _stepTo(targetTime) {
@@ -493,6 +504,7 @@
         ride: this.ride,
         boss: this.boss,
         warningUntil: this.warningUntil,
+        pluginState: this.pluginState,
         spawnedEnemyCount: this.spawnedEnemyCount,
         firedBulletCount: this.firedBulletCount,
         budget: this.budgetTracker.snapshot(),
@@ -520,6 +532,9 @@
       this.ride = state.ride;
       this.boss = state.boss;
       this.warningUntil = state.warningUntil;
+      this.pluginState = state.pluginState || PluginApi.evaluateRuntimeState(
+        PluginApi.initialRuntimeState(), this.activeItems, this.time, 0, this.compiled.viewport,
+      );
       this.spawnedEnemyCount = state.spawnedEnemyCount;
       this.firedBulletCount = state.firedBulletCount;
       this.budgetTracker = new BudgetApi.Tracker(this.budgetLimits).restore(state.budget);
@@ -580,6 +595,12 @@
         activeItems: [...this.activeItems.keys()].sort(),
         ride: this.ride ? [round(this.ride.nextTrail), round(this.ride.nextRing)] : null,
         boss: this.boss ? [this.boss.id, round(this.boss.x), round(this.boss.y)] : null,
+        plugin: [
+          round(this.pluginState.darkness), round(this.pluginState.stormScale),
+          round(this.pluginState.current.x), round(this.pluginState.current.y),
+          ...this.pluginState.lightning.map(entry => [entry.itemId, entry.phase, round(entry.phaseProgress)]),
+          ...this.pluginState.wrecks.map(entry => [entry.itemId, round(entry.x), round(entry.y)]),
+        ],
         random: this.random.snapshot(),
       };
       if (this.barrageRunners.size) {
@@ -601,6 +622,7 @@
         firedBulletCount: this.firedBulletCount,
         budget: this.budgetTracker.report(),
         budgetAnalysis: this.budgetAnalysis,
+        pluginState: clone(this.pluginState),
         stateHash: this.stateHash(),
       };
     }

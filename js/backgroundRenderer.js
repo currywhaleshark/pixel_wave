@@ -72,7 +72,7 @@ const Backgrounds = {
   },
 
   drawStormSurface(ctx, game) {
-    const t = performance.now() / 1000;
+    const t = Number.isFinite(game.stageT) ? game.stageT : performance.now() / 1000;
     for (let layer = 0; layer < 2; layer++) {
       const base = 26 + layer * 16;
       const amp = (14 - layer * 5) * game.stormScale;

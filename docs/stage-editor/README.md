@@ -1,7 +1,8 @@
 # Pixel Wave Stage Sequencer design index
 
-The Stage Sequencer contract now has a complete M3 wave-authoring slice, and
-M4 environment authoring is underway with editable scroll-speed curves. The
+The Stage Sequencer contract now has complete M3 wave authoring and M4
+environment authoring, including editable scroll-speed curves, shared plugin
+simulation, and deterministic special-system seeking. The
 current game runtime has not been replaced; the editor remains isolated under
 `tools/` until preview parity is proven.
 
@@ -118,5 +119,6 @@ normalization, validation, and sampling. The runtime and the direct-manipulation
 curve inspector now use that one implementation. The second M4 slice registers darkness,
 storm current, wreck corridor, and lightning fields, validates the Stage 5/6
 fixtures without changing their payloads, and adds actionable exclusive-channel
-conflict warnings. Their runtime behavior and canvas visualization are the next
-slice.
+conflict warnings. The final M4 slice runs those plugins through one deterministic
+runtime state, snapshots darkness/current/hazards, and renders Stage 5 wrecks plus
+Stage 6 current, telegraph, and strike states in the preview.

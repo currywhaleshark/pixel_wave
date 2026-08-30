@@ -1,4 +1,4 @@
-const CACHE = 'pixel-wave-stage-sequencer-m4-v2';
+const CACHE = 'pixel-wave-stage-sequencer-m4-v3';
 const SHELL = [
   './stage-sequencer.html',
   './stage-sequencer.css',
@@ -25,6 +25,8 @@ const SHELL = [
   '../js/stage/document.js',
   '../js/stage/persistence.js',
   '../docs/stage-editor/stage3.v1.draft.json',
+  '../docs/stage-editor/coverage-stage5-wreck.v1.draft.json',
+  '../docs/stage-editor/coverage-stage6-storm.v1.draft.json',
   '../assets/fonts/Galmuri11.woff2',
   '../assets/sprites.png',
   '../assets/bosses.png',
@@ -32,6 +34,14 @@ const SHELL = [
   '../assets/backgrounds/stage3-far-strip.png',
   '../assets/backgrounds/stage3-mid-strip.png',
   '../assets/backgrounds/stage3-near-strip.png',
+  '../assets/backgrounds/stage5-sea-strip.png',
+  '../assets/backgrounds/stage5-far-strip.png',
+  '../assets/backgrounds/stage5-mid-strip.png',
+  '../assets/backgrounds/stage5-near-strip.png',
+  '../assets/backgrounds/stage6-sea-strip.png',
+  '../assets/backgrounds/stage6-far-strip.png',
+  '../assets/backgrounds/stage6-mid-strip.png',
+  '../assets/backgrounds/stage6-near-strip.png',
 ];
 
 self.addEventListener('install', event => {

@@ -279,6 +279,101 @@
     return conflicts.sort((a, b) => (a.start - b.start) || a.channelId.localeCompare(b.channelId) || a.itemIds.join().localeCompare(b.itemIds.join()));
   }
 
+  function initialRuntimeState() {
+    return {
+      scrollMultiplier: 1,
+      darkness: 0,
+      darknessTarget: 0,
+      stormScale: 0,
+      current: { x: 0, y: 0 },
+      influence: {
+        player: { x: 0, y: 0 },
+        pointerTarget: { x: 0, y: 0 },
+        enemyProjectile: { x: 0, y: 0 },
+        currentSurfEnemy: { x: 0, y: 0 },
+      },
+      drawSurfaceWaves: false,
+      drawCurrentIndicator: false,
+      surfaceBoundaryY: 0,
+      playerInvulnerable: false,
+      lightning: [],
+      wrecks: [],
+    };
+  }
+
+  function activeValues(activeItems) {
+    if (activeItems instanceof Map) return [...activeItems.entries()].map(([itemId, value]) => ({ itemId, ...value }));
+    return Array.isArray(activeItems) ? activeItems : [];
+  }
+
+  function addInfluence(target, source, scale = 1) {
+    for (const key of Object.keys(target)) {
+      target[key].x += finite(source?.[key]?.x) * scale;
+      target[key].y += finite(source?.[key]?.y) * scale;
+    }
+  }
+
+  function evaluateRuntimeState(previous, activeItems, at, dt, viewport = { width: 960, height: 540 }) {
+    const state = initialRuntimeState();
+    const before = previous || state;
+    let darknessRate = 1.2;
+    for (const active of activeValues(activeItems)) {
+      const pluginId = active.payload?.pluginId;
+      const params = active.payload?.params || {};
+      const localTime = Math.max(0, finite(at) - finite(active.start));
+      if (pluginId === 'scroll-speed') {
+        state.scrollMultiplier *= sampleCurve(params.curve, localTime);
+      } else if (pluginId === 'darkness') {
+        if (finite(params.target) >= state.darknessTarget) {
+          state.darknessTarget = finite(params.target);
+          darknessRate = Math.max(0, finite(params.responseRate));
+        }
+      } else if (pluginId === 'storm-current') {
+        const scale = Math.max(0, finite(params.scale));
+        state.stormScale = Math.max(state.stormScale, scale);
+        state.current.x += Math.sin(finite(at) * finite(params.current?.xAngularFrequency)) * finite(params.current?.xAmplitude) * scale;
+        state.current.y += Math.sin(finite(at) * finite(params.current?.yAngularFrequency)) * finite(params.current?.yAmplitude) * scale;
+        addInfluence(state.influence, params.influence, scale);
+        state.drawSurfaceWaves ||= params.drawSurfaceWaves === true;
+        state.drawCurrentIndicator ||= params.drawCurrentIndicator === true;
+        state.surfaceBoundaryY = Math.max(state.surfaceBoundaryY, finite(params.surfaceBoundaryY));
+      } else if (pluginId === 'turtle-ride') {
+        state.scrollMultiplier *= Number(params.scrollMultiplier) || 1;
+        state.playerInvulnerable ||= params.playerInvulnerable === true;
+      } else if (pluginId === 'lightning-strike') {
+        const telegraphDuration = Math.max(0, finite(params.telegraphDuration));
+        const strikeDuration = Math.max(0, finite(params.strikeDuration));
+        state.lightning.push({
+          itemId: active.itemId,
+          x: finite(params.xRatio) * viewport.width,
+          width: Math.max(1, finite(params.width)),
+          localTime,
+          phase: localTime < telegraphDuration ? 'telegraph' : localTime < telegraphDuration + strikeDuration ? 'strike' : 'done',
+          phaseProgress: localTime < telegraphDuration
+            ? localTime / Math.max(telegraphDuration, EPS)
+            : (localTime - telegraphDuration) / Math.max(strikeDuration, EPS),
+        });
+      } else if (pluginId === 'wreck-corridor') {
+        const width = Math.max(1, finite(params.width));
+        const height = Math.max(1, finite(params.heightFraction) * viewport.height);
+        state.wrecks.push({
+          itemId: active.itemId,
+          side: params.side === 'top' ? 'top' : 'bottom',
+          x: viewport.width + width * 0.5 - Math.max(0, finite(params.speed)) * localTime,
+          y: params.side === 'top' ? height * 0.5 : viewport.height - height * 0.5,
+          width,
+          height,
+          indestructible: params.indestructible === true,
+        });
+      }
+    }
+    const delta = Math.max(0, finite(dt));
+    state.darkness = before.darkness + (state.darknessTarget - before.darkness) * Math.min(1, delta * darknessRate);
+    state.scrollMultiplier = clamp(state.scrollMultiplier, 0, 5);
+    state.lightning = state.lightning.filter(entry => entry.phase !== 'done');
+    return state;
+  }
+
   const api = Object.freeze({
     CURVE_MIN,
     CURVE_MAX,
@@ -290,6 +385,8 @@
     coerceField,
     clone,
     findChannelConflicts,
+    initialRuntimeState,
+    evaluateRuntimeState,
     sampleCurve,
     normalizeCurve,
     validateCurve,
