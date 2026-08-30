@@ -1,0 +1,59 @@
+'use strict';
+
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+
+const root = path.resolve(__dirname, '..');
+require('../js/stages.generated.js');
+const Adapter = require('../js/stage/gameAdapter.js');
+
+const wavesSource = fs.readFileSync(path.join(root, 'js/waves.js'), 'utf8');
+const context = vm.createContext({ console, Math });
+for (const boss of ['Boss', 'BossMongsil', 'BossSsing', 'BossChorong', 'BossBuu', 'BossUreu', 'BossHwii']) context[boss] = function BossStub() {};
+vm.runInContext(`${wavesSource}\nglobalThis.__stage3Timeline = STAGE3_TIMELINE;`, context);
+const legacy = context.__stage3Timeline;
+
+const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+assert.ok(indexHtml.includes('js/stages.generated.js?v=1'));
+assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=1'));
+assert.ok(indexHtml.indexOf('js/stage/compiler.js') < indexHtml.indexOf('js/stage/gameAdapter.js'));
+const mainSource = fs.readFileSync(path.join(root, 'js/main.js'), 'utf8');
+assert.ok(mainSource.includes("stageTestParams.get('stageRuntime') === 'data'"));
+assert.ok(mainSource.includes("this.stageRuntimeMode = dataSpawner ? 'data' : 'legacy'"));
+
+assert.equal(Adapter.CONFIG.defaultMode, 'legacy');
+assert.equal(Adapter.requestedMode('?debug&stageRuntime=data'), 'data');
+assert.equal(Adapter.requestedMode('?stageRuntime=data'), 'legacy', 'debug 없는 프로덕션 URL은 데이터 런타임을 켜면 안 된다');
+
+for (let difficulty = 0; difficulty < 3; difficulty++) {
+  const report = Adapter.parityReport('stage3', legacy, difficulty);
+  assert.deepEqual(report.errors, [], `${report.summary.difficulty}: ${report.errors.join(' / ')}`);
+  assert.equal(report.summary.waves, 37);
+  assert.equal(report.summary.enemies, 207);
+  assert.equal(report.summary.warningAt, 116);
+  assert.equal(report.summary.bossAt, 120);
+}
+
+global.Enemy = class EnemyStub { constructor(spec) { Object.assign(this, spec); } };
+const fakeGame = {
+  enemies: [], groups: {}, rideStarts: [], warningCount: 0, bossCount: 0, paused: false,
+  startRide(duration) { this.rideStarts.push(duration); },
+  startBossWarning() { this.warningCount++; },
+  startBoss() { this.bossCount++; },
+  message() {},
+};
+const spawner = Adapter.createSpawner('stage3', 0, fakeGame, legacy, '?debug&stageRuntime=data&stageRange=35,57');
+assert.ok(spawner);
+assert.equal(spawner.parity.ok, true);
+spawner.seekRange(35);
+spawner.update(35);
+assert.deepEqual(fakeGame.rideStarts, [22]);
+spawner.update(37);
+assert.ok(fakeGame.enemies.length > 0);
+spawner.update(57);
+assert.equal(fakeGame.paused, true);
+
+delete global.Enemy;
+console.log('stage game adapter: ok');

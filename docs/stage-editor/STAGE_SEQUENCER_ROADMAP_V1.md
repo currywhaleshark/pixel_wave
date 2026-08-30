@@ -2,7 +2,8 @@
 
 Status: M1 complete; M2 core editing/difficulty/turtle slice complete; M3 wave
 authoring slice complete; M4 environment/special-system authoring complete;
-M5 terrain review and terrain-object binding complete.
+M5 terrain review and terrain-object binding complete; M6 opt-in production
+integration and parity bridge complete.
 The shared scroll-curve, plugin-channel, runtime-state, and snapshot foundation
 is complete. This
 document orders the existing Stage JSON, preset registry, barrage runtime, and
@@ -587,6 +588,19 @@ Acceptance:
 - overrides survive regeneration or fail with explicit orphan reports.
 
 ### M6 — Production game integration
+
+Implemented:
+
+- stable build from the Stage 3 authored JSON into `data/stages/` and a browser
+  registry;
+- opt-in adapter from compiled spawn/special events to existing `Enemy`, ride,
+  warning, and boss entry behavior;
+- debug-only `stageRuntime=data` selection with legacy as the immutable default;
+- side-by-side ordered wave timing/count, ride, warning, and boss parity checks
+  for all three difficulties;
+- full-stage and selected-range browser test URLs, linked from the Sequencer;
+- data-runtime/parity status in the game debug HUD;
+- one-parameter rollback with no data migration.
 
 Scope:
 

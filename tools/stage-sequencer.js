@@ -254,6 +254,18 @@
     }, 500);
   }
 
+  function updateGameTestLink() {
+    const link = $('#gameTestLink');
+    if (!link || !rawStage || rawStage.id !== 'stage3') {
+      if (link) link.href = 'index.html?debug';
+      return;
+    }
+    const params = new URLSearchParams({ debug: '', stageRuntime: 'data', stage: 'stage3' });
+    params.set('diff', String(DIFFICULTY_IDS.indexOf(activeDifficulty().id)));
+    if (range.id !== 'full') params.set('stageRange', `${range.start},${range.end}`);
+    link.href = `index.html?${params.toString()}`;
+  }
+
   function refreshBudgetReport() {
     if (!simulation || !compiled) return;
     const fullRange = range.start <= 0 && range.end >= compiled.timeline.duration;
@@ -271,6 +283,7 @@
     const snapshotCount = simulation.buildSnapshotCache();
     simulation.seek(Math.min(preserveTime, compiled.timeline.duration));
     refreshBudgetReport();
+    updateGameTestLink();
     setStatus(channelConflicts.length
       ? `채널 충돌 ${channelConflicts.length} · 스냅샷 ${snapshotCount}`
       : `검증 완료 · 스냅샷 ${snapshotCount}`, channelConflicts.length ? 'warning' : '');
@@ -353,6 +366,7 @@
     range = { id: section.id, name: section.name, start: section.start, end: section.end };
     simulation.seek(range.start);
     refreshBudgetReport();
+    updateGameTestLink();
     renderSectionButtons();
     updateUi(true);
   }
@@ -372,6 +386,7 @@
     }
     range = { id: 'custom', name: '사용자 구간', start, end };
     refreshBudgetReport();
+    updateGameTestLink();
     renderSectionButtons();
     updateUi(false);
   }

@@ -64,6 +64,10 @@ current game runtime has not been replaced; the editor remains isolated under
     to see the cyan structural contour and reviewed sockets. Terrain clips are
     projected from absolute layer distance onto the timeline; their inspector
     selects approved sockets and edits offset, HP, and fire interval.
+15. On Stage 3, `게임 시험` opens the current difficulty and selected range in
+    the opt-in production bridge. The equivalent full-stage URL is
+    `index.html?debug&stageRuntime=data&stage=stage3&diff=0`. Removing
+    `stageRuntime=data` always restores the legacy runtime.
 
 The simulator uses deterministic fixed steps and 5-second snapshots. The shared
 `js/stage/path.js` module normalizes, validates, and samples custom paths,
@@ -130,3 +134,7 @@ M5 adds a deterministic Stage 1 structural-mask generator, checked-in approved
 profile and override sidecar, shared layer transform, terrain semantic lint,
 review overlay, explicit coral-turret sockets, distance-to-time projection, and
 snapshot-safe terrain rendering.
+M6 adds the production `data/stages/stage3.v1.json`, generated browser registry,
+opt-in game adapter, three-difficulty legacy/data parity diagnostics, and a
+full/selected-range game test bridge. Production URLs remain on the legacy
+Spawner by default.

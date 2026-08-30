@@ -165,7 +165,16 @@ const Game = {
     this.bolts = [];
     this.flashT = 0;
     this.D = DIFFS[this.diff];
-    this.spawner = new Spawner(stage.timeline, this);
+    const dataSpawner = typeof StageGameAdapter !== 'undefined'
+      ? StageGameAdapter.createSpawner(stage.id, this.diff, this, stage.timeline, location.search)
+      : null;
+    this.spawner = dataSpawner || new Spawner(stage.timeline, this);
+    this.stageRuntimeMode = dataSpawner ? 'data' : 'legacy';
+    this.stageParity = dataSpawner?.parity || null;
+    if (dataSpawner?.range) {
+      this.stageT = dataSpawner.range.start;
+      dataSpawner.seekRange(this.stageT);
+    }
     this.state = 'play';
     this.message(`스테이지 ${this.stageIdx + 1} — ${stage.name}`, '#a8ffcf');
     if (this.diff > 0) this.message(`[${this.D.name}]`, this.D.color);
@@ -1733,10 +1742,14 @@ const Game = {
         `적 ${this.enemies.length} 탄 ${this.ebullets.length} 진주 ${this.pearls.length} · ` +
         `t ${this.stageT.toFixed(0)}s 보스 ${bossT}s · 피격 ${rl.hitsTaken || 0} 격침 ${this.stats.deaths}`,
         CFG.W - 56, 50);
+      if (this.stageRuntimeMode === 'data') {
+        ctx.fillStyle = this.stageParity?.ok ? '#7dffd8' : '#ff8f8f';
+        ctx.fillText(`STAGE DATA · parity ${this.stageParity?.ok ? 'OK' : `${this.stageParity?.errors?.length || 0} issue`}`, CFG.W - 56, 66);
+      }
     }
     // 스코어 (우상단): 현재 점수 · 배율 · 해역 최고
     {
-      const sy = this.debug ? 66 : 34;
+      const sy = this.debug ? (this.stageRuntimeMode === 'data' ? 82 : 66) : 34;
       ctx.textAlign = 'right';
       ctx.fillStyle = '#fff';
       ctx.font = Fonts.f(15, true);
@@ -1971,6 +1984,16 @@ if (Game.debug && Game.barragePatternId) {
   Game.stageT = Game.spawner.timeline.at(-1)?.t ?? 0;
   Game.boss = STAGES[0].boss(Game);
   Game.message(`[탄막 시험] ${Game.barragePatternId}`, '#ff8fd8');
+}
+
+// 데이터 기반 Stage 3 전체/구간 테스트 브리지. 프로덕션 기본은 언제나 legacy다.
+if (Game.debug && !Game.barragePatternId) {
+  const stageTestParams = new URLSearchParams(location.search);
+  if (stageTestParams.get('stageRuntime') === 'data' && stageTestParams.get('stage') === 'stage3') {
+    const testDifficulty = Math.max(0, Math.min(2, Number(stageTestParams.get('diff')) || 0));
+    Game.launchStage(2, testDifficulty);
+    Game.message(`[DATA TEST] Stage 3 · ${Game.spawner.range ? '선택 구간' : '전체'}`, '#7dffd8');
+  }
 }
 
 // ---- 메인 루프 ----
