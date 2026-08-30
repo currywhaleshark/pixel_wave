@@ -1,0 +1,219 @@
+{
+  "format": "pixel-wave-stage",
+  "schemaVersion": 1,
+  "registryVersion": 1,
+  "draft": true,
+  "id": "stage6-storm-coverage",
+  "name": "폭풍 수면 — 폭풍과 번개 검증",
+  "seed": 6006,
+  "timeline": {
+    "duration": 115,
+    "endBehavior": "boss-start"
+  },
+  "viewport": {
+    "width": 960,
+    "height": 540
+  },
+  "background": {
+    "presetId": "stage6",
+    "baseScrollSpeed": 45,
+    "scrollScale": 1
+  },
+  "difficultyProfileId": "legacy-diffs-v1",
+  "sections": [
+    { "id": "coverage", "name": "폭풍 검증", "start": 0, "end": 115 }
+  ],
+  "dependencies": {
+    "enemyKinds": [],
+    "entryPresets": [],
+    "formationPresets": [],
+    "movementPresets": [],
+    "weaponPresets": [],
+    "barragePatterns": [],
+    "itemPlugins": ["scroll-speed", "storm-current", "lightning-strike", "boss-warning", "boss-start"],
+    "terrainObjects": [],
+    "terrainProfiles": [],
+    "bosses": ["ureu"]
+  },
+  "items": [
+    {
+      "id": "s6-scroll-base",
+      "type": "environment",
+      "name": "기본 스크롤",
+      "timing": { "domain": "time", "start": 0, "duration": 115 },
+      "payload": {
+        "pluginId": "scroll-speed",
+        "params": {
+          "curve": [
+            { "at": 0, "value": 1 },
+            { "at": 115, "value": 1 }
+          ]
+        }
+      }
+    },
+    {
+      "id": "s6-storm",
+      "type": "environment",
+      "name": "폭풍 해류",
+      "timing": { "domain": "time", "start": 0, "duration": 115 },
+      "payload": {
+        "pluginId": "storm-current",
+        "params": {
+          "scale": 1,
+          "surfaceBoundaryY": 58,
+          "drawSurfaceWaves": true,
+          "drawCurrentIndicator": true,
+          "current": {
+            "xAmplitude": 70,
+            "xAngularFrequency": 0.45,
+            "yAmplitude": 26,
+            "yAngularFrequency": 0.85
+          },
+          "influence": {
+            "player": { "x": 1, "y": 1 },
+            "pointerTarget": { "x": 0.6, "y": 0.6 },
+            "enemyProjectile": { "x": 0.75, "y": 0.6 },
+            "currentSurfEnemy": { "x": 1.4, "y": 0.6 }
+          }
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-01",
+      "type": "hazard",
+      "name": "첫 번개",
+      "timing": { "domain": "time", "start": 19.5, "duration": 1.3 },
+      "payload": { "pluginId": "lightning-strike", "params": { "xRatio": 0.42, "width": 46, "telegraphDuration": 0.9, "strikeDuration": 0.4 } }
+    },
+    {
+      "id": "s6-bolt-02",
+      "type": "hazard",
+      "name": "두 번째 번개",
+      "timing": { "domain": "time", "start": 24, "duration": 1.3 },
+      "payload": { "pluginId": "lightning-strike", "params": { "xRatio": 0.62, "width": 46, "telegraphDuration": 0.9, "strikeDuration": 0.4 } }
+    },
+    {
+      "id": "s6-bolt-03",
+      "type": "hazard",
+      "name": "연속 번개 왼쪽",
+      "timing": { "domain": "time", "start": 40, "duration": 1.3 },
+      "payload": { "pluginId": "lightning-strike", "params": { "xRatio": 0.3, "width": 46, "telegraphDuration": 0.9, "strikeDuration": 0.4 } }
+    },
+    {
+      "id": "s6-bolt-04",
+      "type": "hazard",
+      "name": "연속 번개 오른쪽",
+      "timing": { "domain": "time", "start": 40.6, "duration": 1.3 },
+      "payload": { "pluginId": "lightning-strike", "params": { "xRatio": 0.55, "width": 46, "telegraphDuration": 0.9, "strikeDuration": 0.4 } }
+    },
+    {
+      "id": "s6-bolt-05",
+      "type": "hazard",
+      "name": "중단 번개 오른쪽",
+      "timing": { "domain": "time", "start": 51, "duration": 1.3 },
+      "payload": { "pluginId": "lightning-strike", "params": { "xRatio": 0.7, "width": 46, "telegraphDuration": 0.9, "strikeDuration": 0.4 } }
+    },
+    {
+      "id": "s6-bolt-06",
+      "type": "hazard",
+      "name": "중단 번개 중앙",
+      "timing": { "domain": "time", "start": 51.7, "duration": 1.3 },
+      "payload": { "pluginId": "lightning-strike", "params": { "xRatio": 0.45, "width": 46, "telegraphDuration": 0.9, "strikeDuration": 0.4 } }
+    },
+    {
+      "id": "s6-bolt-07",
+      "type": "hazard",
+      "name": "중앙 번개",
+      "timing": { "domain": "time", "start": 63.5, "duration": 1.3 },
+      "payload": { "pluginId": "lightning-strike", "params": { "xRatio": 0.5, "width": 46, "telegraphDuration": 0.9, "strikeDuration": 0.4 } }
+    },
+    {
+      "id": "s6-bolt-08",
+      "type": "hazard",
+      "name": "번개 스윕 1",
+      "timing": { "domain": "time", "start": 76, "duration": 1.3 },
+      "payload": { "pluginId": "lightning-strike", "params": { "xRatio": 0.2, "width": 46, "telegraphDuration": 0.9, "strikeDuration": 0.4 } }
+    },
+    {
+      "id": "s6-bolt-09",
+      "type": "hazard",
+      "name": "번개 스윕 2",
+      "timing": { "domain": "time", "start": 76.5, "duration": 1.3 },
+      "payload": { "pluginId": "lightning-strike", "params": { "xRatio": 0.4, "width": 46, "telegraphDuration": 0.9, "strikeDuration": 0.4 } }
+    },
+    {
+      "id": "s6-bolt-10",
+      "type": "hazard",
+      "name": "번개 스윕 3",
+      "timing": { "domain": "time", "start": 77, "duration": 1.3 },
+      "payload": { "pluginId": "lightning-strike", "params": { "xRatio": 0.6, "width": 46, "telegraphDuration": 0.9, "strikeDuration": 0.4 } }
+    },
+    {
+      "id": "s6-bolt-11",
+      "type": "hazard",
+      "name": "번개 스윕 4",
+      "timing": { "domain": "time", "start": 77.5, "duration": 1.3 },
+      "payload": { "pluginId": "lightning-strike", "params": { "xRatio": 0.78, "width": 46, "telegraphDuration": 0.9, "strikeDuration": 0.4 } }
+    },
+    {
+      "id": "s6-bolt-12",
+      "type": "hazard",
+      "name": "역방향 스윕 1",
+      "timing": { "domain": "time", "start": 93, "duration": 1.3 },
+      "payload": { "pluginId": "lightning-strike", "params": { "xRatio": 0.72, "width": 46, "telegraphDuration": 0.9, "strikeDuration": 0.4 } }
+    },
+    {
+      "id": "s6-bolt-13",
+      "type": "hazard",
+      "name": "역방향 스윕 2",
+      "timing": { "domain": "time", "start": 93.5, "duration": 1.3 },
+      "payload": { "pluginId": "lightning-strike", "params": { "xRatio": 0.5, "width": 46, "telegraphDuration": 0.9, "strikeDuration": 0.4 } }
+    },
+    {
+      "id": "s6-bolt-14",
+      "type": "hazard",
+      "name": "역방향 스윕 3",
+      "timing": { "domain": "time", "start": 94, "duration": 1.3 },
+      "payload": { "pluginId": "lightning-strike", "params": { "xRatio": 0.28, "width": 46, "telegraphDuration": 0.9, "strikeDuration": 0.4 } }
+    },
+    {
+      "id": "s6-bolt-15",
+      "type": "hazard",
+      "name": "쌍둥이 번개 왼쪽",
+      "timing": { "domain": "time", "start": 103.5, "duration": 1.3 },
+      "payload": { "pluginId": "lightning-strike", "params": { "xRatio": 0.35, "width": 46, "telegraphDuration": 0.9, "strikeDuration": 0.4 } }
+    },
+    {
+      "id": "s6-bolt-16",
+      "type": "hazard",
+      "name": "쌍둥이 번개 오른쪽",
+      "timing": { "domain": "time", "start": 103.6, "duration": 1.3 },
+      "payload": { "pluginId": "lightning-strike", "params": { "xRatio": 0.65, "width": 46, "telegraphDuration": 0.9, "strikeDuration": 0.4 } }
+    },
+    {
+      "id": "s6-boss-warning",
+      "type": "cue",
+      "name": "보스 경고",
+      "timing": { "domain": "time", "start": 111, "duration": 4 },
+      "payload": {
+        "pluginId": "boss-warning",
+        "params": {
+          "message": "!! 뭔가 다가온다 !!",
+          "color": "#ff8f8f",
+          "screenShake": 0.6,
+          "soundId": "warn"
+        }
+      }
+    },
+    {
+      "id": "s6-boss-start",
+      "type": "boss",
+      "name": "우르릉 등장",
+      "timing": { "domain": "time", "start": 115, "duration": 0 },
+      "payload": {
+        "pluginId": "boss-start",
+        "bossId": "ureu"
+      }
+    }
+  ]
+}

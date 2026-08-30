@@ -1,0 +1,203 @@
+{
+  "format": "pixel-wave-stage",
+  "schemaVersion": 1,
+  "registryVersion": 1,
+  "draft": true,
+  "id": "stage5-wreck-coverage",
+  "name": "난파선 묘지 — 장애물 검증",
+  "seed": 5005,
+  "timeline": {
+    "duration": 115,
+    "endBehavior": "boss-start"
+  },
+  "viewport": {
+    "width": 960,
+    "height": 540
+  },
+  "background": {
+    "presetId": "stage5",
+    "baseScrollSpeed": 45,
+    "scrollScale": 1
+  },
+  "difficultyProfileId": "legacy-diffs-v1",
+  "sections": [
+    { "id": "coverage", "name": "난파선 검증", "start": 0, "end": 115 }
+  ],
+  "dependencies": {
+    "enemyKinds": [],
+    "entryPresets": [],
+    "formationPresets": [],
+    "movementPresets": [],
+    "weaponPresets": [],
+    "barragePatterns": [],
+    "itemPlugins": ["scroll-speed", "darkness", "wreck-corridor", "boss-warning", "boss-start"],
+    "terrainObjects": [],
+    "terrainProfiles": [],
+    "bosses": ["buu"]
+  },
+  "items": [
+    {
+      "id": "s5-scroll-base",
+      "type": "environment",
+      "name": "기본 스크롤",
+      "timing": { "domain": "time", "start": 0, "duration": 115 },
+      "payload": {
+        "pluginId": "scroll-speed",
+        "params": {
+          "curve": [
+            { "at": 0, "value": 1 },
+            { "at": 115, "value": 1 }
+          ]
+        }
+      }
+    },
+    {
+      "id": "s5-darkness",
+      "type": "environment",
+      "name": "난파선 암전",
+      "timing": { "domain": "time", "start": 0, "duration": 115 },
+      "payload": {
+        "pluginId": "darkness",
+        "params": {
+          "target": 0.3,
+          "responseRate": 1.2
+        }
+      }
+    },
+    {
+      "id": "s5-wreck-01",
+      "type": "hazard",
+      "name": "하단 난파선 38%",
+      "timing": { "domain": "time", "start": 8, "duration": 11.579 },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": { "side": "bottom", "heightFraction": 0.38, "speed": 95, "width": 74, "indestructible": true }
+      }
+    },
+    {
+      "id": "s5-wreck-02",
+      "type": "hazard",
+      "name": "상단 난파선 38%",
+      "timing": { "domain": "time", "start": 16.5, "duration": 11.579 },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": { "side": "top", "heightFraction": 0.38, "speed": 95, "width": 74, "indestructible": true }
+      }
+    },
+    {
+      "id": "s5-wreck-03",
+      "type": "hazard",
+      "name": "하단 난파선 50%",
+      "timing": { "domain": "time", "start": 26.5, "duration": 11 },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": { "side": "bottom", "heightFraction": 0.5, "speed": 100, "width": 74, "indestructible": true }
+      }
+    },
+    {
+      "id": "s5-wreck-04",
+      "type": "hazard",
+      "name": "상단 쌍벽 32%",
+      "timing": { "domain": "time", "start": 45, "duration": 11 },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": { "side": "top", "heightFraction": 0.32, "speed": 100, "width": 74, "indestructible": true }
+      }
+    },
+    {
+      "id": "s5-wreck-05",
+      "type": "hazard",
+      "name": "하단 쌍벽 32%",
+      "timing": { "domain": "time", "start": 45.2, "duration": 11 },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": { "side": "bottom", "heightFraction": 0.32, "speed": 100, "width": 74, "indestructible": true }
+      }
+    },
+    {
+      "id": "s5-wreck-06",
+      "type": "hazard",
+      "name": "하단 난파선 55%",
+      "timing": { "domain": "time", "start": 61.5, "duration": 11 },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": { "side": "bottom", "heightFraction": 0.55, "speed": 100, "width": 74, "indestructible": true }
+      }
+    },
+    {
+      "id": "s5-wreck-07",
+      "type": "hazard",
+      "name": "상단 난파선 45%",
+      "timing": { "domain": "time", "start": 76, "duration": 10.476 },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": { "side": "top", "heightFraction": 0.45, "speed": 105, "width": 74, "indestructible": true }
+      }
+    },
+    {
+      "id": "s5-wreck-08",
+      "type": "hazard",
+      "name": "하단 난파선 45%",
+      "timing": { "domain": "time", "start": 80, "duration": 10.476 },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": { "side": "bottom", "heightFraction": 0.45, "speed": 105, "width": 74, "indestructible": true }
+      }
+    },
+    {
+      "id": "s5-wreck-09",
+      "type": "hazard",
+      "name": "상단 난파선 45% 재등장",
+      "timing": { "domain": "time", "start": 84, "duration": 10.476 },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": { "side": "top", "heightFraction": 0.45, "speed": 105, "width": 74, "indestructible": true }
+      }
+    },
+    {
+      "id": "s5-wreck-10",
+      "type": "hazard",
+      "name": "마지막 상단 쌍벽",
+      "timing": { "domain": "time", "start": 100.5, "duration": 10.476 },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": { "side": "top", "heightFraction": 0.34, "speed": 105, "width": 74, "indestructible": true }
+      }
+    },
+    {
+      "id": "s5-wreck-11",
+      "type": "hazard",
+      "name": "마지막 하단 쌍벽",
+      "timing": { "domain": "time", "start": 100.7, "duration": 10.476 },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": { "side": "bottom", "heightFraction": 0.34, "speed": 105, "width": 74, "indestructible": true }
+      }
+    },
+    {
+      "id": "s5-boss-warning",
+      "type": "cue",
+      "name": "보스 경고",
+      "timing": { "domain": "time", "start": 111, "duration": 4 },
+      "payload": {
+        "pluginId": "boss-warning",
+        "params": {
+          "message": "!! 뭔가 다가온다 !!",
+          "color": "#ff8f8f",
+          "screenShake": 0.6,
+          "soundId": "warn"
+        }
+      }
+    },
+    {
+      "id": "s5-boss-start",
+      "type": "boss",
+      "name": "부우 등장",
+      "timing": { "domain": "time", "start": 115, "duration": 0 },
+      "payload": {
+        "pluginId": "boss-start",
+        "bossId": "buu"
+      }
+    }
+  ]
+}

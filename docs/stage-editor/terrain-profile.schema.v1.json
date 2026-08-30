@@ -1,0 +1,270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pixel-wave.local/schema/terrain-profile.v1.json",
+  "title": "Pixel Wave Terrain Profile v1",
+  "description": "Generated and reviewed terrain surfaces and placement sockets for one looping background strip.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "id",
+    "name",
+    "binding",
+    "coordinateSpace",
+    "surfaces",
+    "placementClasses",
+    "sockets",
+    "generation",
+    "review"
+  ],
+  "properties": {
+    "format": { "const": "pixel-wave-terrain-profile" },
+    "schemaVersion": { "const": 1 },
+    "id": { "$ref": "#/$defs/id" },
+    "name": { "$ref": "#/$defs/name" },
+    "binding": { "$ref": "#/$defs/binding" },
+    "coordinateSpace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit", "origin", "xAxis", "yAxis", "wrapX"],
+      "properties": {
+        "unit": { "const": "native-pixel" },
+        "origin": { "const": "image-top-left" },
+        "xAxis": { "const": "right" },
+        "yAxis": { "const": "down" },
+        "wrapX": { "const": true }
+      }
+    },
+    "surfaces": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["floor", "ceiling"],
+      "properties": {
+        "floor": { "$ref": "#/$defs/surface" },
+        "ceiling": { "$ref": "#/$defs/surface" }
+      }
+    },
+    "placementClasses": {
+      "type": "array",
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/placementClass" }
+    },
+    "sockets": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": { "$ref": "#/$defs/socket" }
+    },
+    "generation": { "$ref": "#/$defs/generation" },
+    "review": { "$ref": "#/$defs/review" },
+    "notes": { "type": "string", "maxLength": 2000 }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "assetId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9.-]*$",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "backgroundPresetId",
+        "layer",
+        "assetId",
+        "assetPath",
+        "assetSha256",
+        "width",
+        "height"
+      ],
+      "properties": {
+        "backgroundPresetId": { "$ref": "#/$defs/id" },
+        "layer": { "enum": ["far", "mid", "near"] },
+        "assetId": { "$ref": "#/$defs/assetId" },
+        "assetPath": {
+          "type": "string",
+          "pattern": "^assets/",
+          "maxLength": 500
+        },
+        "assetSha256": { "$ref": "#/$defs/sha256" },
+        "structuralMaskPath": {
+          "type": "string",
+          "pattern": "^assets/",
+          "maxLength": 500
+        },
+        "structuralMaskSha256": { "$ref": "#/$defs/sha256" },
+        "width": { "type": "integer", "minimum": 1, "maximum": 16384 },
+        "height": { "type": "integer", "minimum": 1, "maximum": 8192 }
+      },
+      "dependentRequired": {
+        "structuralMaskPath": ["structuralMaskSha256"],
+        "structuralMaskSha256": ["structuralMaskPath"]
+      }
+    },
+    "surfaceSample": {
+      "anyOf": [
+        { "type": "integer", "minimum": 0, "maximum": 8191 },
+        { "type": "null" }
+      ]
+    },
+    "surface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["samples"],
+      "properties": {
+        "samples": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16384,
+          "items": { "$ref": "#/$defs/surfaceSample" }
+        },
+        "confidence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16384,
+          "items": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "clearance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["left", "right", "outward"],
+      "properties": {
+        "left": { "type": "integer", "minimum": 0, "maximum": 1024 },
+        "right": { "type": "integer", "minimum": 0, "maximum": 1024 },
+        "outward": { "type": "integer", "minimum": 0, "maximum": 1024 }
+      }
+    },
+    "placementClass": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "contactWidth",
+        "solidDepth",
+        "maxSurfaceDelta",
+        "minimumCoverage",
+        "minimumSpacing",
+        "minimumScore",
+        "clearance"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "contactWidth": { "type": "integer", "minimum": 1, "maximum": 2048 },
+        "solidDepth": { "type": "integer", "minimum": 1, "maximum": 2048 },
+        "maxSurfaceDelta": { "type": "integer", "minimum": 0, "maximum": 256 },
+        "minimumCoverage": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "minimumSpacing": { "type": "integer", "minimum": 0, "maximum": 4096 },
+        "minimumScore": { "type": "number", "minimum": 0, "maximum": 1 },
+        "clearance": { "$ref": "#/$defs/clearance" }
+      }
+    },
+    "normal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "number", "minimum": -1, "maximum": 1 },
+        "y": { "type": "number", "minimum": -1, "maximum": 1 }
+      }
+    },
+    "socket": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "classId",
+        "surface",
+        "x",
+        "y",
+        "normal",
+        "score",
+        "source",
+        "reviewStatus"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "classId": { "$ref": "#/$defs/id" },
+        "surface": { "enum": ["floor", "ceiling"] },
+        "x": { "type": "integer", "minimum": 0, "maximum": 16383 },
+        "y": { "type": "integer", "minimum": 0, "maximum": 8191 },
+        "normal": { "$ref": "#/$defs/normal" },
+        "score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "source": { "enum": ["generated", "manual"] },
+        "reviewStatus": { "enum": ["pending", "approved"] },
+        "tags": {
+          "type": "array",
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "notes": { "type": "string", "maxLength": 500 }
+      }
+    },
+    "generation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generatorId",
+        "generatorVersion",
+        "mode",
+        "alphaThreshold",
+        "connectivity",
+        "configurationSha256"
+      ],
+      "properties": {
+        "generatorId": { "const": "pixel-wave-terrain-generator" },
+        "generatorVersion": { "type": "integer", "minimum": 1, "maximum": 2147483647 },
+        "mode": { "enum": ["structural-mask", "alpha-fallback"] },
+        "alphaThreshold": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "connectivity": { "enum": [4, 8] },
+        "configurationSha256": { "$ref": "#/$defs/sha256" },
+        "warnings": {
+          "type": "array",
+          "maxItems": 256,
+          "items": { "type": "string", "maxLength": 500 }
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "pendingSocketCount"],
+      "properties": {
+        "status": { "enum": ["needs-review", "approved"] },
+        "pendingSocketCount": { "type": "integer", "minimum": 0, "maximum": 10000 },
+        "reviewedAssetSha256": { "$ref": "#/$defs/sha256" },
+        "notes": { "type": "string", "maxLength": 1000 }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "status": { "const": "approved" } },
+            "required": ["status"]
+          },
+          "then": {
+            "required": ["reviewedAssetSha256"],
+            "properties": { "pendingSocketCount": { "const": 0 } }
+          }
+        }
+      ]
+    }
+  }
+}

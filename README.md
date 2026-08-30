@@ -16,6 +16,10 @@ python server.py
 발사기를 겹쳐 미리 본 뒤 **저장**하면 `data/barrage-patterns/`의 JSON과 게임용 레지스트리가 함께 갱신된다.
 같은 주소를 휴대폰으로 열면 기기 자동저장·JSON 공유를 사용하는 모바일 화면으로 바뀐다. 정적 호스팅에서도 서버 없이 제작·미리보기·내보내기가 가능하다.
 
+스테이지 전체 흐름은 `http://localhost:8321/tools/stage-sequencer.html`에서 확인한다.
+현재 M1은 Stage 3을 읽기 전용으로 컴파일해 전체·구간 반복 재생, 난이도 전환,
+타임라인 클립 검사, Stage JSON 내보내기를 지원한다.
+
 | 입력 | 이동 | 봄 |
 |---|---|---|
 | 키보드 | 방향키/WASD, Shift 저속 | Space |
@@ -51,6 +55,7 @@ js/meta.js          영구 저장 · 상점 카탈로그
 js/entities.js      플레이어 · 잡몹 · 진주
 js/dolphin.js       옵션 돌고래 3종
 js/waves.js         잡몹 문법(5축) + 스테이지 타임라인
+js/stage/            Stage JSON 검증·컴파일·결정론 미리보기
 js/barrage.js        데이터 기반 탄막 실행기 (게임·탄막 공방 공용)
 js/boss*.js         보스 1~7
 js/map.js           항해도 · 상점 · 랭킹 UI
@@ -58,6 +63,7 @@ js/board.js         온라인 스코어보드 (Supabase — docs/SCOREBOARD.md)
 js/main.js          게임 루프 · 충돌 · 렌더
 data/barrage-patterns/ 보스 탄막 JSON
 tools/barrage-editor.html 보스 탄막 제작·미리보기·저장 도구
+tools/stage-sequencer.html 모바일 스테이지 타임라인·구간 미리보기
 assets/             스프라이트 시트 (없으면 도형 폴백)
 assets/fonts/       갈무리 픽셀 폰트 (OFL-1.1)
 assets/bgm/         BGM (없으면 무음)

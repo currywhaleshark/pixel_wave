@@ -169,6 +169,7 @@ def main() -> None:
     with http.server.ThreadingHTTPServer(("", PORT), handler) as httpd:
         print(f"dev server on http://localhost:{PORT}")
         print(f"barrage editor on http://localhost:{PORT}/tools/barrage-editor.html")
+        print(f"stage sequencer on http://localhost:{PORT}/tools/stage-sequencer.html")
         httpd.serve_forever()
 
 

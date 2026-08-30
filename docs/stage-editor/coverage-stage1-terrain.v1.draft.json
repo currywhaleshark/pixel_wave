@@ -1,0 +1,147 @@
+{
+  "format": "pixel-wave-stage",
+  "schemaVersion": 1,
+  "registryVersion": 1,
+  "draft": true,
+  "id": "stage1-terrain-coverage",
+  "name": "산호 초입 — 지형 포대 검증",
+  "seed": 1001,
+  "timeline": {
+    "duration": 114,
+    "endBehavior": "boss-start"
+  },
+  "viewport": {
+    "width": 960,
+    "height": 540
+  },
+  "background": {
+    "presetId": "stage1",
+    "baseScrollSpeed": 45,
+    "scrollScale": 1,
+    "terrainProfileId": "stage1-near-v1"
+  },
+  "difficultyProfileId": "legacy-diffs-v1",
+  "sections": [
+    { "id": "coverage", "name": "포대 검증", "start": 0, "end": 114 }
+  ],
+  "dependencies": {
+    "enemyKinds": [],
+    "entryPresets": [],
+    "formationPresets": [],
+    "movementPresets": [],
+    "weaponPresets": ["legacy-ring"],
+    "barragePatterns": [],
+    "itemPlugins": ["scroll-speed", "boss-warning", "boss-start"],
+    "terrainObjects": ["coral-turret"],
+    "terrainProfiles": ["stage1-near-v1"],
+    "bosses": ["pangpang"]
+  },
+  "items": [
+    {
+      "id": "s1-scroll-base",
+      "type": "environment",
+      "name": "기본 스크롤",
+      "timing": { "domain": "time", "start": 0, "duration": 114 },
+      "payload": {
+        "pluginId": "scroll-speed",
+        "params": {
+          "curve": [
+            { "at": 0, "value": 1 },
+            { "at": 114, "value": 1 }
+          ]
+        }
+      }
+    },
+    {
+      "id": "s1-turret-01",
+      "type": "terrain-object",
+      "name": "첫 산호 포대",
+      "timing": { "domain": "distance", "start": 2640.5, "duration": 0 },
+      "payload": {
+        "objectId": "coral-turret",
+        "anchor": {
+          "layer": "near",
+          "surface": "floor",
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "weapon": {
+          "presetId": "legacy-ring",
+          "interval": 2.8,
+          "params": { "count": 8 }
+        },
+        "hp": 7
+      },
+      "notes": "원본 t=45, y=0.93 포대를 near 레이어 지형 스냅으로 전환한 값"
+    },
+    {
+      "id": "s1-turret-02",
+      "type": "terrain-object",
+      "name": "두 번째 산호 포대",
+      "timing": { "domain": "distance", "start": 3802.85, "duration": 0 },
+      "payload": {
+        "objectId": "coral-turret",
+        "anchor": {
+          "layer": "near",
+          "surface": "floor",
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "weapon": {
+          "presetId": "legacy-ring",
+          "interval": 2.6,
+          "params": { "count": 8 }
+        },
+        "hp": 7
+      },
+      "notes": "원본 t=76.5, y=0.93 포대를 near 레이어 지형 스냅으로 전환한 값"
+    },
+    {
+      "id": "s1-turret-03",
+      "type": "terrain-object",
+      "name": "세 번째 산호 포대",
+      "timing": { "domain": "distance", "start": 3895.1, "duration": 0 },
+      "payload": {
+        "objectId": "coral-turret",
+        "anchor": {
+          "layer": "near",
+          "surface": "floor",
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "weapon": {
+          "presetId": "legacy-ring",
+          "interval": 2.6,
+          "params": { "count": 8 }
+        },
+        "hp": 7
+      },
+      "notes": "원본 t=79, y=0.93 포대를 near 레이어 지형 스냅으로 전환한 값"
+    },
+    {
+      "id": "s1-boss-warning",
+      "type": "cue",
+      "name": "보스 경고",
+      "timing": { "domain": "time", "start": 110, "duration": 4 },
+      "payload": {
+        "pluginId": "boss-warning",
+        "params": {
+          "message": "!! 뭔가 다가온다 !!",
+          "color": "#ff8f8f",
+          "screenShake": 0.6,
+          "soundId": "warn"
+        }
+      }
+    },
+    {
+      "id": "s1-boss-start",
+      "type": "boss",
+      "name": "팡팡 등장",
+      "timing": { "domain": "time", "start": 114, "duration": 0 },
+      "payload": {
+        "pluginId": "boss-start",
+        "bossId": "pangpang"
+      }
+    }
+  ]
+}
