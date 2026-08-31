@@ -1836,13 +1836,18 @@
       ctx.restore();
     }
     for (const wreck of state.wrecks) {
+      const selected = wreck.itemId === selectedId;
       ctx.save();
       ctx.beginPath();
       ctx.rect(wreck.x - wreck.width * 0.5, wreck.y - wreck.height * 0.5, wreck.width, wreck.height);
       ctx.clip();
       let drewSprite = false;
       for (let y = wreck.y - wreck.height * 0.5 + 16; y < wreck.y + wreck.height * 0.5 + 16; y += 32) {
-        drewSprite = Sprites.draw(ctx, 'enemy.wreck', wreck.x, y, { frame: Math.abs(hashCode(wreck.itemId)) % 4 }) || drewSprite;
+        drewSprite = Sprites.draw(ctx, 'enemy.wreck', wreck.x, y, {
+          frame: Math.abs(hashCode(wreck.itemId)) % 4,
+          outline: selected ? '#ffffff' : undefined,
+          outlineAlpha: selected ? 0.9 : undefined,
+        }) || drewSprite;
       }
       if (!drewSprite) {
         ctx.fillStyle = '#263d4b';
@@ -2100,6 +2105,89 @@
       x: (event.clientX - rect.left) * canvas.width / rect.width,
       y: (event.clientY - rect.top) * canvas.height / rect.height,
     };
+  }
+
+  function spriteHitBox(spriteId, x, y, fallbackWidth, fallbackHeight, scale = 1) {
+    const sprite = typeof SPRITES !== 'undefined' ? SPRITES[spriteId] : null;
+    const unit = typeof CFG !== 'undefined' ? CFG.pxUnit : 2;
+    const width = (sprite?.w ? sprite.w * unit : fallbackWidth) * scale;
+    const height = (sprite?.h ? sprite.h * unit : fallbackHeight) * scale;
+    const anchorX = (sprite?.ax ? sprite.ax * unit : fallbackWidth * 0.5) * scale;
+    const anchorY = (sprite?.ay ? sprite.ay * unit : fallbackHeight * 0.5) * scale;
+    return { left: x - anchorX, top: y - anchorY, width, height };
+  }
+
+  function previewSpriteHitTargets() {
+    if (!simulation) return [];
+    const targets = [];
+    for (const terrain of simulation.terrainObjects || []) {
+      targets.push({
+        itemId: terrain.itemId,
+        box: spriteHitBox(terrain.definition.spriteId, terrain.drawX, terrain.drawY, 36, 32),
+      });
+    }
+    for (const wreck of simulation.pluginState?.wrecks || []) {
+      targets.push({
+        itemId: wreck.itemId,
+        box: {
+          left: wreck.x - wreck.width * 0.5,
+          top: wreck.y - wreck.height * 0.5,
+          width: wreck.width,
+          height: wreck.height,
+        },
+      });
+    }
+    for (const enemy of simulation.enemies) {
+      targets.push({
+        itemId: enemy.itemId,
+        box: spriteHitBox(
+          `enemy.${enemy.kind}`,
+          enemy.x,
+          enemy.y,
+          enemy.kind === 'big' ? 52 : 28,
+          enemy.kind === 'big' ? 36 : 22,
+        ),
+      });
+    }
+    if (simulation.ride?.params?.drawTurtle) {
+      targets.push({
+        itemId: simulation.ride.itemId,
+        box: spriteHitBox('turtle.taxi', simulation.player.x, simulation.player.y + 20, 64, 40),
+      });
+    }
+    if (simulation.boss) {
+      targets.push({
+        itemId: simulation.boss.itemId,
+        box: spriteHitBox(`boss.${simulation.boss.id}`, simulation.boss.x, simulation.boss.y, 112, 80),
+      });
+    }
+    return targets.filter(target => target.itemId && stageDocument?.findItem(target.itemId));
+  }
+
+  function hitPreviewSprite(pointer) {
+    const padding = 7 * previewPixelScale();
+    const targets = previewSpriteHitTargets();
+    for (let index = targets.length - 1; index >= 0; index--) {
+      const target = targets[index];
+      const { left, top, width, height } = target.box;
+      if (
+        pointer.x >= left - padding && pointer.x <= left + width + padding
+        && pointer.y >= top - padding && pointer.y <= top + height + padding
+      ) return target;
+    }
+    return null;
+  }
+
+  function selectPreviewSprite(event) {
+    if (
+      event.defaultPrevented || pathDrag || formationDrag || terrainReview
+      || (event.button !== undefined && event.button !== 0)
+    ) return;
+    const target = hitPreviewSprite(pointerCanvasPosition(event));
+    if (!target) return;
+    event.preventDefault();
+    selectItem(target.itemId, true, multiSelectMode || event.ctrlKey || event.metaKey || event.shiftKey);
+    renderPreview();
   }
 
   function beginPathDrag(event) {
@@ -2430,12 +2518,24 @@
       })) drawFallbackEnemy(enemy);
     }
 
-    if (simulation.ride?.params?.drawTurtle) Sprites.draw(ctx, 'turtle.taxi', simulation.player.x, simulation.player.y + 20, { t: simulation.time });
+    if (simulation.ride?.params?.drawTurtle) {
+      const selected = simulation.ride.itemId === selectedId;
+      Sprites.draw(ctx, 'turtle.taxi', simulation.player.x, simulation.player.y + 20, {
+        t: simulation.time,
+        outline: selected ? '#ffffff' : undefined,
+        outlineAlpha: selected ? 0.9 : undefined,
+      });
+    }
     if (!Sprites.draw(ctx, 'mermaid.swim', simulation.player.x, simulation.player.y, { t: simulation.time })) {
       ctx.fillStyle = '#ff9ed2'; ctx.beginPath(); ctx.arc(simulation.player.x, simulation.player.y, 15, 0, Math.PI * 2); ctx.fill();
     }
     if (simulation.boss) {
-      if (!Sprites.draw(ctx, 'boss.ssing', simulation.boss.x, simulation.boss.y, { t: simulation.boss.age })) {
+      const selected = simulation.boss.itemId === selectedId;
+      if (!Sprites.draw(ctx, `boss.${simulation.boss.id}`, simulation.boss.x, simulation.boss.y, {
+        t: simulation.boss.age,
+        outline: selected ? '#ffffff' : undefined,
+        outlineAlpha: selected ? 0.9 : undefined,
+      })) {
         ctx.fillStyle = '#8fa3e8'; ctx.beginPath(); ctx.ellipse(simulation.boss.x, simulation.boss.y, 56, 36, 0, 0, Math.PI * 2); ctx.fill();
       }
     }
@@ -2778,6 +2878,7 @@
   canvas.addEventListener('pointerup', endPathDrag);
   canvas.addEventListener('pointercancel', endPathDrag);
   canvas.addEventListener('pointerdown', beginFormationDrag);
+  canvas.addEventListener('pointerdown', selectPreviewSprite);
   canvas.addEventListener('pointermove', moveFormationDrag);
   canvas.addEventListener('pointerup', endFormationDrag);
   canvas.addEventListener('pointercancel', endFormationDrag);

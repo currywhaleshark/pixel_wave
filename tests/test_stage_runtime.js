@@ -52,6 +52,7 @@ for (const difficulty of ['easy', 'normal', 'hard']) {
   closeTo(stats.scroll, 9360);
   assert.equal(stats.spawnedEnemyCount, 207);
   assert.equal(simulation.boss?.id, 'ssing');
+  assert.equal(simulation.boss?.itemId, first.items.find(item => item.type === 'boss')?.id);
   results.push({ difficulty, firedBulletCount: stats.firedBulletCount, stateHash: stats.stateHash });
 
   const singleFrame = new Simulation(first, { fixedStep: 1 / 60 });
@@ -153,7 +154,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(html.includes('id="multiSelect"'));
   assert.ok(html.includes('id="saveSectionTemplate"'));
   assert.ok(html.includes('id="schemaNotice"'));
-  assert.ok(html.includes('tools/stage-sequencer.js?v=17'));
+  assert.ok(html.includes('tools/stage-sequencer.js?v=18'));
   const sequencer = fs.readFileSync(path.join(root, 'tools/stage-sequencer.js'), 'utf8');
   assert.ok(sequencer.includes('function updateGameTestLink()'));
   assert.ok(sequencer.includes('function prepareGameTest(event)'));
@@ -172,6 +173,9 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(sequencer.includes("replaceDifficultyItem(authored.id, drag.working"));
   assert.ok(sequencer.includes('data-formation-resolved-count'));
   assert.ok(sequencer.includes("canvas.addEventListener('pointerdown', beginFormationDrag)"));
+  assert.ok(sequencer.includes('function previewSpriteHitTargets()'));
+  assert.ok(sequencer.includes('function selectPreviewSprite(event)'));
+  assert.ok(sequencer.includes("canvas.addEventListener('pointerdown', selectPreviewSprite)"));
   assert.ok(sequencer.includes("'v-spread': 'V 편대 간격 조정'"));
   assert.ok(sequencer.includes("definitionOptionList('enemyKinds'"));
   assert.ok(sequencer.includes("definitionOptionList('movementPresets'"));
@@ -207,7 +211,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(serviceWorker.includes('../js/stage/plugin.js'));
   assert.ok(serviceWorker.includes('../js/stage/layerTransform.js'));
   assert.ok(serviceWorker.includes('../js/stage/terrain.js'));
-  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m7-v3'));
+  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m7-v4'));
   assert.ok(serviceWorker.includes('stage5.v1.draft.json'));
   assert.ok(serviceWorker.includes('assets/backgrounds/stage6-near-strip.png'));
 }

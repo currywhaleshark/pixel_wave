@@ -136,6 +136,7 @@
       if (event.type === 'boss') {
         this.boss = {
           id: event.payload?.bossId || 'ssing',
+          itemId: event.itemId,
           x: this.compiled.viewport.width * 0.81,
           y: this.compiled.viewport.height * 0.5,
           age: 0,
