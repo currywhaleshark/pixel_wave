@@ -337,6 +337,59 @@
       }
     },
     {
+      "id": "s2-w008",
+      "type": "wave",
+      "name": "등불 기뢰 입문",
+      "timing": {
+        "domain": "time",
+        "start": 16,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "lantern",
+          "hp": 4,
+          "speed": 55
+        },
+        "spawn": {
+          "count": 1,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 25,
+            "frequency": 1.5
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-mine",
+          "interval": 4.2,
+          "startDelay": 1,
+          "params": {
+            "fuseDuration": 3.4,
+            "fuseStep": 0,
+            "ringCount": 5,
+            "ringPhase": 1.57,
+            "ringPhaseStep": 0,
+            "shotPhaseStep": 0.3,
+            "ringSpeed": 88,
+            "warningLead": 0.8,
+            "warningSound": 1,
+            "authoredGeometry": 1
+          }
+        }
+      }
+    },
+    {
       "id": "s2-w007",
       "type": "wave",
       "name": "해파리 웨이브 07",
@@ -378,46 +431,6 @@
         },
         "weapon": {
           "presetId": "none"
-        }
-      }
-    },
-    {
-      "id": "s2-w008",
-      "type": "wave",
-      "name": "등불해파리 웨이브 08",
-      "timing": {
-        "domain": "time",
-        "start": 22,
-        "duration": 0
-      },
-      "payload": {
-        "enemy": {
-          "kind": "lantern",
-          "hp": 4,
-          "speed": 55
-        },
-        "spawn": {
-          "count": 1,
-          "interval": 0
-        },
-        "entry": {
-          "presetId": "right-to-left",
-          "x": 0.5,
-          "y": 0.5
-        },
-        "formation": {
-          "presetId": "single"
-        },
-        "movement": {
-          "presetId": "sine",
-          "params": {
-            "amplitude": 25,
-            "frequency": 1.5
-          }
-        },
-        "weapon": {
-          "presetId": "legacy-mine",
-          "interval": 2.6
         }
       }
     },
@@ -569,7 +582,7 @@
     {
       "id": "s2-w013",
       "type": "wave",
-      "name": "등불해파리 웨이브 13",
+      "name": "삼중 기뢰 정원",
       "timing": {
         "domain": "time",
         "start": 37,
@@ -602,7 +615,20 @@
         },
         "weapon": {
           "presetId": "legacy-mine",
-          "interval": 2.4
+          "interval": 4.8,
+          "startDelay": 0.9,
+          "params": {
+            "fuseDuration": 3,
+            "fuseStep": 0.35,
+            "ringCount": 6,
+            "ringPhase": 0.35,
+            "ringPhaseStep": 0.72,
+            "shotPhaseStep": -0.18,
+            "ringSpeed": 92,
+            "warningLead": 0.75,
+            "warningSound": 1,
+            "authoredGeometry": 1
+          }
         }
       }
     },
@@ -804,7 +830,7 @@
     {
       "id": "s2-w019",
       "type": "wave",
-      "name": "대물 웨이브 19",
+      "name": "비기뢰 휴식 대물",
       "timing": {
         "domain": "time",
         "start": 54,
@@ -836,11 +862,8 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-ring",
-          "interval": 1.9,
-          "params": {
-            "count": 12
-          }
+          "presetId": "legacy-aimed",
+          "interval": 2.2
         }
       }
     },
@@ -882,7 +905,7 @@
     {
       "id": "s2-w021",
       "type": "wave",
-      "name": "등불해파리 웨이브 21",
+      "name": "중앙 길목 기뢰",
       "timing": {
         "domain": "time",
         "start": 60,
@@ -915,7 +938,20 @@
         },
         "weapon": {
           "presetId": "legacy-mine",
-          "interval": 1.5
+          "interval": 3.4,
+          "startDelay": 0.8,
+          "params": {
+            "fuseDuration": 3.2,
+            "fuseStep": 0,
+            "ringCount": 6,
+            "ringPhase": 0,
+            "ringPhaseStep": 0,
+            "shotPhaseStep": 0.25,
+            "ringSpeed": 90,
+            "warningLead": 0.7,
+            "warningSound": 1,
+            "authoredGeometry": 1
+          }
         }
       }
     },
@@ -1042,7 +1078,7 @@
     {
       "id": "s2-w025",
       "type": "wave",
-      "name": "등불해파리 웨이브 25",
+      "name": "반짝이는 등불 행렬",
       "timing": {
         "domain": "time",
         "start": 71,
@@ -1074,8 +1110,7 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-mine",
-          "interval": 2.4
+          "presetId": "none"
         }
       }
     },
@@ -1188,7 +1223,7 @@
     {
       "id": "s2-w029",
       "type": "wave",
-      "name": "대물 웨이브 29",
+      "name": "반짝이는 초원 대물",
       "timing": {
         "domain": "time",
         "start": 82.5,
@@ -1220,11 +1255,8 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-ring",
-          "interval": 1.7,
-          "params": {
-            "count": 12
-          }
+          "presetId": "legacy-aimed",
+          "interval": 2
         }
       }
     },
@@ -1276,7 +1308,7 @@
     {
       "id": "s2-w031",
       "type": "wave",
-      "name": "등불해파리 웨이브 31",
+      "name": "상단 순차 기뢰",
       "timing": {
         "domain": "time",
         "start": 90,
@@ -1309,14 +1341,27 @@
         },
         "weapon": {
           "presetId": "legacy-mine",
-          "interval": 1.5
+          "interval": 3.6,
+          "startDelay": 0.75,
+          "params": {
+            "fuseDuration": 3,
+            "fuseStep": 0,
+            "ringCount": 6,
+            "ringPhase": 0.2,
+            "ringPhaseStep": 0,
+            "shotPhaseStep": 0.2,
+            "ringSpeed": 92,
+            "warningLead": 0.75,
+            "warningSound": 1,
+            "authoredGeometry": 1
+          }
         }
       }
     },
     {
       "id": "s2-w032",
       "type": "wave",
-      "name": "등불해파리 웨이브 32",
+      "name": "하단 순차 기뢰",
       "timing": {
         "domain": "time",
         "start": 91,
@@ -1349,7 +1394,20 @@
         },
         "weapon": {
           "presetId": "legacy-mine",
-          "interval": 1.5
+          "interval": 3.6,
+          "startDelay": 0.75,
+          "params": {
+            "fuseDuration": 3.5,
+            "fuseStep": 0,
+            "ringCount": 6,
+            "ringPhase": 1.25,
+            "ringPhaseStep": 0,
+            "shotPhaseStep": -0.2,
+            "ringSpeed": 92,
+            "warningLead": 0.75,
+            "warningSound": 1,
+            "authoredGeometry": 1
+          }
         }
       }
     },

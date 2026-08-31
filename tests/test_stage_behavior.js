@@ -11,6 +11,7 @@ const { Simulation } = require('../js/stage/simulation.js');
 
 const root = path.resolve(__dirname, '..');
 const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/stage3.v1.draft.json'), 'utf8'));
+const stage2Source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/stage2.v1.draft.json'), 'utf8'));
 
 {
   assert.equal(StageRegistry.get('movementPresets', 'sine').name, '물결');
@@ -46,6 +47,41 @@ const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/sta
   assert.equal(StageBehavior.effectiveMovement({ presetId: 'tracking' }).params.trackingDuration, 9);
   assert.equal(StageBehavior.effectiveMovement({ presetId: 'tracking' }).params.turnRate, 1.1);
   assert.equal(StageBehavior.effectiveMovement({ presetId: 'u-turn' }).params.turnX, 0.93);
+  assert.equal(StageBehavior.effectiveWeapon({ presetId: 'legacy-mine' }).params.fuseDuration, 2.2);
+  assert.deepEqual(StageBehavior.validateWeapon({
+    presetId: 'legacy-mine', params: { authoredGeometry: 1, ringCount: 4.5 },
+  }), ["무기 '등불 기뢰'의 폭발 탄 수 값이 올바르지 않습니다."]);
+}
+
+{
+  const expected = {
+    easy: { fuseDuration: 3.4, ringCount: 5 },
+    normal: { fuseDuration: 2.89, ringCount: 6 },
+    hard: { fuseDuration: 2.38, ringCount: 7 },
+  };
+  for (const [difficulty, values] of Object.entries(expected)) {
+    const compiled = StageCompiler.compile(stage2Source, { difficulty });
+    const mine = compiled.events.find(event => event.itemId === 's2-w008').enemy.weapon;
+    assert.ok(Math.abs(mine.params.fuseDuration - values.fuseDuration) < 1e-9);
+    assert.equal(mine.params.ringCount, values.ringCount);
+    assert.equal(mine.params.ringPhase, 1.57, '저작한 안전 방향은 난이도에서도 고정되어야 한다');
+  }
+}
+
+{
+  const compiled = StageCompiler.compile(stage2Source, { difficulty: 'easy' });
+  const simulation = new Simulation(compiled, { fixedStep: 1 / 120 }).seek(16);
+  let explodedMine = null;
+  for (let step = 0; step < 1200; step++) {
+    simulation.advance(1 / 120);
+    const ring = simulation.bullets.filter(bullet => bullet.kind === 'bubble');
+    if (ring.length >= 5) {
+      explodedMine = ring.slice(-5);
+      break;
+    }
+  }
+  assert.equal(explodedMine?.length, 5, '첫 지뢰는 저작한 5발 링으로 폭발해야 한다');
+  assert.ok(Math.abs(Math.atan2(explodedMine[0].vy, explodedMine[0].vx) - 1.57) < 0.01);
 }
 
 {

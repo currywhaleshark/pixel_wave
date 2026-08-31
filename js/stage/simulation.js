@@ -107,6 +107,7 @@
           pauseRemaining: 0,
           fireRemaining: weapon.startDelay ?? 0.6,
           ringShotIndex: 0,
+          mineShotIndex: 0,
           lifecycle: EnemyStateApi.resolve(terrain.definition.enemyKind || 'turret', 0, {}, {}),
           solid: true,
           terrainScrollNative: layer ? LayerTransformApi.layerTravelNative(
@@ -133,6 +134,7 @@
         source.pauseRemaining = 0;
         source.fireRemaining = source.weapon?.startDelay ?? 0.6;
         source.ringShotIndex = 0;
+        source.mineShotIndex = 0;
         const horizontalEntry = Math.abs(source.directionX) >= Math.abs(source.directionY || 0);
         const defaultTargetX = horizontalEntry
           ? (source.directionX > 0 ? 0.32 : 0.68)
@@ -312,7 +314,23 @@
           this.firedBulletCount++;
         }
       } else if (weapon.presetId === 'legacy-mine') {
-        this.bullets.push({ x: enemy.x, y: enemy.y + 8, vx: -8, vy: 14, radius: 7, kind: 'mine', age: 0, timer: 1.8 });
+        const authored = weapon.params?.authoredGeometry === 1;
+        const spawnIndex = Math.max(0, Number(enemy.spawnIndex) || 0);
+        this.bullets.push({
+          x: enemy.x, y: enemy.y + 8, vx: -8, vy: 14, radius: 7, kind: 'mine', age: 0,
+          timer: authored
+            ? Math.max(0.2, (weapon.params?.fuseDuration ?? 1.8) + spawnIndex * (weapon.params?.fuseStep ?? 0))
+            : 1.8,
+          mineAuthoredGeometry: authored ? 1 : 0,
+          mineRingCount: weapon.params?.ringCount,
+          mineRingPhase: authored
+            ? (weapon.params?.ringPhase ?? 0) + spawnIndex * (weapon.params?.ringPhaseStep ?? 0)
+              + enemy.mineShotIndex * (weapon.params?.shotPhaseStep ?? 0)
+            : undefined,
+          mineRingSpeed: weapon.params?.ringSpeed,
+          mineWarningLead: weapon.params?.warningLead,
+        });
+        enemy.mineShotIndex++;
         this.firedBulletCount++;
       }
     }
@@ -585,12 +603,17 @@
             bullet.timer -= dt;
             if (bullet.timer <= 0) {
               bullet.dead = true;
-              const count = 6 + ['easy', 'normal', 'hard'].indexOf(this.compiled.difficulty.id);
+              const authored = bullet.mineAuthoredGeometry === 1;
+              const count = authored
+                ? Math.max(1, Math.round(bullet.mineRingCount || 6))
+                : 6 + ['easy', 'normal', 'hard'].indexOf(this.compiled.difficulty.id);
+              const phase = authored ? (bullet.mineRingPhase || 0) : 0;
+              const speed = (authored ? (bullet.mineRingSpeed || 95) : 95) * this.compiled.difficulty.ebSpd;
               for (let index = 0; index < count; index++) {
-                const angle = index / count * Math.PI * 2;
+                const angle = phase + index / count * Math.PI * 2;
                 spawnedProjectiles.push({
                   x: bullet.x, y: bullet.y,
-                  vx: Math.cos(angle) * 95, vy: Math.sin(angle) * 95,
+                  vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
                   radius: 5, kind: 'bubble', age: 0,
                 });
               }

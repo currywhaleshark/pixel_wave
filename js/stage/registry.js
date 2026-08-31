@@ -9,9 +9,9 @@
   const TerrainApi = root.StageTerrain || (typeof require === 'function' ? require('./terrain.js') : null);
 
   const DIFFICULTIES = Object.freeze([
-    Object.freeze({ id: 'easy', name: '이지', color: '#7dffd8', fireInt: 1, ebSpd: 1, ringN: 0, bigHp: 1 }),
-    Object.freeze({ id: 'normal', name: '노멀', color: '#ffd76e', fireInt: 0.68, ebSpd: 1.1, ringN: 2, bigHp: 1.3 }),
-    Object.freeze({ id: 'hard', name: '하드', color: '#ff8f8f', fireInt: 0.48, ebSpd: 1.22, ringN: 4, bigHp: 1.6 }),
+    Object.freeze({ id: 'easy', name: '이지', color: '#7dffd8', fireInt: 1, ebSpd: 1, ringN: 0, mineT: 1, bigHp: 1 }),
+    Object.freeze({ id: 'normal', name: '노멀', color: '#ffd76e', fireInt: 0.68, ebSpd: 1.1, ringN: 2, mineT: 0.85, bigHp: 1.3 }),
+    Object.freeze({ id: 'hard', name: '하드', color: '#ff8f8f', fireInt: 0.48, ebSpd: 1.22, ringN: 4, mineT: 0.7, bigHp: 1.6 }),
   ]);
 
   const definitions = Object.freeze({
@@ -134,10 +134,20 @@
         ]),
       }),
       Object.freeze({
-        id: 'legacy-mine', name: '등불 기뢰', description: '시간이 지나면 원형 탄으로 터지는 기뢰를 설치',
+        id: 'legacy-mine', name: '등불 기뢰', description: '신관·폭발 링·프레임별 위상·경고 시점을 지정하는 기뢰를 설치',
         fields: Object.freeze([
           Object.freeze({ key: 'interval', target: 'root', label: '설치 간격', min: 0.03, max: 120, step: 0.01, default: 2 }),
           Object.freeze({ key: 'startDelay', target: 'root', label: '첫 설치 지연', min: 0, max: 120, step: 0.05, default: 0.6 }),
+          Object.freeze({ key: 'fuseDuration', target: 'params', label: '폭발 신관', min: 0.2, max: 20, step: 0.05, default: 2.2 }),
+          Object.freeze({ key: 'fuseStep', target: 'params', label: '개체별 신관 차이', min: -10, max: 10, step: 0.05, default: 0 }),
+          Object.freeze({ key: 'ringCount', target: 'params', label: '폭발 탄 수', min: 1, max: 32, step: 1, default: 6, integer: true }),
+          Object.freeze({ key: 'ringPhase', target: 'params', label: '폭발 시작 위상', min: 0, max: 6.283, step: 0.05, default: 0 }),
+          Object.freeze({ key: 'ringPhaseStep', target: 'params', label: '개체별 위상 차이', min: -6.283, max: 6.283, step: 0.05, default: 0 }),
+          Object.freeze({ key: 'shotPhaseStep', target: 'params', label: '설치마다 위상 회전', min: -6.283, max: 6.283, step: 0.05, default: 0 }),
+          Object.freeze({ key: 'ringSpeed', target: 'params', label: '폭발 탄속', min: 1, max: 500, step: 1, default: 95 }),
+          Object.freeze({ key: 'warningLead', target: 'params', label: '점멸·경고음 선행', min: 0, max: 10, step: 0.05, default: 0.6 }),
+          Object.freeze({ key: 'warningSound', target: 'params', label: '경고음 사용', min: 0, max: 1, step: 1, default: 0, integer: true }),
+          Object.freeze({ key: 'authoredGeometry', target: 'params', label: '결정론적 폭발 사용', min: 0, max: 1, step: 1, default: 0, integer: true }),
         ]),
       }),
     ]),

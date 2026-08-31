@@ -3247,6 +3247,21 @@
         ctx.restore();
         continue;
       }
+      if (bullet.kind === 'mine' && Number.isFinite(bullet.timer)) {
+        const warningLead = Math.max(0.1, bullet.mineWarningLead ?? 0.6);
+        if (bullet.timer <= warningLead) {
+          const urgency = 1 - Math.max(0, bullet.timer) / warningLead;
+          const pulse = 0.55 + Math.sin(simulation.time * (10 + urgency * 12)) * 0.25;
+          ctx.save();
+          ctx.globalAlpha = Math.max(0.15, pulse);
+          ctx.strokeStyle = urgency > 0.65 ? '#fff0a8' : '#ffd66e';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(bullet.x, bullet.y, 10 + urgency * 5, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
       if (!Sprites.draw(ctx, `bullet.${bullet.kind}`, bullet.x, bullet.y, { t: bullet.age })) {
         ctx.fillStyle = bullet.kind === 'spike' ? '#ffd6e8' : '#b9ebff'; ctx.beginPath(); ctx.arc(bullet.x, bullet.y, bullet.radius ?? bullet.r ?? 5, 0, Math.PI * 2); ctx.fill();
       }

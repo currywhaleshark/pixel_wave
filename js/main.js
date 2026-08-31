@@ -1008,9 +1008,20 @@ const Game = {
       if (b.kind === 'mine') {
         b.vy *= (1 - 1.5 * dt); // 설치 후 서서히 정지
         b.timer -= dt;
+        const warningLead = b.mineWarningLead ?? 0.6;
+        if (!b.mineWarningPlayed && b.timer <= warningLead) {
+          b.mineWarningPlayed = true;
+          if (b.mineWarningSound === 1) Sound.sfx('warn');
+        }
         if (b.timer <= 0) {
           b.dead = true;
-          this.spawnRing(b.x, b.y, CFG.mineRingN + this.diff, CFG.mineRingSpd, Math.random() * 6.28);
+          const authored = b.mineAuthoredGeometry === 1;
+          this.spawnRing(
+            b.x, b.y,
+            authored ? (b.mineRingCount ?? CFG.mineRingN) : CFG.mineRingN + this.diff,
+            authored ? (b.mineRingSpeed ?? CFG.mineRingSpd) : CFG.mineRingSpd,
+            authored ? (b.mineRingPhase ?? 0) : Math.random() * 6.28,
+          );
           this.addFx(b.x, b.y, '#ffd66e', 6);
         }
       }
@@ -1529,7 +1540,7 @@ const Game = {
           : (b.kind === 'spike' || b.kind === 'drop') ? 'bullet.spike' : null;
       if (b.kind === 'mine' && Assets.has('bullet.mine')) {
         // 기뢰: 맥동 글로우 — 폭발이 가까울수록 빠르게
-        const urgency = b.timer !== undefined && b.timer < 1.2;
+        const urgency = b.timer !== undefined && b.timer < (b.mineWarningLead ?? 1.2);
         const pulse = 0.6 + Math.sin(performance.now() / (urgency ? 70 : 190)) * 0.3;
         const g = ctx.createRadialGradient(b.x, b.y, 2, b.x, b.y, 20);
         g.addColorStop(0, `rgba(255, 214, 110, ${0.5 * pulse * alphaMul})`);
@@ -1638,7 +1649,7 @@ const Game = {
         ctx.fill();
       } else if (b.kind === 'mine') {
         // 등불 기뢰: 따뜻한 광채, 터지기 직전 빠르게 깜빡
-        const urgent = b.timer < 0.6;
+        const urgent = b.timer < (b.mineWarningLead ?? 0.6);
         const blink = urgent && Math.floor(b.timer * 12) % 2 === 0;
         const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 16);
         glow.addColorStop(0, `rgba(255,214,110,${blink ? 0.8 : 0.4})`);

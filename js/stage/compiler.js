@@ -195,6 +195,10 @@
     if (weapon.presetId === 'legacy-ring') {
       weapon.params.count = Math.round(clamp(effective.params.count + difficulty.ringN, 1, 256));
     }
+    if (weapon.presetId === 'legacy-mine' && effective.params.authoredGeometry === 1) {
+      weapon.params.fuseDuration = clamp(effective.params.fuseDuration * difficulty.mineT, 0.2, 20);
+      weapon.params.ringCount = Math.round(clamp(effective.params.ringCount + difficulty.ringN * 0.5, 1, 32));
+    }
     return weapon;
   }
 
@@ -242,6 +246,7 @@
           directionX,
           directionY,
           phase,
+          spawnIndex: index,
           movement: clone(movement),
           weapon: clone(weapon),
           ...extra,

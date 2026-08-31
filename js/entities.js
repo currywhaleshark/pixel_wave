@@ -341,6 +341,7 @@ class Enemy {
     this.flash = 0;
     this.barrageRunner = null;
     this.ringShotIndex = 0;
+    this.mineShotIndex = 0;
     this.params = spec.params && typeof spec.params === 'object' ? spec.params : {};
     this.movementParams = spec.movementParams && typeof spec.movementParams === 'object' ? spec.movementParams : {};
     this.lifecycle = EnemyLifecycleApi.resolve(this.kind, 0, this.params, this.movementParams);
@@ -552,8 +553,24 @@ class Enemy {
         game.ebullets.push({ x: this.x, y: this.y + 8, vx, vy: CFG.ebSpeedDrop, r: CFG.ebR, kind: 'drop' });
       }
     } else if (S === 4) {   // 설치: 등불 기뢰 (시간차 링 폭발, 난이도로 타이머 단축)
-      game.ebullets.push({ x: this.x, y: this.y + 8, vx: -8, vy: 14, r: 7, kind: 'mine',
-        timer: CFG.mineTimer * (game.D?.mineT ?? 1) });
+      const authored = this.mineAuthoredGeometry === 1;
+      const spawnIndex = Math.max(0, Number(this.spawnIndex) || 0);
+      const timer = authored
+        ? Math.max(0.2, (this.mineFuseDuration ?? CFG.mineTimer) + spawnIndex * (this.mineFuseStep ?? 0))
+        : CFG.mineTimer * (game.D?.mineT ?? 1);
+      game.ebullets.push({
+        x: this.x, y: this.y + 8, vx: -8, vy: 14, r: 7, kind: 'mine', timer,
+        mineAuthoredGeometry: authored ? 1 : 0,
+        mineRingCount: this.mineRingCount,
+        mineRingPhase: authored
+          ? (this.mineRingPhase ?? 0) + spawnIndex * (this.mineRingPhaseStep ?? 0) + this.mineShotIndex * (this.mineShotPhaseStep ?? 0)
+          : undefined,
+        mineRingSpeed: this.mineRingSpeed,
+        mineWarningLead: this.mineWarningLead,
+        mineWarningSound: this.mineWarningSound,
+        mineWarningPlayed: false,
+      });
+      this.mineShotIndex++;
     }
   }
 

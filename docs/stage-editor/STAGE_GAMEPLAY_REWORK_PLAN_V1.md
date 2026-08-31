@@ -661,9 +661,22 @@ Stage Sequencer tool milestones M1–M7.
   residue.
 - [x] Move generic big enemies away from Stage 1's ring identity: the mid-stage
   big enemy now uses aimed fire and the late ring-firing big enemy is removed.
-- Add deterministic mine parameters and rebuild Stage 2 placement.
+- [x] Add deterministic mine parameters and rebuild Stage 2 placement.
+  Stage 2 now introduces one slow five-way mine at 16 seconds, crosses jelly
+  drops through a staggered three-lantern mine garden at 37 seconds, reserves
+  the central route with one stationary lantern at 60 seconds, and finishes
+  with planned upper/lower detonations at 90–91 seconds. The 50–59 and 76–88
+  second passages deliberately use aimed fire or no fire instead of more ring
+  pressure, and the 102–106 second parade remains a non-shooting reward break.
+- [x] Expose authored mine fuse, per-enemy fuse stagger, ring count, phase,
+  per-enemy/per-shot phase rotation, ring speed, and warning timing in the
+  editor. Preview and live play share the same deterministic geometry and the
+  warning pulse; live play also emits the optional warning sound.
 - Keep Bosses 1 and 2 structurally unchanged.
-- Establish Normal pacing and difficulty conventions.
+- [x] Establish Normal pacing and difficulty conventions for the first two
+  stages. Authored mines retain their safe-route phase while Easy/Normal/Hard
+  shorten the fuse and resolve to progressively denser rings; global fire-rate
+  and projectile-speed scaling still supplies the remaining pressure increase.
 
 ### G4 — Stages 3 and 4
 

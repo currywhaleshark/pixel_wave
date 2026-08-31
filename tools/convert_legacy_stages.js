@@ -2,7 +2,7 @@
 'use strict';
 
 // waves.js의 검증된 레거시 타임라인을 Stage JSON v1 초안으로 옮긴다.
-// Stage 1과 3은 수작업 스테이지 재구성이 시작되어 이 도구가 덮어쓰지 않는다.
+// Stage 1~3은 수작업 스테이지 재구성이 시작되어 이 도구가 덮어쓰지 않는다.
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
@@ -20,7 +20,6 @@ vm.runInContext(`${wavesSource}\nglobalThis.__legacyStages = [
 
 const META = {
   stage1: { name: '산호 초입', seed: 1001, boss: 'pangpang', bossName: '팡팡', sections: ['도입', '압박', '혼합과 파밍'] },
-  stage2: { name: '해파리 초원', seed: 2002, boss: 'mongsil', bossName: '몽실', sections: ['저녁 초원', '늘어나는 등불', '반짝이는 초원'] },
   stage4: { name: '심해 협곡', seed: 4004, boss: 'chorong', bossName: '초롱', dark: 0.86, sections: ['어둠 적응', '협곡 깊이', '심해 러시'] },
   stage5: { name: '난파선 묘지', seed: 5005, boss: 'buu', bossName: '부우', dark: 0.3, sections: ['잔해 사이로', '유령의 시간', '좁아지는 묘지'] },
   stage6: { name: '폭풍 수면', seed: 6006, boss: 'ureu', bossName: '우르릉', storm: 1, sections: ['바람이 분다', '폭풍 속으로', '뇌우'] },
@@ -199,7 +198,7 @@ function convert(stageNumber, timeline) {
   };
 }
 
-for (const stageNumber of [2, 4, 5, 6, 7]) {
+for (const stageNumber of [4, 5, 6, 7]) {
   const output = path.join(root, 'docs/stage-editor', `stage${stageNumber}.v1.draft.json`);
   fs.writeFileSync(output, `${JSON.stringify(convert(stageNumber, context.__legacyStages[stageNumber - 1]), null, 2)}\n`, 'utf8');
   console.log(path.relative(root, output));

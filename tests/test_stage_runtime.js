@@ -159,7 +159,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(html.includes('id="schemaNotice"'));
   assert.ok(html.includes('tools/stage-sequencer.css?v=2'));
   assert.ok(html.includes('js/stage/document.js?v=4'));
-  assert.ok(html.includes('tools/stage-sequencer.js?v=26'));
+  assert.ok(html.includes('tools/stage-sequencer.js?v=27'));
   assert.ok(html.includes('js/stage/previewPlacement.js?v=1'));
   const sequencer = fs.readFileSync(path.join(root, 'tools/stage-sequencer.js'), 'utf8');
   assert.ok(sequencer.includes('function updateGameTestLink()'));
