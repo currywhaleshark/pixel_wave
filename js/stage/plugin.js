@@ -5,6 +5,8 @@
 (function initStagePlugin(root) {
   'use strict';
 
+  const WreckApi = root.StageWreck || (typeof require === 'function' ? require('./wreck.js') : null);
+
   const CURVE_MIN = 0;
   const CURVE_MAX = 5;
   const EPS = 1e-9;
@@ -83,9 +85,9 @@
     return [...new Set(errors)];
   }
 
-  const numberField = (path, label, min, max, step) => Object.freeze({ path, label, type: 'number', min, max, step });
+  const numberField = (path, label, min, max, step, defaultValue) => Object.freeze({ path, label, type: 'number', min, max, step, defaultValue });
   const booleanField = (path, label) => Object.freeze({ path, label, type: 'boolean' });
-  const selectField = (path, label, options) => Object.freeze({ path, label, type: 'select', options: Object.freeze(options) });
+  const selectField = (path, label, options, defaultValue) => Object.freeze({ path, label, type: 'select', options: Object.freeze(options), defaultValue });
   const channel = (id, mode) => Object.freeze({ id, mode });
 
   const definitions = Object.freeze({
@@ -163,7 +165,7 @@
     }),
     'wreck-corridor': Object.freeze({
       name: '난파선 통로',
-      description: '화면 위나 아래에서 진입하는 파괴 불가 난파선 벽입니다.',
+      description: '화면 위나 아래에서 예고 후 진입하는 난파선 벽입니다.',
       itemTypes: Object.freeze(['hazard']),
       channels: Object.freeze([channel('hazard.corridor', 'stack')]),
       editor: 'generic',
@@ -176,6 +178,15 @@
         numberField('speed', '진행 속도', 1, 1000, 1),
         numberField('width', '벽 너비', 1, 960, 1),
         booleanField('indestructible', '파괴 불가'),
+        numberField('hp', '파괴 가능 체력', 1, 1000000, 1, WreckApi.DEFAULTS.hp),
+        selectField('variant', '외형 종류', Object.freeze([
+          Object.freeze({ value: 'auto', label: '자동(클립별 고정)' }),
+          Object.freeze({ value: 'bow', label: '부서진 선수' }),
+          Object.freeze({ value: 'ribs', label: '노출된 늑골' }),
+          Object.freeze({ value: 'stern', label: '파손된 선미' }),
+          Object.freeze({ value: 'beams', label: '교차 들보' }),
+        ]), WreckApi.DEFAULTS.variant),
+        numberField('entryCueDuration', '진입 예고 시간', 0, 3, 0.05, WreckApi.DEFAULTS.entryCueDuration),
       ]),
     }),
     'boss-warning': Object.freeze({
@@ -333,6 +344,7 @@
     if (pluginId === 'turtle-ride') errors.push(...validateTurtleRide(item.payload?.params));
     for (const field of contract.fields) {
       const value = getPath(item.payload?.params, field.path);
+      if (value === undefined && field.defaultValue !== undefined) continue;
       if (field.type === 'number' && (!Number.isFinite(Number(value)) || Number(value) < field.min || Number(value) > field.max)) {
         errors.push(`${field.path}은 ${field.min}–${field.max} 범위의 수여야 합니다.`);
       } else if (field.type === 'boolean' && typeof value !== 'boolean') {
@@ -470,16 +482,12 @@
             : (localTime - telegraphDuration) / Math.max(strikeDuration, EPS),
         });
       } else if (pluginId === 'wreck-corridor') {
-        const width = Math.max(1, finite(params.width));
-        const height = Math.max(1, finite(params.heightFraction) * viewport.height);
+        const wreck = WreckApi.positionAt(params, viewport, localTime);
         state.wrecks.push({
           itemId: active.itemId,
-          side: params.side === 'top' ? 'top' : 'bottom',
-          x: viewport.width + width * 0.5 - Math.max(0, finite(params.speed)) * localTime,
-          y: params.side === 'top' ? height * 0.5 : viewport.height - height * 0.5,
-          width,
-          height,
-          indestructible: params.indestructible === true,
+          ...wreck,
+          variantIndex: WreckApi.variantIndex(wreck.variant, active.itemId),
+          cueProgress: wreck.entryCueDuration > 0 ? Math.min(1, localTime / wreck.entryCueDuration) : 1,
         });
       }
     }

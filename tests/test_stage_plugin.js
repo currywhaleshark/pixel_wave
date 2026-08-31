@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const StagePlugin = require('../js/stage/plugin.js');
+const StageWreck = require('../js/stage/wreck.js');
 const StageCompiler = require('../js/stage/compiler.js');
 const { Simulation } = require('../js/stage/simulation.js');
 
@@ -52,7 +53,29 @@ const coverage6 = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/
   assert.deepEqual(StagePlugin.channels('scroll-speed'), [{ id: 'world.scrollMultiplier', mode: 'multiply' }]);
   assert.ok(StagePlugin.channels('turtle-ride').some(channel => channel.id === 'player.motionOverride' && channel.mode === 'exclusive'));
   assert.equal(StagePlugin.definition('wreck-corridor').editor, 'generic');
+  assert.equal(StagePlugin.definition('wreck-corridor').fields.find(field => field.path === 'variant').defaultValue, 'auto');
+  assert.equal(StagePlugin.definition('wreck-corridor').fields.find(field => field.path === 'entryCueDuration').defaultValue, 0.6);
   assert.equal(StagePlugin.definition('storm-current').fields.length, 16);
+}
+
+{
+  const viewport = { width: 960, height: 540 };
+  const params = {
+    side: 'top', heightFraction: 0.5, speed: 120, width: 150,
+    indestructible: false, hp: 45, variant: 'stern', entryCueDuration: 0.75,
+  };
+  const spec = StageWreck.createSpawnSpec(params, viewport, { itemId: 'wreck-a', groupId: 'group-a' });
+  assert.deepEqual(
+    [spec.x, spec.y, spec.wreckW, spec.wreckH, spec.wreckVariant, spec.hp, spec.wreckIndestructible],
+    [1125, 135, 150, 270, 2, 45, false],
+  );
+  assert.equal(spec.x - spec.wreckW * 0.5, viewport.width + params.speed * params.entryCueDuration,
+    '예고가 끝나기 전에는 난파선 판정 폭이 화면에 들어오지 않아야 한다');
+  const atEntry = StageWreck.positionAt(params, viewport, params.entryCueDuration);
+  assert.equal(atEntry.x - atEntry.width * 0.5, viewport.width);
+  assert.deepEqual(StageWreck.tileCenters(100, 150, 80), [60, 140], '가로 타일은 판정 폭 전체를 대칭으로 덮는다');
+  assert.equal(StageWreck.variantIndex('stern', 'ignored'), 2);
+  assert.equal(StageWreck.variantIndex('auto', 'wreck-a'), StageWreck.variantIndex('auto', 'wreck-a'));
 }
 
 {
@@ -176,7 +199,8 @@ const coverage6 = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/
   assert.ok(simulation.pluginState.darkness > 0.29 && simulation.pluginState.darkness <= 0.3);
   assert.equal(simulation.pluginState.wrecks.length, 1);
   assert.equal(simulation.pluginState.wrecks[0].side, 'bottom');
-  assert.ok(Math.abs(simulation.pluginState.wrecks[0].x - 949.5) < 1e-6);
+  assert.ok(Math.abs(simulation.pluginState.wrecks[0].x - 1006.5) < 1e-6);
+  assert.ok(Math.abs(simulation.pluginState.wrecks[0].cueProgress - (0.5 / 0.6)) < 1e-6);
   const activeHash = simulation.stateHash();
   simulation.seek(37);
   simulation.seek(8.5);

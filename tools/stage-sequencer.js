@@ -718,7 +718,8 @@
     const definition = StagePlugin.definition(item.payload?.pluginId);
     if (definition?.editor !== 'generic') return '';
     const fields = definition.fields.map(field => {
-      const value = StagePlugin.getPath(item.payload?.params, field.path);
+      const rawValue = StagePlugin.getPath(item.payload?.params, field.path);
+      const value = rawValue === undefined ? field.defaultValue : rawValue;
       const name = escapeHtml(pluginFieldName(field.path));
       if (field.type === 'boolean') {
         return `<label class="check-label"><input name="${name}" type="checkbox" ${value ? 'checked' : ''}> ${escapeHtml(field.label)}</label>`;
@@ -2312,12 +2313,17 @@
       ctx.rect(wreck.x - wreck.width * 0.5, wreck.y - wreck.height * 0.5, wreck.width, wreck.height);
       ctx.clip();
       let drewSprite = false;
-      for (let y = wreck.y - wreck.height * 0.5 + 16; y < wreck.y + wreck.height * 0.5 + 16; y += 32) {
-        drewSprite = Sprites.draw(ctx, 'enemy.wreck', wreck.x, y, {
-          frame: Math.abs(hashCode(wreck.itemId)) % 4,
-          outline: selected ? '#ffffff' : undefined,
-          outlineAlpha: selected ? 0.9 : undefined,
-        }) || drewSprite;
+      const sprite = SPRITES['enemy.wreck'];
+      const tileW = (sprite?.w || 40) * CFG.pxUnit;
+      const tileH = (sprite?.h || 32) * CFG.pxUnit;
+      for (const x of StageWreck.tileCenters(wreck.x, wreck.width, tileW)) {
+        for (const y of StageWreck.tileCenters(wreck.y, wreck.height, tileH)) {
+          drewSprite = Sprites.draw(ctx, 'enemy.wreck', x, y, {
+            frame: wreck.variantIndex,
+            outline: selected ? '#ffffff' : undefined,
+            outlineAlpha: selected ? 0.9 : undefined,
+          }) || drewSprite;
+        }
       }
       if (!drewSprite) {
         ctx.fillStyle = '#263d4b';
@@ -2329,6 +2335,19 @@
         }
       }
       ctx.restore();
+      if (wreck.cueProgress < 1) {
+        const pulse = Math.floor(simulation.time * 10) % 2 === 0 ? 0.72 : 0.34;
+        ctx.save();
+        ctx.globalAlpha = pulse;
+        ctx.fillStyle = '#ffdd73';
+        ctx.fillRect(canvas.width - 8, wreck.y - wreck.height * 0.5, 6, wreck.height);
+        ctx.fillStyle = '#fff2b8';
+        const boundaryY = wreck.side === 'top'
+          ? wreck.y + wreck.height * 0.5 - 4
+          : wreck.y - wreck.height * 0.5 + 4;
+        ctx.fillRect(canvas.width - 18, boundaryY - 3, 16, 6);
+        ctx.restore();
+      }
     }
   }
 

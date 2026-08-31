@@ -4,6 +4,7 @@
 
   const Compiler = root.StageCompiler || (typeof require === 'function' ? require('./compiler.js') : null);
   const Plugin = root.StagePlugin || (typeof require === 'function' ? require('./plugin.js') : null);
+  const WreckApi = root.StageWreck || (typeof require === 'function' ? require('./wreck.js') : null);
   const DATA = root.STAGE_DATA_REGISTRY || (typeof STAGE_DATA_REGISTRY !== 'undefined' ? STAGE_DATA_REGISTRY : {});
   const TEST_STORAGE_KEY = 'pixel-wave-stage-test-payload';
   const CONFIG = Object.freeze({
@@ -243,17 +244,13 @@
 
     _spawnWreck(event) {
       const params = event.payload?.params || {};
-      const height = (params.heightFraction ?? 0.4) * this.compiled.viewport.height;
-      const side = params.side === 'top' ? 'top' : 'bot';
       const groupId = this._group(event.itemId);
       this.game.groups[groupId].total = 1;
       this.game.groups[groupId].isFormation = false;
-      this.game.enemies.push(new Enemy({
-        kind: 'wreck', x: this.compiled.viewport.width + 60,
-        y: side === 'top' ? height / 2 : this.compiled.viewport.height - height / 2,
-        hp: 999999, spd: params.speed ?? 100, M: 1, S: 0,
-        dirX: -1, dirY: 0, wreckW: params.width ?? 74, wreckH: height, side, groupId,
-      }));
+      this.game.enemies.push(new Enemy(WreckApi.createSpawnSpec(params, this.compiled.viewport, {
+        itemId: event.itemId,
+        groupId,
+      })));
     }
 
     _apply(event) {

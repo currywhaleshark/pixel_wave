@@ -119,6 +119,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
     'js/stage/entry.js',
     'js/stage/path.js',
     'js/stage/formation.js',
+    'js/stage/wreck.js',
     'js/stage/plugin.js',
     'js/stage/enemyState.js',
     'js/stage/registry.js',
@@ -158,7 +159,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(html.includes('id="schemaNotice"'));
   assert.ok(html.includes('tools/stage-sequencer.css?v=2'));
   assert.ok(html.includes('js/stage/document.js?v=4'));
-  assert.ok(html.includes('tools/stage-sequencer.js?v=24'));
+  assert.ok(html.includes('tools/stage-sequencer.js?v=25'));
   assert.ok(html.includes('js/stage/previewPlacement.js?v=1'));
   const sequencer = fs.readFileSync(path.join(root, 'tools/stage-sequencer.js'), 'utf8');
   assert.ok(sequencer.includes('function updateGameTestLink()'));
@@ -231,10 +232,11 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(serviceWorker.includes('../js/stage/barrage.js'));
   assert.ok(serviceWorker.includes('../js/stage/budget.js'));
   assert.ok(serviceWorker.includes('../js/stage/plugin.js'));
+  assert.ok(serviceWorker.includes('../js/stage/wreck.js'));
   assert.ok(serviceWorker.includes('../js/stage/enemyState.js'));
   assert.ok(serviceWorker.includes('../js/stage/layerTransform.js'));
   assert.ok(serviceWorker.includes('../js/stage/terrain.js'));
-  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m7-v11'));
+  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m7-v12'));
   assert.ok(serviceWorker.includes('../js/stage/previewPlacement.js'));
   assert.ok(serviceWorker.includes('stage5.v1.draft.json'));
   assert.ok(serviceWorker.includes('assets/backgrounds/stage6-near-strip.png'));

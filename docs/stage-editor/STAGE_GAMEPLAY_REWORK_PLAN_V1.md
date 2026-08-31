@@ -646,7 +646,7 @@ Stage Sequencer tool milestones M1–M7.
 - [x] Add authored U-turn position and braking cue.
 - [x] Parameterize tracking.
 - [x] Optionize turtle rides.
-- [ ] Add common wreck spawning and rendering-width correctness.
+- [x] Add common wreck spawning and rendering-width correctness.
 
 ### G3 — Stages 1 and 2
 
@@ -806,9 +806,27 @@ Implemented decisions:
 - The registry label for `viper` is corrected from the boss name `부우` to
   `독니고기`.
 
-Still required to complete G2:
+G2 is complete. Stage placement work can now depend on the shared enemy, ride,
+and wreck grammar.
 
-- common wreck spawn payloads and exact authored width rendering.
+### 2026-09-01 — G2 shared wreck grammar
+
+Implemented decisions:
+
+- Stage hazards and future boss patterns construct wrecks through one shared
+  payload normalizer and spawn-spec factory.
+- Authored width and height now define spawn position, visible clipping,
+  horizontal and vertical sprite tiling, player collision, and off-screen
+  removal. Widening a wreck no longer leaves invisible collision at its sides.
+- Wrecks begin fully outside the right edge and use an authored entry-cue
+  duration before their collision rectangle reaches the playfield. The game
+  and Stage Sequencer show the same boundary cue.
+- Four named art variants can be selected explicitly. `auto` remains
+  deterministic per clip, so seeking and replaying never changes the shape.
+- `indestructible: false` now makes the wreck targetable and hittable and uses
+  the authored HP; indestructible wrecks retain terrain behavior.
+- Existing Stage 5 and Stage 7 clips inherit defaults without rewriting their
+  source payloads. Editing one in the sequencer materializes the chosen values.
 
 ### 2026-09-01 — G2 authored U-turn point
 

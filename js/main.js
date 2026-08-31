@@ -1059,8 +1059,18 @@ const Game = {
         if (e.dead) continue;
         if (typeof e.isHittable === 'function' && !e.isHittable()) continue;
         if (s.hitSet && s.hitSet.has(e)) continue; // 관통탄이 같은 적을 매 프레임 때리는 것 방지
-        const r = (KIND_R[e.kind] ?? 10) + s.r;
-        if ((s.x - e.x) ** 2 + (s.y - e.y) ** 2 < r * r) {
+        let hit = false;
+        if (e.kind === 'wreck') {
+          const halfWidth = e.wreckW * 0.5;
+          const halfHeight = e.wreckH * 0.5;
+          const nearestX = Math.max(e.x - halfWidth, Math.min(s.x, e.x + halfWidth));
+          const nearestY = Math.max(e.y - halfHeight, Math.min(s.y, e.y + halfHeight));
+          hit = (s.x - nearestX) ** 2 + (s.y - nearestY) ** 2 < s.r * s.r;
+        } else {
+          const r = (KIND_R[e.kind] ?? 10) + s.r;
+          hit = (s.x - e.x) ** 2 + (s.y - e.y) ** 2 < r * r;
+        }
+        if (hit) {
           if (s.kind === 'bomb') { this.explode(s); s.dead = true; break; }
           e.takeDamage(s.dmg ?? CFG.shotDmg, this);
           if (s.pierce > 0) { s.pierce--; (s.hitSet ??= new Set()).add(e); }

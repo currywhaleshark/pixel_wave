@@ -345,8 +345,10 @@ class Enemy {
     this.lifecycle = EnemyLifecycleApi.resolve(this.kind, 0, this.params, this.movementParams);
     this.solid = this.lifecycle.collidable;
     if (this.kind === 'wreck') {
-      const seed = spec.variant ?? Math.floor((spec.y ?? 0) / 48) + (spec.side === 'top' ? 1 : 0);
+      const seed = spec.wreckVariant ?? spec.variant ?? Math.floor((spec.y ?? 0) / 48) + (spec.side === 'top' ? 1 : 0);
       this.wreckVariant = ((seed % 4) + 4) % 4;
+      this.wreckIndestructible = spec.wreckIndestructible !== false;
+      this.wreckCueDuration = Math.max(0, Number(spec.wreckCueDuration) || 0);
     }
   }
 
@@ -360,7 +362,7 @@ class Enemy {
     // 난파선 지형: 스크롤보다 빠르게 흘러오는 장애물 (전경 패럴랙스)
     if (this.kind === 'wreck') {
       this.x -= spd * dt;
-      if (this.x < -80) this.escaped = true;
+      if (this.x + this.wreckW * 0.5 < 0) this.escaped = true;
       return;
     }
 
@@ -508,8 +510,8 @@ class Enemy {
     }
   }
 
-  isTargetable() { return this.lifecycle?.targetable !== false; }
-  isHittable() { return this.lifecycle?.hittable !== false; }
+  isTargetable() { return this.kind === 'wreck' ? !this.wreckIndestructible : this.lifecycle?.targetable !== false; }
+  isHittable() { return this.kind === 'wreck' ? !this.wreckIndestructible : this.lifecycle?.hittable !== false; }
   isCollidable() { return this.lifecycle?.collidable !== false; }
   glowStrength() { return Math.max(0, Math.min(1, this.lifecycle?.glow ?? 1)); }
 
@@ -564,16 +566,30 @@ class Enemy {
     if (this.kind === 'wreck' && Sprites.has('enemy.wreck')) {
       const sprite = SPRITES['enemy.wreck'];
       const tileH = sprite.h * CFG.pxUnit;
+      const tileW = sprite.w * CFG.pxUnit;
       const top = this.y - this.wreckH / 2;
       const bottom = this.y + this.wreckH / 2;
       ctx.save();
       ctx.beginPath();
       ctx.rect(this.x - this.wreckW / 2, top, this.wreckW, this.wreckH);
       ctx.clip();
-      for (let y = top + tileH / 2; y < bottom + tileH; y += tileH) {
-        Sprites.draw(ctx, 'enemy.wreck', this.x, y, { frame: this.wreckVariant, alpha });
+      const xs = typeof StageWreck !== 'undefined' ? StageWreck.tileCenters(this.x, this.wreckW, tileW) : [this.x];
+      const ys = typeof StageWreck !== 'undefined' ? StageWreck.tileCenters(this.y, this.wreckH, tileH) : [this.y];
+      for (const x of xs) for (const y of ys) {
+        Sprites.draw(ctx, 'enemy.wreck', x, y, { frame: this.wreckVariant, alpha });
       }
       ctx.restore();
+      if (this.t < this.wreckCueDuration) {
+        const pulse = Math.floor(this.t * 10) % 2 === 0 ? 0.72 : 0.34;
+        ctx.save();
+        ctx.globalAlpha = pulse;
+        ctx.fillStyle = '#ffdd73';
+        ctx.fillRect(CFG.W - 8, top, 6, this.wreckH);
+        ctx.fillStyle = '#fff2b8';
+        const boundaryY = this.side === 'top' ? bottom - 4 : top + 4;
+        ctx.fillRect(CFG.W - 18, boundaryY - 3, 16, 6);
+        ctx.restore();
+      }
       return;
     }
     // 발광체는 스프라이트로 바뀌어도 광원 연출을 유지한다 (글로우는 게임 아트)

@@ -1,4 +1,4 @@
-const CACHE = 'pixel-wave-stage-sequencer-m7-v11';
+const CACHE = 'pixel-wave-stage-sequencer-m7-v12';
 const SHELL = [
   './stage-sequencer.html',
   './stage-sequencer.css',
@@ -18,6 +18,7 @@ const SHELL = [
   '../js/stage/path.js',
   '../js/stage/previewPlacement.js',
   '../js/stage/formation.js',
+  '../js/stage/wreck.js',
   '../js/stage/plugin.js',
   '../js/stage/enemyState.js',
   '../js/stage/registry.js',
