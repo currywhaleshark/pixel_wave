@@ -61,6 +61,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 .button:disabled { opacity: 0.45; cursor: default; }
 .button.accent { color: #2d1023; background: var(--pink); border-color: #ffc2df; }
+.button.disabled { opacity: 0.42; cursor: not-allowed; }
 .status { padding: 4px 8px; border: 1px solid var(--line); border-radius: 12px; color: var(--green); font-size: 9px; }
 .status.loading { color: var(--gold); }
 .status.warning { color: var(--gold); border-color: #8d7437; background: #2b2516; }

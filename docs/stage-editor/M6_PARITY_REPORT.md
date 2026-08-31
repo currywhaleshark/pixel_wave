@@ -23,3 +23,10 @@ data runtime.
 - Rollback: remove `stageRuntime=data`; no data migration is involved.
 
 The debug HUD reports `STAGE DATA · parity OK` while the opt-in path is active.
+
+The Sequencer's `게임 시험` button is a stricter draft bridge than these direct
+URLs. It stores the currently edited Stage JSON in same-tab session storage,
+launches with `stageTest=1`, labels the HUD `STAGE DRAFT`, and returns to the
+Sequencer at range completion, boss victory, or manual retreat. The payload is
+validated before compilation and is removed on return, so production and plain
+debug URLs continue to read only the checked-in generated registry.

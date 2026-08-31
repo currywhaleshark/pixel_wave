@@ -64,10 +64,17 @@ current game runtime has not been replaced; the editor remains isolated under
     to see the cyan structural contour and reviewed sockets. Terrain clips are
     projected from absolute layer distance onto the timeline; their inspector
     selects approved sockets and edits offset, HP, and fire interval.
-15. On Stage 3, `게임 시험` opens the current difficulty and selected range in
-    the opt-in production bridge. The equivalent full-stage URL is
-    `index.html?debug&stageRuntime=data&stage=stage3&diff=0`. Removing
-    `stageRuntime=data` always restores the legacy runtime.
+15. On Stage 3, `게임 시험` copies the current in-device draft into a
+    same-tab test session, then opens the current difficulty and selected range
+    in the opt-in production bridge. The HUD says `STAGE DRAFT`, and an edited
+    draft is expected to report parity differences from the checked-in legacy
+    timeline. A selected range returns automatically at OUT; a full run returns
+    after boss victory, and the pause menu can return early. Test runs do not
+    write clear rewards or scoreboard state. Direct URLs without a test payload
+    still use the checked-in generated Stage JSON. Removing `stageRuntime=data`
+    always restores the legacy runtime. Stage 1/5/6 coverage fixtures remain
+    preview-only, so their game-test link is disabled instead of silently
+    launching an unrelated legacy stage.
 16. M7 adds `여러 선택`, one-step bulk movement/deletion, portable clip
     fragments, and reusable section templates. `Ctrl/Cmd+C`, `Ctrl/Cmd+V`,
     `Ctrl/Cmd+Z`, `Shift+Ctrl/Cmd+Z`, `Delete`, and touch controls share the

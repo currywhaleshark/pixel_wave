@@ -107,6 +107,8 @@ const Game = {
   dark: 0, targetDark: 0, // 어둠 오버레이 (심해 스테이지)
   bombId: 'sonar',       // 선택된 봄 (bombs.js)
   replay: false,         // 이미 클리어한 해역 재도전 중인가
+  stageTest: false,      // 시퀀서 초안 단독 시험 모드
+  stageTestReturnUrl: null,
   // ---- 스코어 ----
   score: 0,              // 이번 런 점수
   mult: 1,               // 배율 (그레이즈·격파로 상승, 피격 시 반토막)
@@ -171,6 +173,8 @@ const Game = {
     this.spawner = dataSpawner || new Spawner(stage.timeline, this);
     this.stageRuntimeMode = dataSpawner ? 'data' : 'legacy';
     this.stageParity = dataSpawner?.parity || null;
+    this.stageTest = !!dataSpawner?.testMode;
+    this.stageTestReturnUrl = dataSpawner?.returnUrl || null;
     if (dataSpawner?.range) {
       this.stageT = dataSpawner.range.start;
       dataSpawner.seekRange(this.stageT);
@@ -201,7 +205,7 @@ const Game = {
   // 일시정지 메뉴 항목 배치 (drawPause와 공유)
   pauseItems() {
     return this.pauseView === 'menu'
-      ? ['계속하기', '항해도로 돌아가기', '설정']
+      ? ['계속하기', this.stageTest ? '시퀀서로 돌아가기' : '항해도로 돌아가기', '설정']
       : ['BGM 볼륨', '효과음 볼륨', (Sound.muted ? '음소거 해제' : '음소거'), '뒤로'];
   },
   pauseItemRect(i) {
@@ -242,11 +246,36 @@ const Game = {
   inRect(p, r) { return p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h; },
 
   retreat() {
+    if (this.stageTest) {
+      this.finishStageTest('retreat');
+      return;
+    }
     this.stats.banked = Math.round(this.stats.pearls * this.D.pearlMul);
     Meta.data.bank += this.stats.banked;
     Meta.save();
     this.state = 'map';
     Input.anyPressed = false;
+  },
+
+  finishStageTest(reason = 'complete') {
+    if (!this.stageTest) return false;
+    const fallback = `/tools/stage-sequencer.html?stage=${encodeURIComponent(STAGES[this.stageIdx]?.id || 'stage3')}`;
+    let target = fallback;
+    try {
+      const candidate = new URL(this.stageTestReturnUrl || fallback, location.href);
+      if (candidate.origin === location.origin) target = `${candidate.pathname}${candidate.search}${candidate.hash}`;
+    } catch (_error) { /* 안전한 동일 출처 기본값 사용 */ }
+    try {
+      sessionStorage.setItem('pixel-wave-stage-test-result', JSON.stringify({
+        stageId: STAGES[this.stageIdx]?.id,
+        reason,
+        sourceHash: this.spawner?.sourceHash || null,
+        completedAt: new Date().toISOString(),
+      }));
+      sessionStorage.removeItem('pixel-wave-stage-test-payload');
+    } catch (_error) { /* 복귀 자체는 계속한다 */ }
+    location.replace(target);
+    return true;
   },
 
   // 첫 만남 / 재대결 대사 분기 — 친구가 된 뒤에는 인사가 달라진다
@@ -578,6 +607,7 @@ const Game = {
 
   // 라스보스 격파 → 엔딩 시퀀스 (일반 victory 대신)
   startEnding() {
+    if (this.stageTest) { this.finishStageTest('victory'); return; }
     this.commitRun();
     this.msgs = [];
     this.state = 'ending';
@@ -589,6 +619,7 @@ const Game = {
   },
 
   victory() {
+    if (this.stageTest) { this.finishStageTest('victory'); return; }
     this.commitRun();
     Sound.stopBgm(1.5);
     Sound.sfx('clear');
@@ -1744,7 +1775,7 @@ const Game = {
         CFG.W - 56, 50);
       if (this.stageRuntimeMode === 'data') {
         ctx.fillStyle = this.stageParity?.ok ? '#7dffd8' : '#ff8f8f';
-        ctx.fillText(`STAGE DATA · parity ${this.stageParity?.ok ? 'OK' : `${this.stageParity?.errors?.length || 0} issue`}`, CFG.W - 56, 66);
+        ctx.fillText(`${this.stageTest ? 'STAGE DRAFT' : 'STAGE DATA'} · parity ${this.stageParity?.ok ? 'OK' : `${this.stageParity?.errors?.length || 0} issue`}`, CFG.W - 56, 66);
       }
     }
     // 스코어 (우상단): 현재 점수 · 배율 · 해역 최고

@@ -4,6 +4,7 @@
 
   const Compiler = root.StageCompiler || (typeof require === 'function' ? require('./compiler.js') : null);
   const DATA = root.STAGE_DATA_REGISTRY || (typeof STAGE_DATA_REGISTRY !== 'undefined' ? STAGE_DATA_REGISTRY : {});
+  const TEST_STORAGE_KEY = 'pixel-wave-stage-test-payload';
   const CONFIG = Object.freeze({ defaultMode: 'legacy', optInStageIds: Object.freeze(['stage3']) });
 
   function query(search = root.location?.search || '') {
@@ -19,8 +20,20 @@
     return ['easy', 'normal', 'hard'][Math.max(0, Math.min(2, Number(index) || 0))];
   }
 
-  function compile(stageId, difficulty) {
-    const source = DATA[stageId];
+  function testPayload(stageId, search) {
+    const params = query(search);
+    if (!params.has('debug') || params.get('stageTest') !== '1') return null;
+    try {
+      const text = root.sessionStorage?.getItem(TEST_STORAGE_KEY);
+      const payload = text ? JSON.parse(text) : null;
+      if (payload?.format !== 'pixel-wave-stage-test' || payload.schemaVersion !== 1 || payload.stage?.id !== stageId) return null;
+      const report = Compiler.validate(payload.stage);
+      return report.errors.length ? null : payload;
+    } catch (_error) { return null; }
+  }
+
+  function compile(stageId, difficulty, sourceOverride = null) {
+    const source = sourceOverride || DATA[stageId];
     return source ? Compiler.compile(source, { difficulty: difficultyId(difficulty) }) : null;
   }
 
@@ -30,8 +43,8 @@
     return Math.max(0, Number(entry.n || 0));
   }
 
-  function parityReport(stageId, legacyTimeline, difficulty = 0) {
-    const compiled = compile(stageId, difficulty);
+  function parityReport(stageId, legacyTimeline, difficulty = 0, sourceOverride = null) {
+    const compiled = compile(stageId, difficulty, sourceOverride);
     if (!compiled) return { ok: false, errors: [`${stageId} 데이터가 없습니다.`], summary: {} };
     const legacyWaves = (legacyTimeline || []).filter(entry => !entry.warning && !entry.boss && !entry.ride && entry.bolt === undefined);
     const dataWaves = compiled.items.filter(item => item.type === 'wave');
@@ -81,6 +94,9 @@
       this.groupIds = new Map();
       this.nextGroupId = 1;
       this.range = options.range || null;
+      this.testMode = !!options.testMode;
+      this.returnUrl = options.returnUrl || null;
+      this.sourceHash = options.sourceHash || null;
       this.rangeStopped = false;
       this.timeline = compiled.items.map(item => ({
         t: item.timing.domain === 'time' ? item.timing.start : item.projectedTime || compiled.timeline.duration,
@@ -142,8 +158,11 @@
       while (this.idx < this.events.length && this.events[this.idx].at <= time) this._apply(this.events[this.idx++]);
       if (this.range && time >= this.range.end && !this.rangeStopped) {
         this.rangeStopped = true;
-        this.game.paused = true;
-        this.game.message(`[DATA TEST] ${this.range.start.toFixed(1)}–${this.range.end.toFixed(1)}초 완료`, '#7dffd8');
+        if (this.testMode && typeof this.game.finishStageTest === 'function') this.game.finishStageTest('range');
+        else {
+          this.game.paused = true;
+          this.game.message(`[DATA TEST] ${this.range.start.toFixed(1)}–${this.range.end.toFixed(1)}초 완료`, '#7dffd8');
+        }
       }
     }
 
@@ -158,16 +177,24 @@
   }
 
   function createSpawner(stageId, difficulty, game, legacyTimeline, search) {
-    if (requestedMode(search) !== 'data' || !CONFIG.optInStageIds.includes(stageId)) return null;
-    const compiled = compile(stageId, difficulty);
+    if (requestedMode(search) !== 'data') return null;
+    const payload = testPayload(stageId, search);
+    if (!payload && !CONFIG.optInStageIds.includes(stageId)) return null;
+    const compiled = compile(stageId, difficulty, payload?.stage || null);
     if (!compiled) return null;
+    const params = query(search);
     const range = rangeFromSearch(search);
-    const spawner = new GameSpawner(compiled, game, { range });
-    spawner.parity = parityReport(stageId, legacyTimeline, difficulty);
+    const spawner = new GameSpawner(compiled, game, {
+      range,
+      testMode: !!payload,
+      returnUrl: payload ? params.get('returnTo') : null,
+      sourceHash: payload?.stageHash || null,
+    });
+    spawner.parity = parityReport(stageId, legacyTimeline, difficulty, payload?.stage || null);
     return spawner;
   }
 
-  const api = Object.freeze({ CONFIG, requestedMode, difficultyId, compile, parityReport, GameSpawner, rangeFromSearch, createSpawner });
+  const api = Object.freeze({ CONFIG, TEST_STORAGE_KEY, requestedMode, difficultyId, testPayload, compile, parityReport, GameSpawner, rangeFromSearch, createSpawner });
   root.StageGameAdapter = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);

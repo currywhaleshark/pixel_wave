@@ -20,6 +20,7 @@
   ];
   const SECTION_COLORS = ['#55d9e8', '#ffd66e', '#ff87bd', '#8fa3e8', '#7dffd8'];
   const DIFFICULTY_IDS = ['easy', 'normal', 'hard'];
+  const STAGE_TEST_STORAGE_KEY = 'pixel-wave-stage-test-payload';
   const barrageReturn = query.get('barrageReturn') === '1' && StageBarrage.ID.test(query.get('pattern') || '') ? {
     patternId: query.get('pattern'),
     itemId: query.get('item') || '',
@@ -288,14 +289,52 @@
 
   function updateGameTestLink() {
     const link = $('#gameTestLink');
-    if (!link || !rawStage || rawStage.id !== 'stage3') {
-      if (link) link.href = 'index.html?debug';
+    if (!link || !rawStage) return;
+    const supported = rawStage.id === 'stage3';
+    link.classList.toggle('disabled', !supported);
+    link.setAttribute('aria-disabled', String(!supported));
+    if (!supported) {
+      link.removeAttribute('href');
+      link.title = '현재 게임 런타임 브리지는 완전 변환된 Stage 3만 지원합니다.';
       return;
     }
-    const params = new URLSearchParams({ debug: '', stageRuntime: 'data', stage: 'stage3' });
+    link.title = '현재 편집 초안으로 이 스테이지만 시험합니다.';
+    const params = new URLSearchParams({ debug: '', stageRuntime: 'data', stageTest: '1', stage: rawStage.id });
     params.set('diff', String(DIFFICULTY_IDS.indexOf(activeDifficulty().id)));
     if (range.id !== 'full') params.set('stageRange', `${range.start},${range.end}`);
+    params.set('returnTo', `${location.pathname}${location.search}`);
     link.href = `index.html?${params.toString()}`;
+  }
+
+  function prepareGameTest(event) {
+    if (!rawStage || rawStage.id !== 'stage3') {
+      event.preventDefault();
+      toast('게임 시험은 완전 변환된 Stage 3에서만 사용할 수 있습니다');
+      return;
+    }
+    try {
+      sessionStorage.setItem(STAGE_TEST_STORAGE_KEY, JSON.stringify({
+        format: 'pixel-wave-stage-test',
+        schemaVersion: 1,
+        stage: stageDocument.snapshot(),
+        stageHash: stageDocument.stateHash(),
+        difficulty: activeDifficulty().id,
+        createdAt: new Date().toISOString(),
+      }));
+    } catch (error) {
+      event.preventDefault();
+      console.error(error);
+      toast('시험용 초안을 전달할 저장공간이 부족합니다. JSON을 먼저 내보내세요');
+    }
+  }
+
+  function consumeGameTestResult() {
+    try {
+      const text = sessionStorage.getItem('pixel-wave-stage-test-result');
+      sessionStorage.removeItem('pixel-wave-stage-test-result');
+      const result = text ? JSON.parse(text) : null;
+      return result?.stageId === rawStage?.id ? result : null;
+    } catch (_error) { return null; }
   }
 
   function refreshBudgetReport() {
@@ -386,7 +425,11 @@
       playing = true;
       updatePlayButton();
       updateEditorUi();
-      if (migrationNotice) toast(`스키마를 v1으로 변환했습니다: ${migrationNotice}`);
+      const testResult = consumeGameTestResult();
+      if (testResult) {
+        const applied = testResult.sourceHash && testResult.sourceHash === stageDocument.stateHash();
+        toast(`게임 시험 종료 · ${applied ? '현재 초안 적용 확인' : '초안 해시가 달라졌습니다'}`);
+      } else if (migrationNotice) toast(`스키마를 v1으로 변환했습니다: ${migrationNotice}`);
       else if (!barrageReturn && stored?.stage) toast(stored.storage === 'recovery' ? '강제 종료 전 복구본을 불러왔습니다' : '기기에 저장된 초안을 복구했습니다');
     } catch (error) {
       console.error(error);
@@ -2757,6 +2800,7 @@
   $('#importStageFile').addEventListener('change', event => importStageFile(event.target.files?.[0]));
   $('#inspectorToggle').addEventListener('click', () => setInspectorOpen(!$('#inspector').classList.contains('open')));
   $('#exportStage').addEventListener('click', exportStage);
+  $('#gameTestLink').addEventListener('click', prepareGameTest);
   document.addEventListener('keydown', event => {
     const typing = event.target instanceof Element && event.target.closest('input, select, textarea');
     if (typing) return;

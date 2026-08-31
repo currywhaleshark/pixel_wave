@@ -17,11 +17,12 @@ const legacy = context.__stage3Timeline;
 
 const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 assert.ok(indexHtml.includes('js/stages.generated.js?v=1'));
-assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=1'));
+assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=2'));
 assert.ok(indexHtml.indexOf('js/stage/compiler.js') < indexHtml.indexOf('js/stage/gameAdapter.js'));
 const mainSource = fs.readFileSync(path.join(root, 'js/main.js'), 'utf8');
 assert.ok(mainSource.includes("stageTestParams.get('stageRuntime') === 'data'"));
 assert.ok(mainSource.includes("this.stageRuntimeMode = dataSpawner ? 'data' : 'legacy'"));
+assert.ok(mainSource.includes("finishStageTest(reason = 'complete')"));
 
 assert.equal(Adapter.CONFIG.defaultMode, 'legacy');
 assert.equal(Adapter.requestedMode('?debug&stageRuntime=data'), 'data');
@@ -54,6 +55,34 @@ spawner.update(37);
 assert.ok(fakeGame.enemies.length > 0);
 spawner.update(57);
 assert.equal(fakeGame.paused, true);
+
+const editedStage = JSON.parse(JSON.stringify(global.STAGE_DATA_REGISTRY.stage3));
+editedStage.items.find(item => item.id === 's3-w001').timing.start = 9.25;
+const payload = {
+  format: 'pixel-wave-stage-test', schemaVersion: 1,
+  stage: editedStage, stageHash: 'draft1234',
+};
+global.sessionStorage = {
+  getItem(key) { return key === Adapter.TEST_STORAGE_KEY ? JSON.stringify(payload) : null; },
+};
+const testGame = {
+  enemies: [], groups: {}, finished: null,
+  startRide() {}, startBossWarning() {}, startBoss() {}, message() {},
+  finishStageTest(reason) { this.finished = reason; },
+};
+const draftSpawner = Adapter.createSpawner(
+  'stage3', 0, testGame, legacy,
+  '?debug&stageRuntime=data&stageTest=1&stageRange=9,10&returnTo=%2Ftools%2Fstage-sequencer.html%3Fstage%3Dstage3',
+);
+assert.ok(draftSpawner.testMode);
+assert.equal(draftSpawner.sourceHash, 'draft1234');
+assert.equal(draftSpawner.returnUrl, '/tools/stage-sequencer.html?stage=stage3');
+assert.equal(draftSpawner.compiled.items.find(item => item.id === 's3-w001').timing.start, 9.25);
+assert.equal(draftSpawner.parity.ok, false, '편집 초안은 체크인된 legacy와 다른 점을 진단해야 한다');
+draftSpawner.seekRange(9);
+draftSpawner.update(10);
+assert.equal(testGame.finished, 'range');
+delete global.sessionStorage;
 
 delete global.Enemy;
 console.log('stage game adapter: ok');
