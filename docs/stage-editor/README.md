@@ -26,7 +26,12 @@ URLs can run the matching data-driven stage through the shared game bridge.
    an entry-position handle for ordinary waves, a V-spacing handle, and a
    wall-gap handle. Horizontal, vertical, and diagonal entries rotate formation
    previews to match their travel direction. These gestures also follow the
-   selected base or difficulty scope.
+   selected base or difficulty scope. A live enemy sprite can also be dragged
+   directly: movement along its travel axis is converted into spawn timing,
+   while movement across that axis updates the entry coordinate. Custom-path
+   waves translate the path on the cross axis instead. The preview samples the
+   enemy's actual simulated velocity, so sine, tracking, and terrain-scrolling
+   turret movement use the same gesture.
 7. Enemy and entry selectors use the shared registry library. Eight ordinary
    enemy kinds and all five legacy entry directions are available with Korean
    names, descriptions, and enemy defaults. Choosing a dependency not yet used

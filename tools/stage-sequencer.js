@@ -62,6 +62,7 @@
   let clipDrag = null;
   let pathDrag = null;
   let formationDrag = null;
+  let spriteDrag = null;
   let curveDrag = null;
   let selectedPathPoint = 0;
   let selectedCurvePoint = 0;
@@ -865,11 +866,11 @@
     toast(label);
   }
 
-  function replaceAuthoredItem(id, nextItem, label) {
+  function replaceAuthoredItem(id, nextItem, label, seekAt = nextItem.timing.start) {
     try {
       const candidate = validateReplacement(id, nextItem);
       if (stageDocument.replaceItemWithDependencies(id, nextItem, candidate.dependencies, label)) {
-        afterDocumentChange(label, nextItem.id, nextItem.timing.start);
+        afterDocumentChange(label, nextItem.id, seekAt);
         return true;
       }
     } catch (error) {
@@ -879,7 +880,7 @@
     return false;
   }
 
-  function replaceDifficultyItem(id, nextResolvedItem, label) {
+  function replaceDifficultyItem(id, nextResolvedItem, label, seekAt = nextResolvedItem.timing.start) {
     try {
       const authored = stageDocument.findItem(id);
       if (!authored) throw new Error(`클립 '${id}'을 찾을 수 없습니다.`);
@@ -892,7 +893,7 @@
       ensureWaveDependencies(candidate, nextResolvedItem);
       validateStageCandidate(candidate);
       if (stageDocument.replaceItemWithDependencies(id, candidate.items[index], candidate.dependencies, label)) {
-        afterDocumentChange(label, id, nextResolvedItem.timing.start);
+        afterDocumentChange(label, id, seekAt);
         return true;
       }
     } catch (error) {
@@ -1924,6 +1925,7 @@
               <label>속도<input name="speed" type="number" min="0" max="2000" step="1" value="${formItem.payload.enemy.speed}"></label>
             </div>
             <p class="library-hint" data-enemy-hint>${escapeHtml(StageRegistry.get('enemyKinds', formItem.payload.enemy.kind)?.description || '')}</p>
+            <p class="library-hint">미리보기에서 이 적을 직접 끌면 진행축은 등장 시각, 교차축은 진입 위치로 함께 조정됩니다. 여러 선택 모드에서는 개별 드래그가 잠깁니다.</p>
             <div class="form-row three">
               <label>${formFormation.presetId === 'wall-gap' ? '해석 수' : '마릿수'}<input name="count" type="number" min="1" max="256" step="1" value="${formFormation.presetId === 'wall-gap' ? formationCount : (formItem.payload.spawn.count ?? 1)}" ${formFormation.presetId === 'wall-gap' ? 'disabled' : ''}></label>
               <label>간격<input name="interval" type="number" min="0" max="30" step="0.01" value="${formItem.payload.spawn.interval ?? 0}" ${['wall-gap', 'v', 'surround-ring'].includes(formFormation.presetId) ? 'disabled' : ''}></label>
@@ -2481,12 +2483,14 @@
     const targets = [];
     for (const terrain of simulation.terrainObjects || []) {
       targets.push({
+        type: 'terrain',
         itemId: terrain.itemId,
         box: spriteHitBox(terrain.definition.spriteId, terrain.drawX, terrain.drawY, 36, 32),
       });
     }
     for (const wreck of simulation.pluginState?.wrecks || []) {
       targets.push({
+        type: 'wreck',
         itemId: wreck.itemId,
         box: {
           left: wreck.x - wreck.width * 0.5,
@@ -2498,7 +2502,9 @@
     }
     for (const enemy of simulation.enemies) {
       targets.push({
+        type: 'enemy',
         itemId: enemy.itemId,
+        enemy,
         box: spriteHitBox(
           `enemy.${enemy.kind}`,
           enemy.x,
@@ -2510,12 +2516,14 @@
     }
     if (simulation.ride?.params?.drawTurtle) {
       targets.push({
+        type: 'ride',
         itemId: simulation.ride.itemId,
         box: spriteHitBox('turtle.taxi', simulation.player.x, simulation.player.y + 20, 64, 40),
       });
     }
     if (simulation.boss) {
       targets.push({
+        type: 'boss',
         itemId: simulation.boss.itemId,
         box: spriteHitBox(`boss.${simulation.boss.id}`, simulation.boss.x, simulation.boss.y, 112, 80),
       });
@@ -2539,7 +2547,7 @@
 
   function selectPreviewSprite(event) {
     if (
-      event.defaultPrevented || pathDrag || formationDrag || terrainReview
+      event.defaultPrevented || pathDrag || formationDrag || spriteDrag || terrainReview
       || (event.button !== undefined && event.button !== 0)
     ) return;
     const target = hitPreviewSprite(pointerCanvasPosition(event));
@@ -2547,6 +2555,124 @@
     event.preventDefault();
     selectItem(target.itemId, true, multiSelectMode || event.ctrlKey || event.metaKey || event.shiftKey);
     renderPreview();
+  }
+
+  function samplePreviewEnemyVelocity(enemy) {
+    const sampleDistance = 0.12;
+    if (simulation.time + sampleDistance <= compiled.timeline.duration) {
+      const probe = new StageSimulation.Simulation(compiled, {
+        fixedStep: 1 / 60,
+        snapshotInterval: 30,
+        terrainProfile,
+      });
+      probe.restore(simulation.createSnapshot());
+      probe.advance(sampleDistance);
+      const sampled = probe.enemies.find(candidate => candidate.id === enemy.id);
+      const elapsed = probe.time - simulation.time;
+      if (sampled && elapsed > 0) return {
+        x: (sampled.x - enemy.x) / elapsed,
+        y: (sampled.y - enemy.y) / elapsed,
+      };
+    }
+    return { x: 0, y: 0 };
+  }
+
+  function beginSpriteDrag(event) {
+    if (
+      event.defaultPrevented || pathDrag || formationDrag || terrainReview
+      || multiSelectMode || event.ctrlKey || event.metaKey || event.shiftKey
+      || (event.button !== undefined && event.button !== 0)
+    ) return;
+    const target = hitPreviewSprite(pointerCanvasPosition(event));
+    if (target?.type !== 'enemy') return;
+    const authored = stageDocument?.findItem(target.itemId);
+    const working = scopedEditableItem(authored);
+    if (!authored || working?.type !== 'wave') return;
+    const pointer = pointerCanvasPosition(event);
+    const entry = StageEntry.resolve(working.payload.entry, rawStage.viewport);
+    const velocity = samplePreviewEnemyVelocity(target.enemy);
+    const spawnEvent = compiled.events.find(candidate => candidate.id === target.enemy.id);
+    const spawnOffset = Math.max(0, (spawnEvent?.at ?? working.timing.start) - working.timing.start);
+    selectItem(authored.id, true);
+    event.preventDefault();
+    const wasPlaying = playing;
+    playing = false;
+    updatePlayButton();
+    spriteDrag = {
+      pointerId: event.pointerId,
+      itemId: authored.id,
+      enemyId: target.enemy.id,
+      enemyKind: target.enemy.kind,
+      enemyDirectionX: target.enemy.directionX,
+      original: working,
+      scope: editScope,
+      coordinate: entry.coordinate,
+      velocity,
+      fallbackVelocity: {
+        x: (Number(target.enemy.directionX) || 0) * (Number(target.enemy.speed) || 0),
+        y: (Number(target.enemy.directionY) || 0) * (Number(target.enemy.speed) || 0),
+      },
+      startPointer: pointer,
+      startEnemy: { x: target.enemy.x, y: target.enemy.y },
+      previewTime: simulation.time,
+      spawnOffset,
+      targetX: target.enemy.x,
+      targetY: target.enemy.y,
+      result: null,
+      moved: false,
+      wasPlaying,
+    };
+    canvas.setPointerCapture(event.pointerId);
+    canvas.style.cursor = 'grabbing';
+  }
+
+  function moveSpriteDrag(event) {
+    if (!spriteDrag || spriteDrag.pointerId !== event.pointerId) return;
+    const pointer = pointerCanvasPosition(event);
+    const deltaX = pointer.x - spriteDrag.startPointer.x;
+    const deltaY = pointer.y - spriteDrag.startPointer.y;
+    const threshold = 5 * previewPixelScale();
+    if (!spriteDrag.moved && Math.hypot(deltaX, deltaY) < threshold) return;
+    event.preventDefault();
+    spriteDrag.moved = true;
+    spriteDrag.targetX = spriteDrag.startEnemy.x + deltaX;
+    spriteDrag.targetY = spriteDrag.startEnemy.y + deltaY;
+    spriteDrag.result = StagePreviewPlacement.applyDrag(spriteDrag.original, {
+      deltaX,
+      deltaY,
+      coordinate: spriteDrag.coordinate,
+      velocityX: spriteDrag.velocity.x,
+      velocityY: spriteDrag.velocity.y,
+      fallbackVelocityX: spriteDrag.fallbackVelocity.x,
+      fallbackVelocityY: spriteDrag.fallbackVelocity.y,
+      viewport: rawStage.viewport,
+      timelineDuration: rawStage.timeline.duration,
+      latestVisibleStart: spriteDrag.previewTime - spriteDrag.spawnOffset,
+    });
+    renderPreview();
+  }
+
+  function endSpriteDrag(event) {
+    if (!spriteDrag || spriteDrag.pointerId !== event.pointerId) return;
+    const drag = spriteDrag;
+    spriteDrag = null;
+    canvas.style.cursor = '';
+    if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+    if (event.type === 'pointercancel' || !drag.moved || !drag.result?.changed) {
+      if (!drag.moved && drag.wasPlaying) {
+        playing = true;
+        updatePlayButton();
+      }
+      renderPreview();
+      return;
+    }
+    const positionLabel = drag.original.payload?.movement?.presetId === 'custom-path'
+      ? '경로 위치'
+      : drag.coordinate === 'x' ? '진입 X' : '진입 높이';
+    const label = `스프라이트 배치 · 등장 시각/${positionLabel}`;
+    if (drag.scope === 'difficulty') {
+      replaceDifficultyItem(drag.itemId, drag.result.item, `${activeDifficulty().name} ${label}`, drag.previewTime);
+    } else replaceAuthoredItem(drag.itemId, drag.result.item, label, drag.previewTime);
   }
 
   function beginPathDrag(event) {
@@ -2826,6 +2952,45 @@
     else replaceAuthoredItem(authored.id, drag.working, label);
   }
 
+  function drawSpritePlacementGhost() {
+    if (!spriteDrag?.moved || !spriteDrag.result) return;
+    const scale = previewPixelScale();
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255, 214, 110, 0.9)';
+    ctx.lineWidth = 2 * scale;
+    ctx.setLineDash([8 * scale, 6 * scale]);
+    ctx.beginPath();
+    ctx.moveTo(spriteDrag.startEnemy.x, spriteDrag.startEnemy.y);
+    ctx.lineTo(spriteDrag.targetX, spriteDrag.targetY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 0.72;
+    const drewSprite = Sprites.draw(ctx, `enemy.${spriteDrag.enemyKind}`, spriteDrag.targetX, spriteDrag.targetY, {
+      t: simulation.time,
+      flipX: spriteDrag.enemyDirectionX > 0,
+      outline: '#ffd66e',
+      outlineAlpha: 1,
+    });
+    if (!drewSprite) drawFallbackEnemy({ kind: spriteDrag.enemyKind, x: spriteDrag.targetX, y: spriteDrag.targetY });
+    ctx.globalAlpha = 1;
+    const entryLabel = spriteDrag.original.payload?.movement?.presetId === 'custom-path'
+      ? '경로'
+      : spriteDrag.coordinate === 'x' ? '진입 X' : '진입 높이';
+    const entryValue = Math.round((spriteDrag.result.entryValue ?? 0) * 100);
+    const text = `등장 ${formatTime(spriteDrag.result.start)} · ${entryLabel} ${entryValue}%`;
+    ctx.font = `bold ${10 * scale}px 'Galmuri11', monospace`;
+    const textWidth = ctx.measureText(text).width;
+    const labelX = Math.max(8, Math.min(canvas.width - textWidth - 20, spriteDrag.targetX + 14 * scale));
+    const labelY = Math.max(28, Math.min(canvas.height - 12, spriteDrag.targetY - 18 * scale));
+    ctx.fillStyle = 'rgba(3, 17, 35, 0.9)';
+    ctx.fillRect(labelX - 7 * scale, labelY - 15 * scale, textWidth + 14 * scale, 21 * scale);
+    ctx.fillStyle = '#fff2bb';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(text, labelX, labelY);
+    ctx.restore();
+  }
+
   function renderPreview() {
     drawFallbackBackground();
     let drewBackground = false;
@@ -2876,6 +3041,7 @@
         outlineAlpha: selected ? 0.9 : undefined,
       })) drawFallbackEnemy(enemy);
     }
+    drawSpritePlacementGhost();
 
     if (simulation.ride?.params?.drawTurtle) {
       const selected = simulation.ride.itemId === selectedId;
@@ -3237,10 +3403,14 @@
   canvas.addEventListener('pointerup', endPathDrag);
   canvas.addEventListener('pointercancel', endPathDrag);
   canvas.addEventListener('pointerdown', beginFormationDrag);
+  canvas.addEventListener('pointerdown', beginSpriteDrag);
   canvas.addEventListener('pointerdown', selectPreviewSprite);
   canvas.addEventListener('pointermove', moveFormationDrag);
+  canvas.addEventListener('pointermove', moveSpriteDrag);
   canvas.addEventListener('pointerup', endFormationDrag);
+  canvas.addEventListener('pointerup', endSpriteDrag);
   canvas.addEventListener('pointercancel', endFormationDrag);
+  canvas.addEventListener('pointercancel', endSpriteDrag);
   $('#previewSpeed').addEventListener('change', event => { previewSpeed = Number(event.target.value) || 1; });
   $('#previewDifficulty').addEventListener('change', event => {
     if (!rawStage) return;
