@@ -21,7 +21,8 @@ const legacy = timelines[2];
 
 const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 assert.ok(indexHtml.includes('js/stages.generated.js?v=2'));
-assert.ok(indexHtml.includes('js/entities.js?v=5'));
+assert.ok(indexHtml.includes('js/entities.js?v=6'));
+assert.ok(indexHtml.includes('js/stage/layerTransform.js?v=2'));
 assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=4'));
 assert.ok(indexHtml.indexOf('js/stage/compiler.js') < indexHtml.indexOf('js/stage/gameAdapter.js'));
 const mainSource = fs.readFileSync(path.join(root, 'js/main.js'), 'utf8');

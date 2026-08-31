@@ -12,6 +12,7 @@
   const BudgetApi = root.StageBudget || (typeof require === 'function' ? require('./budget.js') : null);
   const PluginApi = root.StagePlugin || (typeof require === 'function' ? require('./plugin.js') : null);
   const TerrainApi = root.StageTerrain || (typeof require === 'function' ? require('./terrain.js') : null);
+  const LayerTransformApi = root.StageLayerTransform || (typeof require === 'function' ? require('./layerTransform.js') : null);
   const { Random, hashString, mixSeed } = RandomApi;
   const EPS = 1e-9;
 
@@ -105,6 +106,12 @@
           source.pathOffsetX = first ? source.x - first.x * this.compiled.viewport.width : 0;
           source.pathOffsetY = first ? source.y - first.y * this.compiled.viewport.height : 0;
           source.pathComplete = false;
+        }
+        if (source.movement?.presetId === 'turret-scroll') {
+          const layer = LayerTransformApi.layerConfig(this.compiled.background.presetId, 'near');
+          source.terrainScrollNative = layer
+            ? LayerTransformApi.layerTravelNative(this.scroll, layer.speed, LayerTransformApi.PIXEL_UNIT, layer.scrollScale)
+            : 0;
         }
         this.enemies.push(source);
         if (source.weapon?.patternId && source.weapon?.pattern) {
@@ -336,7 +343,14 @@
         enemy.x += enemy.vx * dt;
         enemy.y += enemy.vy * dt;
       } else if (movement === 'turret-scroll') {
-        enemy.x -= (this.compiled.background.baseScrollSpeed || 45) * dt;
+        const layer = LayerTransformApi.layerConfig(this.compiled.background.presetId, 'near');
+        if (layer) {
+          const scrollNative = LayerTransformApi.layerTravelNative(
+            this.scroll, layer.speed, LayerTransformApi.PIXEL_UNIT, layer.scrollScale,
+          );
+          enemy.x -= (scrollNative - (enemy.terrainScrollNative ?? scrollNative)) * LayerTransformApi.PIXEL_UNIT;
+          enemy.terrainScrollNative = scrollNative;
+        } else enemy.x -= (this.compiled.background.baseScrollSpeed || 45) * dt;
       } else if (movement === 'current-surf') {
         const current = this.pluginState.current || { x: 0, y: 0 };
         enemy.x += (directionX * enemy.speed + current.x * 1.4) * dt;

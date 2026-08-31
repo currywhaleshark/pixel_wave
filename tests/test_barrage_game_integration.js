@@ -16,7 +16,7 @@ const context = vm.createContext({
   SPRITES: {},
 });
 
-for (const file of ['js/config.js', 'js/barragePatterns.generated.js', 'js/barrage.js', 'js/boss.js', 'js/entities.js']) {
+for (const file of ['js/config.js', 'js/stage/layerTransform.js', 'js/barragePatterns.generated.js', 'js/barrage.js', 'js/boss.js', 'js/entities.js']) {
   vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context, { filename: file });
 }
 
@@ -64,6 +64,21 @@ const enemyGame = {
 enemy.update(1.51, enemyGame);
 assert.equal(enemyGame.ebullets.length, 3, '일반 적도 연결된 탄막 공방 패턴을 실제 적탄 배열에 발사한다');
 assert.ok(enemyGame.ebullets.every(bullet => bullet.patternId === 'pangpang-needle-fan'));
+
+const turret = vm.runInContext(`new Enemy({
+  kind: 'turret', hp: 7, spd: 0, x: 900, y: 420,
+  M: 6, S: 0, fireDelay: 0,
+})`, context);
+const turretGame = { stageIdx: 0, scroll: 100, player: { x: 100, y: 270 }, ebullets: [] };
+turret.update(1 / 60, turretGame);
+const turretStartX = turret.x;
+const layer = context.StageLayerTransform.layerConfig('stage1', 'near');
+const startTravel = context.StageLayerTransform.layerTravelNative(turretGame.scroll, layer.speed, context.StageLayerTransform.PIXEL_UNIT, layer.scrollScale);
+turretGame.scroll = 190;
+turret.update(1 / 60, turretGame);
+const endTravel = context.StageLayerTransform.layerTravelNative(turretGame.scroll, layer.speed, context.StageLayerTransform.PIXEL_UNIT, layer.scrollScale);
+assert.equal(turretStartX - turret.x, (endTravel - startTravel) * context.StageLayerTransform.PIXEL_UNIT, '실제 포대는 near 지형과 같은 픽셀 오프셋으로 이동해야 한다');
+assert.equal(turret.y, 420);
 
 const mainSource = fs.readFileSync(path.join(root, 'js/main.js'), 'utf8');
 assert.match(mainSource, /BarrageRuntime\.updateProjectile\(b, dt/, '실제 게임은 공통 탄 이동·행동 실행기를 사용한다');

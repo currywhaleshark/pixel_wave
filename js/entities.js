@@ -376,8 +376,19 @@ class Enemy {
       } else {
         this.x -= spd * 1.7 * dt; // 이탈 가속
       }
-    } else if (M === 6) {       // 붙박이 포대 (스크롤 따라 흘러옴)
-      this.x -= CFG.scrollSpeed * dt;
+    } else if (M === 6) {       // 붙박이 포대 (near 지형 픽셀과 정확히 같은 오프셋)
+      const stageId = `stage${(game.stageIdx ?? 0) + 1}`;
+      const layer = typeof StageLayerTransform !== 'undefined'
+        ? StageLayerTransform.layerConfig(stageId, 'near')
+        : null;
+      if (layer) {
+        const scrollNative = StageLayerTransform.layerTravelNative(
+          game.scroll || 0, layer.speed, CFG.pxUnit, layer.scrollScale,
+        );
+        if (this.terrainScrollNative === undefined) this.terrainScrollNative = scrollNative;
+        this.x -= (scrollNative - this.terrainScrollNative) * CFG.pxUnit;
+        this.terrainScrollNative = scrollNative;
+      } else this.x -= CFG.scrollSpeed * dt;
     } else if (M === 7) {       // 해류 편승: 흐름을 타고 가감속 (서핑)
       this.x += ((this.dirX || -1) * spd + (game.curX || 0) * 1.4) * dt;
       this.y = this.y0 + this.amp * Math.sin(this.t * this.freq + this.phase) + (game.curY || 0) * 0.6;

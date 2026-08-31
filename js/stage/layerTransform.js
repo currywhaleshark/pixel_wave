@@ -23,8 +23,13 @@
     return ((Math.floor(finite(value)) % size) + size) % size;
   }
 
+  function layerTravelNative(scrollLogical, speed, pixelUnit = PIXEL_UNIT, scrollScale = 1) {
+    const unit = finite(pixelUnit, PIXEL_UNIT);
+    return Math.floor(finite(scrollLogical) * finite(scrollScale, 1) / unit * finite(speed));
+  }
+
   function stripOffset(scrollLogical, speed, pixelUnit, stripWidth) {
-    return positiveMod(Math.floor(finite(scrollLogical) / finite(pixelUnit, PIXEL_UNIT) * finite(speed)), stripWidth);
+    return positiveMod(layerTravelNative(scrollLogical, speed, pixelUnit), stripWidth);
   }
 
   function layerConfig(backgroundPresetId, layer = 'near') {
@@ -46,8 +51,7 @@
     const surface = socket?.surface || anchor.surface || 'floor';
     const surfaceY = socket?.y ?? profile.surfaces?.[surface]?.samples?.[profileX];
     if (!Number.isFinite(surfaceY)) return null;
-    const scrollScale = finite(config.scrollScale, 1);
-    const scrollNativeX = Math.floor(finite(scrollLogical) * scrollScale / unit * finite(config.speed));
+    const scrollNativeX = layerTravelNative(scrollLogical, config.speed, unit, config.scrollScale);
     const contact = options.contact || { x: 0, y: 0 };
     const spriteAnchor = options.spriteAnchor || contact;
     const surfaceLogicalX = (objectNativeX - scrollNativeX) * unit + finite(anchor.offsetX);
@@ -60,7 +64,7 @@
     };
   }
 
-  const api = Object.freeze({ PIXEL_UNIT, LAYERS, positiveMod, stripOffset, layerConfig, objectPosition });
+  const api = Object.freeze({ PIXEL_UNIT, LAYERS, positiveMod, layerTravelNative, stripOffset, layerConfig, objectPosition });
   root.StageLayerTransform = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -217,7 +217,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(serviceWorker.includes('../js/stage/plugin.js'));
   assert.ok(serviceWorker.includes('../js/stage/layerTransform.js'));
   assert.ok(serviceWorker.includes('../js/stage/terrain.js'));
-  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m7-v5'));
+  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m7-v6'));
   assert.ok(serviceWorker.includes('stage5.v1.draft.json'));
   assert.ok(serviceWorker.includes('assets/backgrounds/stage6-near-strip.png'));
 }

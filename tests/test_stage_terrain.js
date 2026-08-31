@@ -12,6 +12,7 @@ const { Simulation } = require('../js/stage/simulation.js');
 const root = path.resolve(__dirname, '..');
 const fixture = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/coverage-stage1-terrain.v1.draft.json'), 'utf8'));
 const profile = JSON.parse(fs.readFileSync(path.join(root, 'data/terrain-profiles/stage1-near-v1.json'), 'utf8'));
+const stage1 = JSON.parse(fs.readFileSync(path.join(root, 'data/stages/stage1.v1.json'), 'utf8'));
 
 assert.deepEqual(StageTerrain.validateProfile(profile).errors, []);
 assert.equal(profile.review.status, 'approved');
@@ -67,6 +68,31 @@ assert.equal(simulation.stateHash(), hash, '지형 오브젝트 seek는 동일�
   });
   assert.equal(atZero.drawX - afterWrap.drawX, profile.binding.width * 2);
   assert.equal(atZero.drawY, afterWrap.drawY);
+  const nativeTravel = StageLayerTransform.layerTravelNative(187.5, layer.speed, 2, layer.scrollScale);
+  assert.equal(StageLayerTransform.stripOffset(187.5, layer.speed, 2, profile.binding.width), nativeTravel % profile.binding.width);
+}
+
+{
+  const stage1Compiled = StageCompiler.compile(stage1, { difficulty: 'easy' });
+  const turretItem = stage1Compiled.items.find(item => item.type === 'wave' && item.payload.enemy.kind === 'turret');
+  assert.ok(turretItem, 'Stage 1에 산호 포대 웨이브가 있어야 한다');
+  const turretSimulation = new Simulation(stage1Compiled, { fixedStep: 1 / 60 });
+  turretSimulation.seek(turretItem.timing.start);
+  const atSpawn = turretSimulation.enemies.find(enemy => enemy.itemId === turretItem.id);
+  assert.ok(atSpawn);
+  const spawnX = atSpawn.x;
+  const spawnY = atSpawn.y;
+  const spawnScroll = turretSimulation.scroll;
+  turretSimulation.seek(turretItem.timing.start + 1);
+  const afterOneSecond = turretSimulation.enemies.find(enemy => enemy.itemId === turretItem.id);
+  assert.ok(afterOneSecond);
+  const layer = StageLayerTransform.layerConfig('stage1', 'near');
+  const expectedTravel = (
+    StageLayerTransform.layerTravelNative(turretSimulation.scroll, layer.speed, 2, layer.scrollScale)
+    - StageLayerTransform.layerTravelNative(spawnScroll, layer.speed, 2, layer.scrollScale)
+  ) * 2;
+  assert.equal(spawnX - afterOneSecond.x, expectedTravel, '포대 X 이동은 near 지형 픽셀 이동과 같아야 한다');
+  assert.equal(afterOneSecond.y, spawnY, '포대 높이는 배치한 지형 높이에 고정되어야 한다');
 }
 
 console.log('stage terrain: ok');
