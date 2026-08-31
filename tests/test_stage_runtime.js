@@ -29,7 +29,7 @@ for (const difficulty of ['easy', 'normal', 'hard']) {
 
   assert.equal(first.compileHash, second.compileHash, `${difficulty} 컴파일은 결정론적이어야 한다`);
   assert.equal(first.items.length, 41);
-  assert.equal(first.events.length, 217);
+  assert.equal(first.events.length, 219, '택시 구간의 두 후방 추월 경고를 포함한다');
   assert.equal(first.resolvedEnemyCount, 207);
   assert.equal(new Set(first.events.map(event => event.id)).size, first.events.length, '이벤트 id는 고유해야 한다');
   assert.equal(first.items.find(item => item.id === 's3-w029').resolvedCount, 8, '벽 편대는 빈 칸 두 개를 제외한다');

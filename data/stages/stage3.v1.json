@@ -637,7 +637,7 @@
     {
       "id": "s3-w013",
       "type": "wave",
-      "name": "택시 상단 러시 1",
+      "name": "택시 가속 상단선",
       "timing": {
         "domain": "time",
         "start": 37,
@@ -661,11 +661,7 @@
           "presetId": "column"
         },
         "movement": {
-          "presetId": "sine",
-          "params": {
-            "amplitude": 25,
-            "frequency": 3
-          }
+          "presetId": "straight"
         },
         "weapon": {
           "presetId": "none"
@@ -675,7 +671,7 @@
     {
       "id": "s3-w014",
       "type": "wave",
-      "name": "택시 하단 러시 1",
+      "name": "택시 후방 추월선",
       "timing": {
         "domain": "time",
         "start": 40,
@@ -692,18 +688,14 @@
           "interval": 0.18
         },
         "entry": {
-          "presetId": "right-to-left",
-          "y": 0.7
+          "presetId": "left-to-right",
+          "y": 0.72
         },
         "formation": {
           "presetId": "column"
         },
         "movement": {
-          "presetId": "sine",
-          "params": {
-            "amplitude": 25,
-            "frequency": 3
-          }
+          "presetId": "straight"
         },
         "weapon": {
           "presetId": "none"
@@ -713,7 +705,7 @@
     {
       "id": "s3-w015",
       "type": "wave",
-      "name": "택시 중앙 러시 1",
+      "name": "택시 첫 틈새 벽",
       "timing": {
         "domain": "time",
         "start": 43,
@@ -734,14 +726,20 @@
           "y": 0.5
         },
         "formation": {
-          "presetId": "column"
+          "presetId": "wall-gap",
+          "params": {
+            "slotCount": 10,
+            "gapSlots": 2,
+            "gapStartRange": [
+              2,
+              6
+            ],
+            "topPadding": 40,
+            "bottomPadding": 24
+          }
         },
         "movement": {
-          "presetId": "sine",
-          "params": {
-            "amplitude": 50,
-            "frequency": 3
-          }
+          "presetId": "straight"
         },
         "weapon": {
           "presetId": "none"
@@ -751,7 +749,7 @@
     {
       "id": "s3-w016",
       "type": "wave",
-      "name": "택시 상단 러시 2",
+      "name": "택시 대각 슬라럼",
       "timing": {
         "domain": "time",
         "start": 46,
@@ -775,11 +773,32 @@
           "presetId": "column"
         },
         "movement": {
-          "presetId": "sine",
-          "params": {
-            "amplitude": 30,
-            "frequency": 3
-          }
+          "presetId": "custom-path",
+          "path": [
+            {
+              "t": 0,
+              "x": 1.08,
+              "y": 0.2
+            },
+            {
+              "t": 1.1,
+              "x": 0.72,
+              "y": 0.2,
+              "ease": "ease-out"
+            },
+            {
+              "t": 2.35,
+              "x": 0.38,
+              "y": 0.78,
+              "ease": "smooth"
+            },
+            {
+              "t": 3.6,
+              "x": -0.08,
+              "y": 0.78,
+              "ease": "ease-in"
+            }
+          ]
         },
         "weapon": {
           "presetId": "none"
@@ -789,7 +808,7 @@
     {
       "id": "s3-w017",
       "type": "wave",
-      "name": "택시 하단 러시 2",
+      "name": "씽씽 후방 선발대",
       "timing": {
         "domain": "time",
         "start": 49,
@@ -806,18 +825,14 @@
           "interval": 0.18
         },
         "entry": {
-          "presetId": "right-to-left",
-          "y": 0.65
+          "presetId": "left-to-right",
+          "y": 0.38
         },
         "formation": {
           "presetId": "column"
         },
         "movement": {
-          "presetId": "sine",
-          "params": {
-            "amplitude": 30,
-            "frequency": 3
-          }
+          "presetId": "straight"
         },
         "weapon": {
           "presetId": "none"
@@ -827,7 +842,7 @@
     {
       "id": "s3-w018",
       "type": "wave",
-      "name": "택시 중앙 러시 2",
+      "name": "택시 감속 틈새 벽",
       "timing": {
         "domain": "time",
         "start": 52,
@@ -848,14 +863,20 @@
           "y": 0.5
         },
         "formation": {
-          "presetId": "column"
+          "presetId": "wall-gap",
+          "params": {
+            "slotCount": 11,
+            "gapSlots": 3,
+            "gapStartRange": [
+              1,
+              7
+            ],
+            "topPadding": 42,
+            "bottomPadding": 24
+          }
         },
         "movement": {
-          "presetId": "sine",
-          "params": {
-            "amplitude": 45,
-            "frequency": 3
-          }
+          "presetId": "straight"
         },
         "weapon": {
           "presetId": "none"

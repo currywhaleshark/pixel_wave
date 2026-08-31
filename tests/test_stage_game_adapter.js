@@ -21,7 +21,8 @@ const timelines = context.__stageTimelines;
 const legacy = timelines[2];
 
 const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-assert.ok(indexHtml.includes('js/stages.generated.js?v=4'));
+assert.ok(indexHtml.includes('js/stages.generated.js?v=5'));
+assert.ok(indexHtml.includes('js/boss3.js?v=4'));
 assert.ok(indexHtml.includes('js/stage/enemyState.js?v=1'));
 assert.ok(indexHtml.includes('js/stage/wreck.js?v=1'));
 assert.ok(indexHtml.includes('js/entities.js?v=13'));

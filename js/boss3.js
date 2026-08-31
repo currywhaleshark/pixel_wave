@@ -8,6 +8,7 @@
 const BOSS3_PATTERNS = {
   1: { id: 'ssing-delivery-dash',  name: '특급 돌진' },
   2: { id: 'ssing-lane-traffic',   name: '차선 트래픽' },
+  chase: { id: 'ssing-turtle-chase', name: '거북 택시 추격전' },
   3: { id: 'ssing-overtake-lanes', name: '추월차선' },  // 대파도
   4: { id: 'ssing-round-trip',     name: '진·추월차선' },  // 하드 전용: 왕복 돌진
 };
@@ -36,6 +37,10 @@ class BossSsing {
     this.trafficT = 0.5;      // P3 트래픽
     this.dashCycleT = 4.5;    // P3 주기 돌진
     this.transitionT = 0;
+    this.chaseT = 0;
+    this.chaseLaneT = 0;
+    this.chaseEscortT = 0;
+    this.chaseStep = 0;
     this.dead = false;
     this.deathT = 0;
   }
@@ -52,7 +57,7 @@ class BossSsing {
     this.hp -= dmg;
     const r = this.hpRatio();
     if (this.phase === 1 && r <= 0.66) this.enterPhase(2);
-    else if (this.phase === 2 && r <= 0.33) this.enterPhase(3);
+    else if (this.phase === 2 && r <= 0.33) this.enterChase();
     else if (this.phase === 3 && this.game.diff >= 2 && r <= 0.18) this.enterPhase(4); // 하드: 진 대파도
     if (this.hp <= 0 && !this.dead) this.die();
   }
@@ -80,7 +85,90 @@ class BossSsing {
     }
   }
 
+  enterChase() {
+    const g = this.game;
+    this.phase = 2.5;
+    this.mode = 'chase';
+    this.transitionT = 0.6;
+    this.chaseT = 9;
+    this.chaseLaneT = 0.7;
+    this.chaseEscortT = 1.2;
+    this.chaseStep = 0;
+    this.x = CFG.W * 0.86;
+    g.message('거북 택시 추격전 — 씽씽을 따라잡아라!', '#7dffd8');
+    g.startRide(9, {
+      scrollMultiplier: 2.4,
+      playerInvulnerable: false,
+      taxiDurability: g.diff === 0 ? 3 : 2,
+      continueIntoBoss: true,
+      drawTurtle: true,
+      drawSpeedLines: true,
+      startSoundId: 'ride',
+      exitBehavior: 'silent',
+      bulletClearOnStart: {
+        enabled: true,
+        convertToPearls: false,
+        pearlLifetime: 8,
+        autoCollect: false,
+      },
+      pearlTrail: { enabled: false, streamLoosePearls: false },
+      pearlRing: { enabled: false },
+      startMessages: [
+        { text: '거북 택시 긴급 투입!', color: '#7dffd8' },
+        { text: '충격을 버티며 차선을 갈아타세요!', color: '#ffe28a' },
+      ],
+      endMessage: { text: '', color: '#a8ffcf' },
+      breakMessage: { text: '택시 보호막 파손 — 추격은 계속됩니다!', color: '#ffb3b3' },
+    });
+  }
+
+  updateChase(dt, mercy) {
+    const g = this.game;
+    const lanes = [0.16, 0.33, 0.5, 0.67, 0.84];
+    const route = [2, 0, 4, 1, 3];
+    this.chaseT -= dt;
+    const targetY = lanes[route[this.chaseStep % route.length]] * CFG.H;
+    this.x += (CFG.W * 0.86 + Math.sin(this.anim * 2.2) * 24 - this.x) * Math.min(1, dt * 4);
+    this.y += (targetY - this.y) * Math.min(1, dt * 2.8);
+
+    this.chaseLaneT -= dt;
+    if (this.chaseLaneT <= 0) {
+      this.chaseLaneT = 1.35 * mercy;
+      const safeLane = route[this.chaseStep % route.length];
+      this.chaseStep++;
+      for (let lane = 0; lane < lanes.length; lane++) {
+        if (lane === safeLane) continue;
+        g.ebullets.push({
+          x: CFG.W + 25 + (lane % 2) * 32,
+          y: lanes[lane] * CFG.H,
+          vx: -(250 + g.diff * 25), vy: 0, r: CFG.ebR,
+          kind: lane % 2 ? 'bubble' : 'spike',
+        });
+      }
+    }
+
+    this.chaseEscortT -= dt;
+    if (this.chaseEscortT <= 0) {
+      this.chaseEscortT = 2.8 * mercy;
+      const centerY = lanes[(this.chaseStep + 2) % lanes.length] * CFG.H;
+      for (let index = 0; index < 1 + g.diff; index++) {
+        g.spawner.pending.push({ at: g.stageT + index * 0.25, spec: {
+          kind: 'ray', M: 1, S: 0, hp: 2, spd: 285,
+          amp: 0, freq: 3, x: CFG.W + 40 + index * 48,
+          y: centerY + (index - g.diff * 0.5) * 48,
+          dirX: -1, dirY: 0, groupId: -1, phase: 0,
+        }});
+      }
+    }
+
+    if (this.chaseT <= 0) {
+      if (g.ride) g.finishRide('complete');
+      this.enterPhase(3);
+    }
+  }
+
   die() {
+    if (this.phase === 2.5 && this.game.ride) this.game.finishRide('complete');
     this.dead = true;
     this.deathT = 0;
     Sound.sfx('bossDeath');
@@ -126,6 +214,11 @@ class BossSsing {
     const m = this.mercy();
     if (this.telegraph > 0) this.telegraph -= dt;
     if (this.dashTel > 0) this.dashTel -= dt;
+
+    if (this.phase === 2.5) {
+      this.updateChase(dt, m);
+      return;
+    }
 
     if (this.phase === 1) {
       // P1: 호버(조준 부채꼴) → 예고선 → 수평 돌진 (몸통이 흉기)
@@ -294,7 +387,7 @@ class BossSsing {
     const s = this.scale;
     const R = 40 * s;
     if (this.dead) ctx.globalAlpha = Math.max(0, 1 - this.deathT / 2.4);
-    const dashing = this.mode === 'dash';
+    const dashing = this.mode === 'dash' || this.mode === 'dashBack' || this.phase === 2.5;
     const flap = Math.sin(this.anim * (dashing ? 14 : 5)) * (dashing ? 10 : 6);
 
     // 돌진 중 스피드 잔상

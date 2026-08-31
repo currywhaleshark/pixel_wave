@@ -680,8 +680,16 @@ Stage Sequencer tool milestones M1–M7.
 
 ### G4 — Stages 3 and 4
 
-- Rebuild high-speed and taxi rhythm.
-- Add Boss 3 chase transition.
+- [x] Rebuild Stage 3's taxi rhythm. The 35–57 second ride now alternates a
+  forward acceleration lane, two rear overtakes with edge warnings, two
+  deterministic wall gaps, and one authored diagonal slalom instead of six
+  nearly identical sine columns. Enemy count and the 22-second reward ride
+  duration remain unchanged.
+- [x] Add Boss 3's P2→P3 turtle chase transition. The nine-second chase moves
+  a readable safe lane through traffic walls, adds destructible ray escorts,
+  and lets the player keep attacking 씽씽. Taxi protection is finite: three
+  durability segments on Easy and two on Normal/Hard, with no unconditional
+  invulnerability. P3 begins after the taxi exits or its protection breaks.
 - Rebuild darkness/reveal rhythm.
 - Add Boss 4 survival transition.
 
