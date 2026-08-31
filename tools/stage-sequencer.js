@@ -1096,18 +1096,36 @@
       next.payload.params.message = String(values.get('message') || '');
       next.payload.params.color = String(values.get('color') || '#ff8f8f');
     } else if (next.type === 'gimmick' && next.payload?.pluginId === 'turtle-ride') {
-      const params = next.payload.params;
-      params.scrollMultiplier = Math.max(0, Math.min(8, Number(values.get('scrollMultiplier')) || 0));
+      const params = StagePlugin.normalizeTurtleRide(next.payload.params);
+      params.scrollMultiplier = Math.max(0, Math.min(5, Number(values.get('scrollMultiplier')) || 0));
       params.playerInvulnerable = values.has('playerInvulnerable');
+      params.taxiDurability = Math.max(0, Math.min(20, Math.round(Number(values.get('taxiDurability')) || 0)));
+      params.continueIntoBoss = values.has('continueIntoBoss');
+      params.drawTurtle = values.has('drawTurtle');
+      params.drawSpeedLines = values.has('drawSpeedLines');
+      params.exitBehavior = String(values.get('exitBehavior') || 'message');
+      params.bulletClearOnStart.enabled = values.has('clearBulletsOnStart');
+      params.bulletClearOnStart.convertToPearls = values.has('convertBulletsToPearls');
+      params.bulletClearOnStart.autoCollect = values.has('autoCollectClearedBullets');
+      params.pearlTrail.enabled = values.has('trailEnabled');
+      params.pearlTrail.streamLoosePearls = values.has('streamLoosePearls');
       params.pearlTrail.interval = Math.max(0.03, Number(values.get('trailInterval')) || 0.03);
       params.pearlTrail.speed = Math.max(0, Number(values.get('trailSpeed')) || 0);
       params.pearlTrail.amplitudeY = Math.max(0, Math.min(1, Number(values.get('trailAmplitude')) || 0));
       params.pearlTrail.frequency = Math.max(0, Number(values.get('trailFrequency')) || 0);
+      params.pearlRing.enabled = values.has('ringEnabled');
       params.pearlRing.firstDelay = Math.max(0, Number(values.get('ringFirstDelay')) || 0);
       params.pearlRing.interval = Math.max(0.1, Number(values.get('ringInterval')) || 0.1);
       params.pearlRing.count = Math.max(1, Math.round(Number(values.get('ringCount')) || 1));
       params.pearlRing.radius = Math.max(0, Number(values.get('ringRadius')) || 0);
       params.pearlRing.speed = Math.max(0, Number(values.get('ringSpeed')) || 0);
+      const existingMessages = params.startMessages;
+      params.startMessages = [
+        { ...existingMessages[0], text: String(values.get('rideArrivalMessage') || '') },
+        { ...existingMessages[1], text: String(values.get('rideStartMessage') || '') },
+      ];
+      params.endMessage.text = String(values.get('rideEndMessage') || '');
+      next.payload.params = params;
     } else if (StagePlugin.definition(next.payload?.pluginId)?.editor === 'generic') {
       const definition = StagePlugin.definition(next.payload.pluginId);
       next.payload.params = StageDocument.clone(next.payload.params || {});
@@ -1922,6 +1940,9 @@
       : null;
     const formEntry = formItem.type === 'wave' ? StageEntry.normalize(formItem.payload.entry) : null;
     const formRearWarning = formEntry ? StageEntry.rearWarning(formEntry) : null;
+    const formRideParams = formItem.type === 'gimmick' && formItem.payload?.pluginId === 'turtle-ride'
+      ? StagePlugin.normalizeTurtleRide(formItem.payload.params)
+      : null;
     const formEntryDefinition = formEntry ? StageRegistry.get('entryPresets', formEntry.presetId) : null;
     const formEntryCoordinate = formEntryDefinition?.coordinate === 'x' ? formEntry.x : formEntry?.y;
     const formWeaponMode = formItem.type === 'wave' && formItem.payload.weapon?.patternId ? 'pattern' : 'preset';
@@ -2080,25 +2101,48 @@
           ` : ''}
           ${formItem.type === 'gimmick' && formItem.payload?.pluginId === 'turtle-ride' ? `
             <div class="form-section-title">거북 택시 주행</div>
+            <div class="form-row three">
+              <label>스크롤 배율<input name="scrollMultiplier" type="number" min="0" max="5" step="0.1" value="${formRideParams.scrollMultiplier}"></label>
+              <label>택시 내구도<input name="taxiDurability" type="number" min="0" max="20" step="1" value="${formRideParams.taxiDurability}"></label>
+              <label>종료 동작<select name="exitBehavior"><option value="message" ${formRideParams.exitBehavior === 'message' ? 'selected' : ''}>하차 문구 표시</option><option value="silent" ${formRideParams.exitBehavior === 'silent' ? 'selected' : ''}>조용히 종료</option></select></label>
+            </div>
             <div class="form-row two">
-              <label>스크롤 배율<input name="scrollMultiplier" type="number" min="0" max="8" step="0.1" value="${formItem.payload.params.scrollMultiplier ?? 1}"></label>
-              <label class="check-label"><input name="playerInvulnerable" type="checkbox" ${formItem.payload.params.playerInvulnerable ? 'checked' : ''}> 탑승 중 무적</label>
+              <label class="check-label"><input name="playerInvulnerable" type="checkbox" ${formRideParams.playerInvulnerable ? 'checked' : ''}> 탑승 중 무적</label>
+              <label class="check-label"><input name="continueIntoBoss" type="checkbox" ${formRideParams.continueIntoBoss ? 'checked' : ''}> 보스 시작 뒤에도 유지</label>
+              <label class="check-label"><input name="drawTurtle" type="checkbox" ${formRideParams.drawTurtle ? 'checked' : ''}> 거북 표시</label>
+              <label class="check-label"><input name="drawSpeedLines" type="checkbox" ${formRideParams.drawSpeedLines ? 'checked' : ''}> 속도선 표시</label>
+            </div>
+            <p class="library-hint">무적을 끄고 내구도를 주면 피격을 택시가 대신 받습니다. 내구도 0은 플레이어가 직접 피격됩니다.</p>
+            <div class="form-section-title">탑승 시작</div>
+            <div class="form-row two">
+              <label class="check-label"><input name="clearBulletsOnStart" type="checkbox" ${formRideParams.bulletClearOnStart.enabled ? 'checked' : ''}> 적탄 정리</label>
+              <label class="check-label"><input name="convertBulletsToPearls" type="checkbox" ${formRideParams.bulletClearOnStart.convertToPearls ? 'checked' : ''}> 정리한 탄을 진주로</label>
+              <label class="check-label"><input name="autoCollectClearedBullets" type="checkbox" ${formRideParams.bulletClearOnStart.autoCollect ? 'checked' : ''}> 변환 진주 자동회수</label>
             </div>
             <div class="form-section-title">진주 궤적</div>
             <div class="form-row two">
-              <label>생성 간격<input name="trailInterval" type="number" min="0.03" max="5" step="0.01" value="${formItem.payload.params.pearlTrail.interval}"></label>
-              <label>진행 속도<input name="trailSpeed" type="number" min="0" max="1000" step="5" value="${formItem.payload.params.pearlTrail.speed}"></label>
-              <label>물결 폭<input name="trailAmplitude" type="number" min="0" max="1" step="0.05" value="${formItem.payload.params.pearlTrail.amplitudeY}"></label>
-              <label>물결 빈도<input name="trailFrequency" type="number" min="0" max="10" step="0.1" value="${formItem.payload.params.pearlTrail.frequency}"></label>
+              <label class="check-label"><input name="trailEnabled" type="checkbox" ${formRideParams.pearlTrail.enabled ? 'checked' : ''}> 궤적 생성</label>
+              <label class="check-label"><input name="streamLoosePearls" type="checkbox" ${formRideParams.pearlTrail.streamLoosePearls ? 'checked' : ''}> 일반 진주도 고속 이동</label>
+            </div>
+            <div class="form-row two">
+              <label>생성 간격<input name="trailInterval" type="number" min="0.03" max="5" step="0.01" value="${formRideParams.pearlTrail.interval}"></label>
+              <label>진행 속도<input name="trailSpeed" type="number" min="0" max="1000" step="5" value="${formRideParams.pearlTrail.speed}"></label>
+              <label>물결 폭<input name="trailAmplitude" type="number" min="0" max="1" step="0.05" value="${formRideParams.pearlTrail.amplitudeY}"></label>
+              <label>물결 빈도<input name="trailFrequency" type="number" min="0" max="10" step="0.1" value="${formRideParams.pearlTrail.frequency}"></label>
             </div>
             <div class="form-section-title">진주 링</div>
+            <label class="check-label"><input name="ringEnabled" type="checkbox" ${formRideParams.pearlRing.enabled ? 'checked' : ''}> 진주 링 생성</label>
             <div class="form-row two">
-              <label>첫 링 지연<input name="ringFirstDelay" type="number" min="0" max="30" step="0.1" value="${formItem.payload.params.pearlRing.firstDelay}"></label>
-              <label>링 간격<input name="ringInterval" type="number" min="0.1" max="30" step="0.1" value="${formItem.payload.params.pearlRing.interval}"></label>
-              <label>진주 수<input name="ringCount" type="number" min="1" max="64" step="1" value="${formItem.payload.params.pearlRing.count}"></label>
-              <label>링 반지름<input name="ringRadius" type="number" min="0" max="400" step="1" value="${formItem.payload.params.pearlRing.radius}"></label>
-              <label>진행 속도<input name="ringSpeed" type="number" min="0" max="1000" step="5" value="${formItem.payload.params.pearlRing.speed}"></label>
+              <label>첫 링 지연<input name="ringFirstDelay" type="number" min="0" max="30" step="0.1" value="${formRideParams.pearlRing.firstDelay}"></label>
+              <label>링 간격<input name="ringInterval" type="number" min="0.1" max="30" step="0.1" value="${formRideParams.pearlRing.interval}"></label>
+              <label>진주 수<input name="ringCount" type="number" min="1" max="64" step="1" value="${formRideParams.pearlRing.count}"></label>
+              <label>링 반지름<input name="ringRadius" type="number" min="0" max="400" step="1" value="${formRideParams.pearlRing.radius}"></label>
+              <label>진행 속도<input name="ringSpeed" type="number" min="0" max="1000" step="5" value="${formRideParams.pearlRing.speed}"></label>
             </div>
+            <div class="form-section-title">탑승 문구</div>
+            <label>도착 문구<input name="rideArrivalMessage" value="${escapeHtml(formRideParams.startMessages[0]?.text || '')}"></label>
+            <label>출발 대사<input name="rideStartMessage" value="${escapeHtml(formRideParams.startMessages[1]?.text || '')}"></label>
+            <label>하차 문구<input name="rideEndMessage" value="${escapeHtml(formRideParams.endMessage.text)}"></label>
           ` : ''}
           <div class="inspector-actions"><button class="accent" type="submit">${editScope === 'difficulty' ? `${escapeHtml(difficulty.name)}에 적용` : '기본값에 적용'}</button></div>
         </form>`;
@@ -2193,7 +2237,7 @@
   }
 
   function drawSpeedLines() {
-    if (!simulation.ride) return;
+    if (!simulation.ride?.params?.drawSpeedLines) return;
     ctx.save();
     ctx.strokeStyle = 'rgba(190,245,255,0.34)';
     ctx.lineWidth = 2;

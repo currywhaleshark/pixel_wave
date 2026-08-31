@@ -121,6 +121,7 @@ class Player {
   // 피격 처리. 반환: 실제로 맞았으면 true
   hit(game) {
     if (this.invuln > 0 || this.bubble > 0) return false;
+    if (typeof game.absorbRideHit === 'function' && game.absorbRideHit()) return true;
     if (this.level > 1) {
       // 레벨 다운 + 진주 튕김: 보유분에서 실제로 차감해 흩뿌린다(복제 아님).
       // 0.35초간 회수 불가 — 그동안 바깥으로 튕겨나가고, 이후 3초 안에 주우면 회수.
@@ -273,7 +274,11 @@ class Pearl {
       const k = Math.min(1, dt * 12);
       this.vx += (dx / d * spd - this.vx) * k;
       this.vy += (dy / d * spd - this.vy) * k;
-    } else if (this.stream || (typeof Game !== 'undefined' && Game.ride)) {
+    } else if (this.stream || (
+      typeof Game !== 'undefined'
+      && Game.ride
+      && Game.ride?.params?.pearlTrail?.streamLoosePearls !== false
+    )) {
       // 거북 택시 구간: 적 드롭을 포함한 느슨한 진주가 트레일과 같은 속도로 흘러간다.
       this.vx = -CFG.ridePearlSpeed;
       this.vy *= Math.max(0, 1 - 2.2 * dt);

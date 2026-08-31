@@ -23,10 +23,10 @@ const legacy = timelines[2];
 const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 assert.ok(indexHtml.includes('js/stages.generated.js?v=2'));
 assert.ok(indexHtml.includes('js/stage/enemyState.js?v=1'));
-assert.ok(indexHtml.includes('js/entities.js?v=9'));
+assert.ok(indexHtml.includes('js/entities.js?v=10'));
 assert.ok(indexHtml.includes('js/stage/layerTransform.js?v=2'));
-assert.ok(indexHtml.includes('js/stage/plugin.js?v=4'));
-assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=7'));
+assert.ok(indexHtml.includes('js/stage/plugin.js?v=5'));
+assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=8'));
 assert.ok(indexHtml.indexOf('js/stage/compiler.js') < indexHtml.indexOf('js/stage/gameAdapter.js'));
 const mainSource = fs.readFileSync(path.join(root, 'js/main.js'), 'utf8');
 assert.ok(mainSource.includes("stageTestParams.get('stageRuntime') === 'data'"));
@@ -38,6 +38,9 @@ assert.ok(mainSource.includes("sampleStageCurrent(targetId = 'player')"));
 assert.ok(mainSource.includes('spawnBolt(xFrac, options = {})'));
 assert.ok(mainSource.includes('addStageEntryWarning(warning)'));
 assert.ok(mainSource.includes('drawEntryWarnings()'));
+assert.ok(mainSource.includes('startRide(dur, options = {})'));
+assert.ok(mainSource.includes('absorbRideHit()'));
+assert.ok(mainSource.includes("finishRide('boss')"));
 
 assert.equal(Adapter.CONFIG.defaultMode, 'legacy');
 assert.equal(Adapter.requestedMode('?debug&stageRuntime=data'), 'data');
@@ -64,7 +67,7 @@ for (let stageIndex = 0; stageIndex < timelines.length; stageIndex++) {
 global.Enemy = class EnemyStub { constructor(spec) { Object.assign(this, spec); } };
 const fakeGame = {
   enemies: [], groups: {}, rideStarts: [], warningCount: 0, bossCount: 0, paused: false,
-  startRide(duration) { this.rideStarts.push(duration); },
+  startRide(duration, options) { this.rideStarts.push({ duration, options }); },
   startBossWarning() { this.warningCount++; },
   startBoss() { this.bossCount++; },
   message() {},
@@ -74,7 +77,9 @@ assert.ok(spawner);
 assert.equal(spawner.parity.ok, true);
 spawner.seekRange(35);
 spawner.update(35);
-assert.deepEqual(fakeGame.rideStarts, [22]);
+assert.equal(fakeGame.rideStarts[0].duration, 22);
+assert.equal(fakeGame.rideStarts[0].options.scrollMultiplier, 5);
+assert.equal(fakeGame.rideStarts[0].options.bulletClearOnStart.convertToPearls, true);
 spawner.update(37);
 assert.ok(fakeGame.enemies.length > 0);
 spawner.update(57);

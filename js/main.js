@@ -454,43 +454,98 @@ const Game = {
     return { x: this.curX * influence.x, y: this.curY * influence.y };
   },
 
-  // 거북 택시 탑승 구간: 무적 + 고속 스크롤 + 진주 트레일 (보너스 타임)
-  startRide(dur) {
-    this.ride = { t: 0, dur, pearlT: 0, ringT: 2.5, trailPhase: Math.random() * 6.28 };
-    this.clearBulletsToPearls(true); // 탑승 순간 화면 정리 = 진주 보너스
-    Sound.sfx('ride');
-    this.message('거북 택시 도착!', '#7dffd8');
-    this.message('"꽉 잡아요~ 밟습니다!"', '#a8ffcf');
+  // 보너스 구간과 보스 추격전이 공유하는 거북 택시 계약.
+  startRide(dur, options = {}) {
+    const params = typeof StagePlugin !== 'undefined'
+      ? StagePlugin.normalizeTurtleRide(options)
+      : options;
+    this.ride = {
+      t: 0,
+      dur: Math.max(0, Number(dur) || 0),
+      params,
+      pearlT: 0,
+      ringT: params.pearlRing.enabled ? params.pearlRing.firstDelay : Infinity,
+      trailPhase: Math.random() * 6.28,
+      durability: params.taxiDurability,
+      durabilityMax: params.taxiDurability,
+    };
+    if (params.bulletClearOnStart.enabled) {
+      for (const bullet of this.ebullets) {
+        if (params.bulletClearOnStart.convertToPearls) {
+          this.pearls.push(new Pearl(bullet.x, bullet.y, {
+            life: params.bulletClearOnStart.pearlLifetime,
+            auto: params.bulletClearOnStart.autoCollect,
+          }));
+        } else this.addFx(bullet.x, bullet.y, '#bfe8ff', 1);
+      }
+      this.ebullets = [];
+    }
+    if (params.startSoundId) Sound.sfx(params.startSoundId);
+    for (const message of params.startMessages) if (message.text) this.message(message.text, message.color);
   },
 
   updateRide(dt) {
     const r = this.ride;
     r.t += dt;
-    this.player.invuln = Math.max(this.player.invuln, 0.4); // 등껍질 무적
+    const params = r.params;
+    if (params.playerInvulnerable) this.player.invuln = Math.max(this.player.invuln, 0.4);
     // 진주 트레일 (사인 곡선 — 따라가며 줍는 재미)
-    r.pearlT -= dt;
-    if (r.pearlT <= 0) {
-      r.pearlT = 0.13;
-      const y = CFG.H * 0.5 + Math.sin(r.t * 1.6 + r.trailPhase) * CFG.H * 0.3;
-      this.pearls.push(new Pearl(CFG.W + 12, y, { vx: -CFG.ridePearlSpeed, vy: 0, life: 6, stream: true }));
-    }
-    // 가끔 진주 링 (보너스 안의 보너스)
-    r.ringT -= dt;
-    if (r.ringT <= 0) {
-      r.ringT = 4.5;
-      const cy = (0.3 + Math.random() * 0.4) * CFG.H;
-      for (let i = 0; i < 10; i++) {
-        const a = (i / 10) * 6.28;
-        this.pearls.push(new Pearl(CFG.W + 40 + Math.cos(a) * 55, cy + Math.sin(a) * 55,
-          { vx: -CFG.ridePearlSpeed, vy: 0, life: 6, stream: true }));
+    if (params.pearlTrail.enabled) {
+      r.pearlT -= dt;
+      if (r.pearlT <= 0) {
+        r.pearlT += params.pearlTrail.interval;
+        const y = CFG.H * params.pearlTrail.centerY
+          + Math.sin(r.t * params.pearlTrail.frequency + r.trailPhase) * CFG.H * params.pearlTrail.amplitudeY;
+        this.pearls.push(new Pearl(CFG.W + 12, y, {
+          vx: -params.pearlTrail.speed, vy: 0, life: params.pearlTrail.lifetime, stream: true,
+        }));
       }
     }
-    if (r.t >= r.dur) {
-      this.ride = null;
-      this.message('"다 왔어요~ 조심히 가세요!"', '#a8ffcf');
+    // 가끔 진주 링 (보너스 안의 보너스)
+    if (params.pearlRing.enabled) {
+      r.ringT -= dt;
+      if (r.ringT <= 0) {
+        r.ringT += params.pearlRing.interval;
+        const range = params.pearlRing.centerYRange;
+        const cy = (range[0] + Math.random() * (range[1] - range[0])) * CFG.H;
+        for (let i = 0; i < params.pearlRing.count; i++) {
+          const a = (i / params.pearlRing.count) * 6.28;
+          this.pearls.push(new Pearl(
+            CFG.W + 40 + Math.cos(a) * params.pearlRing.radius,
+            cy + Math.sin(a) * params.pearlRing.radius,
+            { vx: -params.pearlRing.speed, vy: 0, life: params.pearlRing.lifetime, stream: true },
+          ));
+        }
+      }
+    }
+    if (r.t >= r.dur) this.finishRide('complete');
+  },
+
+  finishRide(reason = 'complete') {
+    const ride = this.ride;
+    if (!ride) return;
+    this.ride = null;
+    if (reason === 'broken') {
+      if (ride.params.breakMessage.text) this.message(ride.params.breakMessage.text, ride.params.breakMessage.color);
+    } else if (reason === 'complete' && ride.params.exitBehavior !== 'silent' && ride.params.endMessage.text) {
+      this.message(ride.params.endMessage.text, ride.params.endMessage.color);
     }
   },
+
+  absorbRideHit() {
+    const ride = this.ride;
+    if (!ride || ride.params.playerInvulnerable || ride.durability <= 0) return false;
+    ride.durability--;
+    this.player.invuln = Math.max(this.player.invuln, 0.75);
+    this.shake = Math.max(this.shake, 0.22);
+    Sound.sfx('shield');
+    this.addFx(this.player.x, this.player.y + 16, '#ffe28a', 12);
+    if (ride.durability > 0) this.message(`거북 택시 내구도 ${ride.durability}`, '#ffe28a');
+    else this.finishRide('broken');
+    return true;
+  },
   startBoss() {
+    if (this.ride && !this.ride.params.continueIntoBoss) this.finishRide('boss');
     this.phaseHitBase = this.runLog?.hitsTaken || 0;
     this.bossScored = false;
     if (this.runLog) this.runLog.bossStart = this.stageT;
@@ -807,7 +862,7 @@ const Game = {
 
     this.stageT += dt;
     this.spawner.update(this.stageT, dt);
-    const stageScrollMultiplier = this.stageRuntimeState?.scrollMultiplier ?? (this.ride ? 5 : 1);
+    const stageScrollMultiplier = this.stageRuntimeState?.scrollMultiplier ?? (this.ride?.params?.scrollMultiplier ?? 1);
     this.scroll += CFG.scrollSpeed * stageScrollMultiplier * dt; // 데이터 런타임은 활성 환경 클립의 곡선을 따른다
     if (this.shake > 0) this.shake -= dt;
     if (this.ride) this.updateRide(dt);
@@ -1143,7 +1198,10 @@ const Game = {
     this.drawEBullets(1);
 
     this.drawBombFx();
-    if (this.ride) this.drawTurtle(this.player.x, this.player.y + 18);
+    if (this.ride?.params?.drawTurtle) {
+      this.drawTurtle(this.player.x, this.player.y + 18);
+      this.drawRideDurability(this.player.x, this.player.y - 25);
+    }
     this.player.draw(ctx);
     if (this.dolphin) this.dolphin.draw(ctx, this);
 
@@ -1715,7 +1773,7 @@ const Game = {
     this.drawCoralLayer(this.scroll, pal.coralNear, 34);
 
     // 탑승 중 스피드 라인
-    if (this.ride && this.state === 'play') {
+    if (this.ride?.params?.drawSpeedLines && this.state === 'play') {
       ctx.save();
       ctx.strokeStyle = 'rgba(255,255,255,0.28)';
       ctx.lineWidth = 2;
@@ -1727,6 +1785,16 @@ const Game = {
         ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + len, y); ctx.stroke();
       }
       ctx.restore();
+    }
+  },
+
+  drawRideDurability(x, y) {
+    const ride = this.ride;
+    if (!ride || ride.durabilityMax <= 0) return;
+    const width = ride.durabilityMax * 10 - 2;
+    for (let index = 0; index < ride.durabilityMax; index++) {
+      ctx.fillStyle = index < ride.durability ? '#ffe28a' : 'rgba(70,38,65,0.7)';
+      ctx.fillRect(Math.round(x - width / 2 + index * 10), Math.round(y), 8, 5);
     }
   },
 

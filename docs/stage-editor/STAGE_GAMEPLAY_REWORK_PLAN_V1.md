@@ -645,7 +645,7 @@ Stage Sequencer tool milestones M1–M7.
 - [x] Add rear-entry warning.
 - [x] Add authored U-turn position and braking cue.
 - [x] Parameterize tracking.
-- [ ] Optionize turtle rides.
+- [x] Optionize turtle rides.
 - [ ] Add common wreck spawning and rendering-width correctness.
 
 ### G3 — Stages 1 and 2
@@ -808,7 +808,6 @@ Implemented decisions:
 
 Still required to complete G2:
 
-- boss-safe turtle-ride options;
 - common wreck spawn payloads and exact authored width rendering.
 
 ### 2026-09-01 — G2 authored U-turn point
@@ -845,3 +844,26 @@ Implemented decisions:
   seeking into its lead window matches continuous play.
 - The warning disappears at the exact first-spawn time and remains independent
   of formation interval or enemy count.
+
+### 2026-09-01 — G2 shared turtle-ride options
+
+Implemented decisions:
+
+- `StagePlugin.normalizeTurtleRide()` is the shared contract for legacy bonus
+  rides, Stage JSON rides, the simulator, and future Boss 3 chase calls.
+- A ride now authors scroll multiplier, full invulnerability or finite taxi
+  durability, turtle and speed-line presentation, boss-transition retention,
+  bullet clearing/conversion, pearl trail and ring enablement/cadence, loose
+  pearl streaming, start messages, and message or silent exit.
+- The existing Stage 3 bonus ride keeps its old behavior through defaults:
+  ×5 scroll, full invulnerability, bullet-to-pearl clear, trail, rings, turtle,
+  speed lines, and arrival/departure messages.
+- A future Boss 3 chase can reuse `startRide(duration, options)` with full
+  invulnerability and rewards disabled, finite visible durability enabled, and
+  a silent handoff back to boss choreography.
+- Taxi durability absorbs a player hit before power loss or death, gives a
+  brief hit cooldown and visible durability cells, and ends the ride when
+  depleted.
+- Rides end silently before a boss starts unless `continueIntoBoss` is
+  explicitly enabled, preventing an accidentally overlapping bonus ride from
+  carrying invulnerability into a boss fight.

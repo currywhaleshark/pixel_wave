@@ -56,6 +56,36 @@ const coverage6 = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/
 }
 
 {
+  const bonus = StagePlugin.normalizeTurtleRide({});
+  assert.equal(bonus.scrollMultiplier, 5);
+  assert.equal(bonus.playerInvulnerable, true);
+  assert.equal(bonus.taxiDurability, 0);
+  assert.equal(bonus.bulletClearOnStart.enabled, true);
+  assert.equal(bonus.pearlTrail.enabled, true);
+  assert.equal(bonus.pearlRing.enabled, true);
+
+  const chase = StagePlugin.normalizeTurtleRide({
+    scrollMultiplier: 1.4,
+    playerInvulnerable: false,
+    taxiDurability: 3,
+    continueIntoBoss: true,
+    exitBehavior: 'silent',
+    bulletClearOnStart: { enabled: false },
+    pearlTrail: { enabled: false, streamLoosePearls: false },
+    pearlRing: { enabled: false },
+  });
+  assert.deepEqual(
+    [chase.scrollMultiplier, chase.playerInvulnerable, chase.taxiDurability, chase.continueIntoBoss, chase.exitBehavior],
+    [1.4, false, 3, true, 'silent'],
+  );
+  assert.equal(chase.bulletClearOnStart.enabled, false);
+  assert.equal(chase.pearlTrail.enabled, false);
+  assert.equal(chase.pearlTrail.streamLoosePearls, false);
+  assert.equal(chase.pearlRing.enabled, false);
+  assert.ok(StagePlugin.validateTurtleRide({ scrollMultiplier: 8, taxiDurability: -1, exitBehavior: 'explode' }).length >= 3);
+}
+
+{
   const invalid = StageCompiler.clone(source);
   invalid.items.find(item => item.id === 's3-scroll-base').payload.params.curve[1].at = 119;
   const report = StageCompiler.validate(invalid);
@@ -167,6 +197,40 @@ const coverage6 = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/
   simulation.seek(60);
   simulation.restore(strikeSnapshot);
   assert.equal(simulation.stateHash(), strikeHash, '번개 타격 상태 snapshot/restore가 정확해야 한다');
+}
+
+{
+  const chaseStage = StageCompiler.clone(source);
+  const ride = chaseStage.items.find(item => item.id === 's3-ride-01');
+  ride.payload.params = {
+    ...ride.payload.params,
+    playerInvulnerable: false,
+    taxiDurability: 3,
+    bulletClearOnStart: { enabled: false },
+    pearlTrail: { ...ride.payload.params.pearlTrail, enabled: false, streamLoosePearls: false },
+    pearlRing: { ...ride.payload.params.pearlRing, enabled: false },
+    exitBehavior: 'silent',
+  };
+  const simulation = new Simulation(StageCompiler.compile(chaseStage, { difficulty: 'normal' }));
+  simulation.seek(36);
+  assert.equal(simulation.ride.durability, 3);
+  assert.equal(simulation.player.invulnerable, false);
+  assert.equal(simulation.ride.nextTrail, null);
+  assert.equal(simulation.ride.nextRing, null);
+}
+
+{
+  const overlapStage = StageCompiler.clone(source);
+  const ride = overlapStage.items.find(item => item.id === 's3-ride-01');
+  ride.timing.duration = 30;
+  const boss = overlapStage.items.find(item => item.type === 'boss');
+  boss.timing.start = 50;
+  const simulation = new Simulation(StageCompiler.compile(overlapStage, { difficulty: 'easy' }));
+  simulation.seek(49.9);
+  assert.ok(simulation.ride);
+  simulation.seek(50);
+  assert.equal(simulation.ride, null, '보스 시작과 겹친 보너스 택시는 미리보기에서도 종료되어야 한다');
+  assert.equal(simulation.player.invulnerable, false);
 }
 
 console.log('stage plugin: ok');

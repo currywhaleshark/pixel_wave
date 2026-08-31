@@ -271,7 +271,7 @@
       }
       else if (event.type === 'item-start' && event.payload?.pluginId === 'turtle-ride') {
         const item = this.compiled.items.find(candidate => candidate.id === event.itemId);
-        this.game.startRide(item?.timing?.duration || 0);
+        this.game.startRide(item?.timing?.duration || 0, event.payload?.params || {});
       }
       else if (event.type === 'item-start' && event.payload?.pluginId === 'wreck-corridor') this._spawnWreck(event);
       else if (event.type === 'item-start' && event.payload?.pluginId === 'lightning-strike') {
@@ -297,7 +297,10 @@
       this._seekRuntime(at);
       const ride = this.compiled.items.find(item => item.payload?.pluginId === 'turtle-ride'
         && item.timing.start < at && item.timing.start + item.timing.duration > at);
-      if (ride) this.game.startRide(ride.timing.start + ride.timing.duration - at);
+      if (ride) this.game.startRide(
+        ride.timing.start + ride.timing.duration - at,
+        ride.payload?.params || {},
+      );
     }
 
     update(time, dt) {

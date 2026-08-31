@@ -16,7 +16,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
     Meta: { armorCharges: () => 0 },
   });
   vm.runInContext(read('js/config.js'), context, { filename: 'js/config.js' });
-  vm.runInContext(`${read('js/entities.js')}\nglobalThis.PearlForTest = Pearl;`, context, {
+  vm.runInContext(`${read('js/entities.js')}\nglobalThis.PearlForTest = Pearl; globalThis.PlayerForTest = Player;`, context, {
     filename: 'js/entities.js',
   });
 
@@ -27,10 +27,23 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
   assert.equal(dropped.vx, -330);
   assert.equal(dropped.x, 367);
 
+  context.Game.ride = { params: { pearlTrail: { streamLoosePearls: false } } };
+  const disabledStream = new Pearl(400, 200, { vx: 12, vy: 20 });
+  disabledStream.update(0.1, player);
+  assert.notEqual(disabledStream.vx, -330, '추격 택시는 일반 진주 고속 이동을 끌 수 있다');
+
   context.Game.ride = null;
   const normal = new Pearl(400, 200, { vx: 12, vy: 20 });
   normal.update(0.1, player);
   assert.notEqual(normal.vx, -330, '택시 밖의 진주 흐름은 기존 속도를 유지한다');
+
+  const rider = new context.PlayerForTest();
+  rider.level = 1;
+  let absorbed = 0;
+  const game = { absorbRideHit() { absorbed++; return true; } };
+  assert.equal(rider.hit(game), true);
+  assert.equal(absorbed, 1, '유한 내구도 택시는 플레이어 피격보다 먼저 충격을 흡수한다');
+  assert.equal(rider.bubble, 0);
 }
 
 // 거북이 고속도로만 모든 배경 레이어와 광선의 스크롤을 25% 빠르게 한다.

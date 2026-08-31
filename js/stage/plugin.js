@@ -207,6 +207,108 @@
     return object;
   }
 
+  const TURTLE_RIDE_EXIT_BEHAVIORS = Object.freeze(['message', 'silent']);
+
+  function rideMessage(value, fallback) {
+    const source = value && typeof value === 'object' && !Array.isArray(value) ? value : fallback;
+    return {
+      text: String(source?.text ?? ''),
+      color: String(source?.color || fallback?.color || '#a8ffcf'),
+    };
+  }
+
+  function normalizeTurtleRide(params) {
+    const source = params && typeof params === 'object' && !Array.isArray(params) ? params : {};
+    const clear = source.bulletClearOnStart && typeof source.bulletClearOnStart === 'object'
+      ? source.bulletClearOnStart : {};
+    const trail = source.pearlTrail && typeof source.pearlTrail === 'object' ? source.pearlTrail : {};
+    const ring = source.pearlRing && typeof source.pearlRing === 'object' ? source.pearlRing : {};
+    const defaultStartMessages = [
+      { text: '거북 택시 도착!', color: '#7dffd8' },
+      { text: '"꽉 잡아요~ 밟습니다!"', color: '#a8ffcf' },
+    ];
+    const startMessages = Array.isArray(source.startMessages)
+      ? source.startMessages.map((message, index) => rideMessage(message, defaultStartMessages[index] || defaultStartMessages[1]))
+      : defaultStartMessages.map(message => ({ ...message }));
+    return {
+      scrollMultiplier: clamp(source.scrollMultiplier ?? 5, 0, 5),
+      playerInvulnerable: source.playerInvulnerable !== false,
+      taxiDurability: Math.round(clamp(source.taxiDurability ?? 0, 0, 20)),
+      continueIntoBoss: source.continueIntoBoss === true,
+      drawTurtle: source.drawTurtle !== false,
+      drawSpeedLines: source.drawSpeedLines !== false,
+      startSoundId: typeof source.startSoundId === 'string' ? source.startSoundId : 'ride',
+      exitBehavior: TURTLE_RIDE_EXIT_BEHAVIORS.includes(source.exitBehavior) ? source.exitBehavior : 'message',
+      bulletClearOnStart: {
+        enabled: clear.enabled !== false,
+        convertToPearls: clear.convertToPearls !== false,
+        pearlLifetime: clamp(clear.pearlLifetime ?? 12, 0.1, 120),
+        autoCollect: clear.autoCollect !== false,
+      },
+      pearlTrail: {
+        enabled: trail.enabled !== false,
+        streamLoosePearls: trail.streamLoosePearls !== false,
+        interval: clamp(trail.interval ?? 0.13, 0.03, 5),
+        speed: clamp(trail.speed ?? 330, 0, 1000),
+        lifetime: clamp(trail.lifetime ?? 6, 0.1, 120),
+        centerY: clamp(trail.centerY ?? 0.5, 0, 1),
+        amplitudeY: clamp(trail.amplitudeY ?? 0.3, 0, 1),
+        frequency: clamp(trail.frequency ?? 1.6, 0, 10),
+      },
+      pearlRing: {
+        enabled: ring.enabled !== false,
+        firstDelay: clamp(ring.firstDelay ?? 2.5, 0, 30),
+        interval: clamp(ring.interval ?? 4.5, 0.1, 30),
+        count: Math.round(clamp(ring.count ?? 10, 1, 64)),
+        radius: clamp(ring.radius ?? 55, 0, 400),
+        centerYRange: Array.isArray(ring.centerYRange) && ring.centerYRange.length >= 2
+          ? [clamp(ring.centerYRange[0], 0, 1), clamp(ring.centerYRange[1], 0, 1)].sort((a, b) => a - b)
+          : [0.3, 0.7],
+        speed: clamp(ring.speed ?? 330, 0, 1000),
+        lifetime: clamp(ring.lifetime ?? 6, 0.1, 120),
+      },
+      startMessages,
+      endMessage: rideMessage(source.endMessage, { text: '"다 왔어요~ 조심히 가세요!"', color: '#a8ffcf' }),
+      breakMessage: rideMessage(source.breakMessage, { text: '거북 택시가 잠시 물러났습니다!', color: '#ffd58a' }),
+    };
+  }
+
+  function validateTurtleRide(params) {
+    if (!params || typeof params !== 'object' || Array.isArray(params)) return ['turtle-ride params 객체가 필요합니다.'];
+    const errors = [];
+    const number = (path, min, max) => {
+      const value = getPath(params, path);
+      if (value !== undefined && (!Number.isFinite(Number(value)) || Number(value) < min || Number(value) > max)) {
+        errors.push(`${path}은 ${min}–${max} 범위의 수여야 합니다.`);
+      }
+    };
+    const boolean = path => {
+      const value = getPath(params, path);
+      if (value !== undefined && typeof value !== 'boolean') errors.push(`${path}은 boolean이어야 합니다.`);
+    };
+    number('scrollMultiplier', 0, 5);
+    number('taxiDurability', 0, 20);
+    number('pearlTrail.interval', 0.03, 5);
+    number('pearlTrail.speed', 0, 1000);
+    number('pearlTrail.amplitudeY', 0, 1);
+    number('pearlTrail.frequency', 0, 10);
+    number('pearlRing.firstDelay', 0, 30);
+    number('pearlRing.interval', 0.1, 30);
+    number('pearlRing.count', 1, 64);
+    number('pearlRing.radius', 0, 400);
+    number('pearlRing.speed', 0, 1000);
+    for (const path of [
+      'playerInvulnerable', 'continueIntoBoss', 'drawTurtle', 'drawSpeedLines',
+      'bulletClearOnStart.enabled', 'bulletClearOnStart.convertToPearls', 'bulletClearOnStart.autoCollect',
+      'pearlTrail.enabled', 'pearlTrail.streamLoosePearls', 'pearlRing.enabled',
+    ]) boolean(path);
+    if (params.exitBehavior !== undefined && !TURTLE_RIDE_EXIT_BEHAVIORS.includes(params.exitBehavior)) {
+      errors.push(`exitBehavior은 ${TURTLE_RIDE_EXIT_BEHAVIORS.join(', ')} 중 하나여야 합니다.`);
+    }
+    if (params.startMessages !== undefined && !Array.isArray(params.startMessages)) errors.push('startMessages는 배열이어야 합니다.');
+    return errors;
+  }
+
   function coerceField(field, value) {
     if (field.type === 'boolean') return !!value;
     if (field.type === 'number') return clamp(value, field.min, field.max);
@@ -228,6 +330,7 @@
     const errors = [];
     if (!contract.itemTypes.includes(item.type)) errors.push(`${pluginId} 플러그인은 ${contract.itemTypes.join(', ')} 클립에서만 사용할 수 있습니다.`);
     if (pluginId === 'scroll-speed') errors.push(...validateCurve(item.payload?.params?.curve, item.timing?.duration));
+    if (pluginId === 'turtle-ride') errors.push(...validateTurtleRide(item.payload?.params));
     for (const field of contract.fields) {
       const value = getPath(item.payload?.params, field.path);
       if (field.type === 'number' && (!Number.isFinite(Number(value)) || Number(value) < field.min || Number(value) > field.max)) {
@@ -350,8 +453,9 @@
         state.drawCurrentIndicator ||= params.drawCurrentIndicator === true;
         state.surfaceBoundaryY = Math.max(state.surfaceBoundaryY, finite(params.surfaceBoundaryY));
       } else if (pluginId === 'turtle-ride') {
-        state.scrollMultiplier *= Number(params.scrollMultiplier) || 1;
-        state.playerInvulnerable ||= params.playerInvulnerable === true;
+        const ride = normalizeTurtleRide(params);
+        state.scrollMultiplier *= ride.scrollMultiplier;
+        state.playerInvulnerable ||= ride.playerInvulnerable;
       } else if (pluginId === 'lightning-strike') {
         const telegraphDuration = Math.max(0, finite(params.telegraphDuration));
         const strikeDuration = Math.max(0, finite(params.strikeDuration));
@@ -403,6 +507,9 @@
     sampleCurve,
     normalizeCurve,
     validateCurve,
+    TURTLE_RIDE_EXIT_BEHAVIORS,
+    normalizeTurtleRide,
+    validateTurtleRide,
     validateItem,
   });
   root.StagePlugin = api;

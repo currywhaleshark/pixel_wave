@@ -149,6 +149,11 @@
         return;
       }
       if (event.type === 'boss') {
+        if (this.ride && !this.ride.params.continueIntoBoss) {
+          this.activeItems.delete(this.ride.itemId);
+          this.ride = null;
+          this.player.invulnerable = false;
+        }
         this.boss = {
           id: event.payload?.bossId || 'ssing',
           itemId: event.itemId,
@@ -160,14 +165,16 @@
     }
 
     _startRide(event) {
-      const params = event.payload.params || {};
+      const params = PluginApi.normalizeTurtleRide(event.payload.params);
       this.ride = {
         itemId: event.itemId,
         start: event.at,
         end: event.at + (this.itemById.get(event.itemId)?.timing?.duration || 0),
         params: clone(params),
-        nextTrail: event.at,
-        nextRing: event.at + (params.pearlRing?.firstDelay ?? 2.5),
+        nextTrail: params.pearlTrail.enabled ? event.at : null,
+        nextRing: params.pearlRing.enabled ? event.at + params.pearlRing.firstDelay : null,
+        durability: params.taxiDurability,
+        durabilityMax: params.taxiDurability,
         phase: this.random.range(0, Math.PI * 2),
       };
       if (params.bulletClearOnStart?.enabled) {
@@ -185,7 +192,7 @@
         }
         this.bullets = [];
       }
-      this.player.invulnerable = !!params.playerInvulnerable;
+      this.player.invulnerable = params.playerInvulnerable;
       for (const message of params.startMessages || []) {
         this.messages.push({ text: message.text, color: message.color, until: event.at + 2.8 });
       }
@@ -195,7 +202,7 @@
       const params = this.ride?.params || event.payload?.params || {};
       this.ride = null;
       this.player.invulnerable = false;
-      if (params.endMessage?.text) {
+      if (params.exitBehavior !== 'silent' && params.endMessage?.text) {
         this.messages.push({ text: params.endMessage.text, color: params.endMessage.color, until: event.at + 2.8 });
       }
     }
@@ -207,7 +214,7 @@
           multiplier *= PluginApi.sampleCurve(active.payload.params?.curve, at - active.start);
         }
         if (active.payload?.pluginId === 'turtle-ride') {
-          multiplier *= Number(active.payload.params?.scrollMultiplier) || 1;
+          multiplier *= PluginApi.normalizeTurtleRide(active.payload.params).scrollMultiplier;
         }
       }
       return Math.max(0, Math.min(5, multiplier));
@@ -457,7 +464,7 @@
       const params = this.ride.params;
       const trail = params.pearlTrail || {};
       const ring = params.pearlRing || {};
-      while (this.ride.nextTrail <= toTime + EPS) {
+      while (trail.enabled && this.ride.nextTrail <= toTime + EPS) {
         const local = this.ride.nextTrail - this.ride.start;
         const y = this.compiled.viewport.height * (trail.centerY ?? 0.5)
           + Math.sin(local * (trail.frequency ?? 1.6) + this.ride.phase) * this.compiled.viewport.height * (trail.amplitudeY ?? 0.3);
@@ -471,7 +478,7 @@
         });
         this.ride.nextTrail += trail.interval ?? 0.13;
       }
-      while (this.ride.nextRing <= toTime + EPS) {
+      while (ring.enabled && this.ride.nextRing <= toTime + EPS) {
         const count = Math.max(1, Math.round(ring.count ?? 10));
         const yRange = ring.centerYRange || [0.3, 0.7];
         const centerY = this.random.range(yRange[0], yRange[1]) * this.compiled.viewport.height;
