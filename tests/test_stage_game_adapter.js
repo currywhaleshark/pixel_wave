@@ -17,7 +17,8 @@ const legacy = context.__stage3Timeline;
 
 const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 assert.ok(indexHtml.includes('js/stages.generated.js?v=1'));
-assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=2'));
+assert.ok(indexHtml.includes('js/entities.js?v=5'));
+assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=3'));
 assert.ok(indexHtml.indexOf('js/stage/compiler.js') < indexHtml.indexOf('js/stage/gameAdapter.js'));
 const mainSource = fs.readFileSync(path.join(root, 'js/main.js'), 'utf8');
 assert.ok(mainSource.includes("stageTestParams.get('stageRuntime') === 'data'"));
@@ -57,7 +58,14 @@ spawner.update(57);
 assert.equal(fakeGame.paused, true);
 
 const editedStage = JSON.parse(JSON.stringify(global.STAGE_DATA_REGISTRY.stage3));
-editedStage.items.find(item => item.id === 's3-w001').timing.start = 9.25;
+const editedWave = editedStage.items.find(item => item.id === 's3-w001');
+editedWave.timing.start = 9.25;
+editedWave.payload.weapon = {
+  patternId: 'pangpang-needle-fan',
+  startDelay: 0.25,
+  stopWhenLeaving: false,
+};
+editedStage.dependencies.barragePatterns.push('pangpang-needle-fan');
 const payload = {
   format: 'pixel-wave-stage-test', schemaVersion: 1,
   stage: editedStage, stageHash: 'draft1234',
@@ -81,6 +89,12 @@ assert.equal(draftSpawner.compiled.items.find(item => item.id === 's3-w001').tim
 assert.equal(draftSpawner.parity.ok, false, '편집 초안은 체크인된 legacy와 다른 점을 진단해야 한다');
 draftSpawner.seekRange(9);
 draftSpawner.update(10);
+assert.ok(testGame.enemies.length > 0);
+assert.equal(testGame.enemies[0].S, 0, '탄막 패턴은 기존 S축 무기로 잘못 변환하지 않는다');
+assert.equal(testGame.enemies[0].barragePatternId, 'pangpang-needle-fan');
+assert.equal(testGame.enemies[0].barragePattern.id, 'pangpang-needle-fan');
+assert.equal(testGame.enemies[0].fireDelay, 0.25);
+assert.equal(testGame.enemies[0].barrageStopWhenLeaving, false);
 assert.equal(testGame.finished, 'range');
 delete global.sessionStorage;
 

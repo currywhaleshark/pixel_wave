@@ -130,6 +130,10 @@
         pauseDur: movement.params?.pauseDuration,
         fireInt: weapon.interval,
         ringN: weapon.params?.count,
+        fireDelay: weapon.startDelay,
+        barragePatternId: weapon.patternId || null,
+        barragePattern: weapon.pattern || null,
+        barrageStopWhenLeaving: weapon.stopWhenLeaving !== false,
         groupId: this._group(event.itemId),
       };
       this.game.enemies.push(new Enemy(spec));

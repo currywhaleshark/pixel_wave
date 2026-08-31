@@ -317,6 +317,7 @@ class Enemy {
     this.escaped = false;
     this.maxHp = this.hp;
     this.flash = 0;
+    this.barrageRunner = null;
     if (this.kind === 'wreck') {
       const seed = spec.variant ?? Math.floor((spec.y ?? 0) / 48) + (spec.side === 'top' ? 1 : 0);
       this.wreckVariant = ((seed % 4) + 4) % 4;
@@ -382,9 +383,32 @@ class Enemy {
       this.y = this.y0 + this.amp * Math.sin(this.t * this.freq + this.phase) + (game.curY || 0) * 0.6;
     }
 
-    // --- 사격 (S축) ---
-    if (this.S !== 0 && this.x > 30 && this.x < CFG.W - 10 && (this.kind !== 'ghost' || this.solid)) {
-      const canFire = (this.M !== 3) || (this.state === 'pause');
+    // --- 사격 (S축 / 탄막 공방 패턴) ---
+    const onScreen = this.x > 30 && this.x < CFG.W - 10;
+    const canFire = (this.M !== 3) || (this.state === 'pause');
+    const isSolid = this.kind !== 'ghost' || this.solid;
+    if (this.barragePattern && typeof BarrageRuntime !== 'undefined') {
+      if (!this.barrageRunner) {
+        this.barrageRunner = new BarrageRuntime.Runner(this.barragePattern, {
+          emit: bullet => game.ebullets.push({ ...bullet, patternId: this.barragePatternId }),
+        });
+      }
+      const canContinueOffScreen = this.barrageStopWhenLeaving === false && this.barrageRunner.started;
+      if (canFire && isSolid && (onScreen || canContinueOffScreen)) {
+        let activeDt = dt;
+        if (this.fireT > 0) {
+          activeDt = Math.max(0, dt - this.fireT);
+          this.fireT -= dt;
+        }
+        if (activeDt > 0) {
+          this.barrageRunner.update(activeDt, {
+            source: this,
+            target: game.player,
+            difficulty: game.diff ?? 0,
+          });
+        }
+      }
+    } else if (this.S !== 0 && onScreen && isSolid) {
       if (canFire) {
         this.fireT -= dt;
         if (this.fireT <= 0) {
