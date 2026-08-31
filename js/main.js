@@ -517,8 +517,7 @@ const Game = {
         // 시간차가 곧 대가 — 터질 때 범위 피해도 준다
         const r2 = L.r * L.r;
         for (const e of this.enemies) {
-          if (e.kind === 'wreck') continue;
-          if (e.kind === 'ghost' && !e.solid) continue;
+          if (typeof e.isHittable === 'function' && !e.isHittable()) continue;
           if ((e.x - L.x) ** 2 + (e.y - L.y) ** 2 < r2) e.takeDamage(14, this);
         }
         if (this.boss && !this.boss.dead && this.boss.phase > 0 && this.boss.hittable !== false) {
@@ -537,7 +536,7 @@ const Game = {
       p.x = Math.min(CFG.W - 20, p.x + 900 * dt);
       this.clearBulletsRadius(p.x, p.y, 95, true);
       for (const e of this.enemies) {
-        if (e.kind === 'wreck' || this.bombDash.dmgDone.has(e)) continue;
+        if ((typeof e.isHittable === 'function' && !e.isHittable()) || this.bombDash.dmgDone.has(e)) continue;
         if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 < 70 * 70) {
           this.bombDash.dmgDone.add(e);
           e.takeDamage(10, this);
@@ -673,8 +672,7 @@ const Game = {
     let best = null, bd = Infinity;
     for (const e of this.enemies) {
       if (e.x > CFG.W - 12 || e.x < 4) continue; // 아직 화면 밖 (우측 진입 전 / 좌측 D5 진입 전)
-      if (e.kind === 'wreck') continue;          // 지형은 표적 아님
-      if (e.kind === 'ghost' && !e.solid) continue;
+      if (typeof e.isTargetable === 'function' && !e.isTargetable()) continue;
       const d = (e.x - x) ** 2 + (e.y - y) ** 2;
       if (d < bd) { bd = d; best = e; }
     }
@@ -986,8 +984,7 @@ const Game = {
       if (s.dead) continue;
       for (const e of this.enemies) {
         if (e.dead) continue;
-        if (e.kind === 'wreck') continue;                 // 지형은 샷이 통과
-        if (e.kind === 'ghost' && !e.solid) continue;     // 반투명 유령도 통과
+        if (typeof e.isHittable === 'function' && !e.isHittable()) continue;
         if (s.hitSet && s.hitSet.has(e)) continue; // 관통탄이 같은 적을 매 프레임 때리는 것 방지
         const r = (KIND_R[e.kind] ?? 10) + s.r;
         if ((s.x - e.x) ** 2 + (s.y - e.y) ** 2 < r * r) {
@@ -1043,7 +1040,7 @@ const Game = {
 
     // 적 몸통 vs 플레이어
     for (const e of this.enemies) {
-      if (e.kind === 'ghost' && !e.solid) continue;       // 반투명 유령은 스쳐 지나감
+      if (typeof e.isCollidable === 'function' && !e.isCollidable()) continue;
       if (e.kind === 'wreck') {
         // 지형: 원-사각형 충돌
         const hw = e.wreckW / 2, hh = e.wreckH / 2;
@@ -1582,7 +1579,10 @@ const Game = {
     for (const e of this.enemies) {
       if (e.kind === 'lantern') hole(e.x, e.y, 185);       // 등불 해파리 = 이동 광원
       else if (e.kind === 'big') hole(e.x, e.y, 95);
-      else if (e.kind === 'viper') hole(e.x, e.y, 17);     // 형광 눈만 번뜩
+      else if (e.kind === 'viper') {
+        const glow = typeof e.glowStrength === 'function' ? e.glowStrength() : 1;
+        if (glow > 0.01) hole(e.x, e.y, 17 * (0.35 + glow * 0.65));
+      }
     }
     for (const b of this.ebullets) {
       if (b.kind === 'mine') hole(b.x, b.y, 70);

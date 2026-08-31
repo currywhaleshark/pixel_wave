@@ -11,6 +11,7 @@
   const FormationApi = root.StageFormation || (typeof require === 'function' ? require('./formation.js') : null);
   const EntryApi = root.StageEntry || (typeof require === 'function' ? require('./entry.js') : null);
   const BehaviorApi = root.StageBehavior || (typeof require === 'function' ? require('./behavior.js') : null);
+  const EnemyStateApi = root.StageEnemyState || (typeof require === 'function' ? require('./enemyState.js') : null);
   const BarrageApi = root.StageBarrage || (typeof require === 'function' ? require('./barrage.js') : null);
   const PluginApi = root.StagePlugin || (typeof require === 'function' ? require('./plugin.js') : null);
   const TerrainApi = root.StageTerrain || (typeof require === 'function' ? require('./terrain.js') : null);
@@ -131,6 +132,7 @@
       if (item?.type === 'wave') {
         const payload = item.payload || {};
         useDependency('enemyKinds', payload.enemy?.kind, label);
+        for (const error of EnemyStateApi.validate(payload.enemy?.kind, payload.enemy?.params)) errors.push(`${label}: ${error}`);
         useDependency('entryPresets', payload.entry?.presetId, label);
         for (const error of EntryApi.validate(payload.entry)) errors.push(`${label}: ${error}`);
         useDependency('formationPresets', payload.formation?.presetId, label);
@@ -232,6 +234,7 @@
           hp: Math.round(payload.enemy.hp * hpScale),
           maxHp: Math.round(payload.enemy.hp * hpScale),
           speed: payload.enemy.speed,
+          params: EnemyStateApi.normalize(payload.enemy.kind, payload.enemy.params, index),
           x,
           y,
           directionX,

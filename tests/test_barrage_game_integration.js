@@ -16,7 +16,7 @@ const context = vm.createContext({
   SPRITES: {},
 });
 
-for (const file of ['js/config.js', 'js/stage/layerTransform.js', 'js/barragePatterns.generated.js', 'js/barrage.js', 'js/boss.js', 'js/entities.js']) {
+for (const file of ['js/config.js', 'js/stage/layerTransform.js', 'js/stage/enemyState.js', 'js/barragePatterns.generated.js', 'js/barrage.js', 'js/boss.js', 'js/entities.js']) {
   vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context, { filename: file });
 }
 

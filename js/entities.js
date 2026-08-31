@@ -309,6 +309,17 @@ class Pearl {
 
 // ---------- 적 ----------
 // spec: { kind, x, y, hp, M, S, spd, amp, freq, targetX, groupId, fire:{...} }
+const EnemyLifecycleApi = typeof StageEnemyState !== 'undefined' ? StageEnemyState : {
+  resolve(kind) {
+    const terrain = kind === 'wreck';
+    return {
+      phase: terrain ? 'terrain' : 'active', alpha: 1, glow: 1, outline: false,
+      targetable: !terrain, hittable: !terrain, collidable: true,
+      canFire: !terrain, tracking: !terrain,
+    };
+  },
+};
+
 class Enemy {
   constructor(spec) {
     Object.assign(this, spec);
@@ -324,6 +335,10 @@ class Enemy {
     this.maxHp = this.hp;
     this.flash = 0;
     this.barrageRunner = null;
+    this.params = spec.params && typeof spec.params === 'object' ? spec.params : {};
+    this.movementParams = spec.movementParams && typeof spec.movementParams === 'object' ? spec.movementParams : {};
+    this.lifecycle = EnemyLifecycleApi.resolve(this.kind, 0, this.params, this.movementParams);
+    this.solid = this.lifecycle.collidable;
     if (this.kind === 'wreck') {
       const seed = spec.variant ?? Math.floor((spec.y ?? 0) / 48) + (spec.side === 'top' ? 1 : 0);
       this.wreckVariant = ((seed % 4) + 4) % 4;
@@ -334,9 +349,8 @@ class Enemy {
     this.t += dt;
     if (this.flash > 0) this.flash -= dt;
     const M = this.M, spd = this.spd;
-
-    // 유령: 실체(1.6초) ↔ 반투명 무적(0.8초) 사이클
-    if (this.kind === 'ghost') this.solid = (this.t % 2.4) < 1.6;
+    this.lifecycle = EnemyLifecycleApi.resolve(this.kind, this.t, this.params, this.movementParams);
+    this.solid = this.lifecycle.collidable;
 
     // 난파선 지형: 스크롤보다 빠르게 흘러오는 장애물 (전경 패럴랙스)
     if (this.kind === 'wreck') {
@@ -359,14 +373,18 @@ class Enemy {
       this.y = this.y0 + Math.sin(this.t * 1.8) * 18;
     } else if (M === 5) {       // 완만 추적 (급선회 금지 — 몸으로 피해지는 수준)
       if (this.vx === undefined) { this.vx = -spd; this.vy = 0; }
-      if (this.t < 9) {         // 9초 후 추적 포기, 직진 이탈
+      const trackingDuration = this.movementParams.trackingDuration ?? 9;
+      const trackingActive = this.kind === 'viper'
+        ? this.lifecycle.tracking
+        : this.t < trackingDuration;
+      if (trackingActive) {     // 설정된 시간이 지나면 추적을 포기하고 직진 이탈
         const p = game.player;
         const want = Math.atan2(p.y - this.y, p.x - this.x);
         const cur = Math.atan2(this.vy, this.vx);
         let diff = want - cur;
         while (diff > Math.PI) diff -= Math.PI * 2;
         while (diff < -Math.PI) diff += Math.PI * 2;
-        const turn = 1.1 * dt;
+        const turn = (this.movementParams.turnRate ?? 1.1) * dt;
         const a = cur + Math.max(-turn, Math.min(turn, diff));
         this.vx = Math.cos(a) * spd; this.vy = Math.sin(a) * spd;
       }
@@ -405,8 +423,7 @@ class Enemy {
 
     // --- 사격 (S축 / 탄막 공방 패턴) ---
     const onScreen = this.x > 30 && this.x < CFG.W - 10;
-    const canFire = (this.M !== 3) || (this.state === 'pause');
-    const isSolid = this.kind !== 'ghost' || this.solid;
+    const canFire = this.lifecycle.canFire && ((this.M !== 3) || (this.state === 'pause'));
     if (this.barragePattern && typeof BarrageRuntime !== 'undefined') {
       if (!this.barrageRunner) {
         this.barrageRunner = new BarrageRuntime.Runner(this.barragePattern, {
@@ -414,7 +431,7 @@ class Enemy {
         });
       }
       const canContinueOffScreen = this.barrageStopWhenLeaving === false && this.barrageRunner.started;
-      if (canFire && isSolid && (onScreen || canContinueOffScreen)) {
+      if (canFire && (onScreen || canContinueOffScreen)) {
         let activeDt = dt;
         if (this.fireT > 0) {
           activeDt = Math.max(0, dt - this.fireT);
@@ -428,7 +445,7 @@ class Enemy {
           });
         }
       }
-    } else if (this.S !== 0 && onScreen && isSolid) {
+    } else if (this.S !== 0 && onScreen) {
       if (canFire) {
         this.fireT -= dt;
         if (this.fireT <= 0) {
@@ -443,6 +460,11 @@ class Enemy {
       this.escaped = true;
     }
   }
+
+  isTargetable() { return this.lifecycle?.targetable !== false; }
+  isHittable() { return this.lifecycle?.hittable !== false; }
+  isCollidable() { return this.lifecycle?.collidable !== false; }
+  glowStrength() { return Math.max(0, Math.min(1, this.lifecycle?.glow ?? 1)); }
 
   shoot(game) {
     const S = this.S;
@@ -478,9 +500,8 @@ class Enemy {
   }
 
   takeDamage(dmg, game) {
-    if (this.kind === 'wreck') return;
-    Sound.sfx('hit');                    // 지형은 불괴
-    if (this.kind === 'ghost' && !this.solid) return;     // 반투명 유령은 무적
+    if (!this.isHittable()) return;
+    Sound.sfx('hit');
     this.hp -= dmg;
     this.flash = 0.08;
     if (this.hp <= 0) {
@@ -492,7 +513,7 @@ class Enemy {
   draw(ctx) {
     // 스프라이트 우선, 없으면 임시 도형 (kind 이름이 곧 스프라이트 id)
     let alpha = this.flash > 0 ? 0.6 : 1;
-    if (this.kind === 'ghost') alpha *= this.solid ? 0.9 : 0.25;
+    alpha *= this.lifecycle?.alpha ?? 1;
     if (this.kind === 'wreck' && Sprites.has('enemy.wreck')) {
       const sprite = SPRITES['enemy.wreck'];
       const tileH = sprite.h * CFG.pxUnit;
@@ -518,14 +539,23 @@ class Enemy {
       ctx.fillStyle = g;
       ctx.beginPath(); ctx.arc(this.x, this.y - 4, 30, 0, 6.28); ctx.fill();
     }
+    if (this.lifecycle?.outline) {
+      const pulse = 13 + Math.sin(this.t * 28) * 2;
+      ctx.save();
+      ctx.strokeStyle = `rgba(216, 244, 236, ${0.75 * alpha})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(this.x, this.y, pulse, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    }
     if (Sprites.draw(ctx, `enemy.${this.kind}`, this.x, this.y, {
       t: this.t, alpha, flipX: this.dirX > 0,
     })) {
       // 독니고기: 형광 눈 — 어둠에서 눈만 보이는 정체성 유지
-      if (this.kind === 'viper') {
+      if (this.kind === 'viper' && this.glowStrength() > 0) {
         const ex = this.x + (this.dirX > 0 ? 7 : -7);
+        const glow = this.glowStrength();
         const g = ctx.createRadialGradient(ex, this.y - 2, 0, ex, this.y - 2, 7);
-        g.addColorStop(0, `rgba(174, 247, 238, ${0.9 * alpha})`);
+        g.addColorStop(0, `rgba(174, 247, 238, ${0.9 * alpha * glow})`);
         g.addColorStop(1, 'rgba(174, 247, 238, 0)');
         ctx.fillStyle = g;
         ctx.beginPath(); ctx.arc(ex, this.y - 2, 7, 0, 6.28); ctx.fill();
@@ -611,7 +641,7 @@ class Enemy {
       }
     } else if (this.kind === 'ghost') {
       // 유령 물고기: 창백한 반투명, 꼬리가 안개처럼 흩어짐
-      ctx.globalAlpha *= this.solid ? 0.9 : 0.25;
+      ctx.globalAlpha *= alpha;
       const bob = Math.sin(t * 3) * 2;
       ctx.fillStyle = '#d8f4ec';
       ctx.beginPath(); ctx.ellipse(0, bob, 10, 7, 0, 0, 6.28); ctx.fill();
@@ -669,10 +699,13 @@ class Enemy {
       for (let i = 0; i < 4; i++) ctx.lineTo(-12 + i * 2.6, i % 2 === 0 ? 3.5 : 1);
       ctx.stroke();
       // 형광 눈
-      ctx.fillStyle = '#7ef7e8';
-      ctx.beginPath(); ctx.arc(-7, -2.5, 2.1, 0, 6.28); ctx.fill();
-      ctx.fillStyle = 'rgba(126,247,232,0.35)';
-      ctx.beginPath(); ctx.arc(-7, -2.5, 4.5, 0, 6.28); ctx.fill();
+      if (this.glowStrength() > 0) {
+        ctx.globalAlpha *= this.glowStrength();
+        ctx.fillStyle = '#7ef7e8';
+        ctx.beginPath(); ctx.arc(-7, -2.5, 2.1, 0, 6.28); ctx.fill();
+        ctx.fillStyle = 'rgba(126,247,232,0.35)';
+        ctx.beginPath(); ctx.arc(-7, -2.5, 4.5, 0, 6.28); ctx.fill();
+      }
     } else if (this.kind === 'big') {
       // 대물: 크고 튼튼한 심통 그루퍼 — 미니보스급, 링 탄막 살포
       const hurt = this.hp / this.maxHp;

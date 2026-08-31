@@ -221,9 +221,11 @@
       }
       const spec = {
         kind: enemy.kind, hp: enemy.hp, spd: enemy.speed,
+        params: enemy.params ? JSON.parse(JSON.stringify(enemy.params)) : {},
         x: spawnX, y: spawnY, dirX: directionX, dirY: directionY,
         phase: enemy.phase, M: movementCode(movement), S: weaponCode(weapon),
         amp: movement.params?.amplitude || 0, freq: movement.params?.frequency || 3,
+        movementParams: movement.params ? JSON.parse(JSON.stringify(movement.params)) : {},
         targetX: enemy.targetXOffset !== undefined
           ? (movement.params?.targetX ?? 0.68) * this.compiled.viewport.width + enemy.targetXOffset
           : (movement.params?.targetX ?? 0.68) * this.compiled.viewport.width,

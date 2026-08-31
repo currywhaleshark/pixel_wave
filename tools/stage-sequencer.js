@@ -776,6 +776,35 @@
     return `${prefix}_${presetId}_${field.key}`;
   }
 
+  function enemyFieldName(kind, field) {
+    return `enemy_${kind}_${field.key}`;
+  }
+
+  function renderEnemyParamSections(enemy) {
+    return StageRegistry.entries('enemyKinds').map(definition => {
+      const active = definition.id === enemy.kind;
+      const fields = (definition.fields || []).map(field => {
+        const value = enemy.params?.[field.key] ?? field.default;
+        return `<label>${escapeHtml(field.label)}<input name="${escapeHtml(enemyFieldName(definition.id, field))}" type="number" min="${field.min}" max="${field.max}" step="${field.step}" value="${escapeHtml(value)}" ${active ? '' : 'disabled'}></label>`;
+      }).join('');
+      return `<section class="behavior-editor" data-enemy-param-section data-enemy-kind="${escapeHtml(definition.id)}" ${active ? '' : 'hidden'}>
+        ${fields ? `<div class="form-row two">${fields}</div>` : '<span class="behavior-empty">이 적은 추가 등장 파라미터가 없습니다.</span>'}
+      </section>`;
+    }).join('');
+  }
+
+  function readEnemyParams(values, kind, previous) {
+    const output = previous && typeof previous === 'object' ? StageDocument.clone(previous) : {};
+    const definition = StageRegistry.get('enemyKinds', kind);
+    for (const field of definition?.fields || []) {
+      const name = enemyFieldName(kind, field);
+      if (!values.has(name)) continue;
+      const raw = Number(values.get(name));
+      output[field.key] = Math.max(field.min, Math.min(field.max, Number.isFinite(raw) ? raw : field.default));
+    }
+    return output;
+  }
+
   function renderBehaviorSections(category, currentPreset, prefix, entryDefinition = null, entry = null) {
     const currentId = currentPreset?.presetId;
     const targetAxis = entryDefinition?.coordinate === 'x' ? 'y' : 'x';
@@ -918,7 +947,12 @@
       let interval = Math.max(0, Number(values.get('interval')) || 0);
       const formationId = String(values.get('formation'));
       if (formationId === 'v' || formationId === 'wall-gap' || formationId === 'surround-ring') interval = 0;
-      next.payload.enemy.kind = String(values.get('enemyKind'));
+      const previousEnemyKind = next.payload.enemy.kind;
+      const enemyKind = String(values.get('enemyKind'));
+      const previousEnemyParams = previousEnemyKind === enemyKind ? next.payload.enemy.params : {};
+      next.payload.enemy.kind = enemyKind;
+      next.payload.enemy.params = readEnemyParams(values, enemyKind, previousEnemyParams);
+      if (!Object.keys(next.payload.enemy.params).length) delete next.payload.enemy.params;
       next.payload.enemy.hp = Math.max(0.1, Number(values.get('hp')) || 1);
       next.payload.enemy.speed = Math.max(0, Number(values.get('speed')) || 0);
       if (formationId === 'wall-gap') delete next.payload.spawn.count;
@@ -1165,6 +1199,11 @@
       if (form.elements.hp) form.elements.hp.value = enemyDefinition.defaults.hp;
       if (form.elements.speed) form.elements.speed.value = enemyDefinition.defaults.speed;
     }
+    form?.querySelectorAll('[data-enemy-param-section]').forEach(section => {
+      const active = section.dataset.enemyKind === enemySelect?.value;
+      section.hidden = !active;
+      section.querySelectorAll('input').forEach(input => { input.disabled = !active; });
+    });
 
     const entrySelect = form?.elements?.entryPreset;
     const entryDefinition = entrySelect ? StageRegistry.get('entryPresets', entrySelect.value) : null;
@@ -1925,6 +1964,7 @@
               <label>속도<input name="speed" type="number" min="0" max="2000" step="1" value="${formItem.payload.enemy.speed}"></label>
             </div>
             <p class="library-hint" data-enemy-hint>${escapeHtml(StageRegistry.get('enemyKinds', formItem.payload.enemy.kind)?.description || '')}</p>
+            ${renderEnemyParamSections(formItem.payload.enemy)}
             <p class="library-hint">미리보기에서 이 적을 직접 끌면 진행축은 등장 시각, 교차축은 진입 위치로 함께 조정됩니다. 여러 선택 모드에서는 개별 드래그가 잠깁니다.</p>
             <div class="form-row three">
               <label>${formFormation.presetId === 'wall-gap' ? '해석 수' : '마릿수'}<input name="count" type="number" min="1" max="256" step="1" value="${formFormation.presetId === 'wall-gap' ? formationCount : (formItem.payload.spawn.count ?? 1)}" ${formFormation.presetId === 'wall-gap' ? 'disabled' : ''}></label>
@@ -2147,6 +2187,7 @@
 
   function drawFallbackEnemy(enemy) {
     ctx.save();
+    ctx.globalAlpha = enemy.lifecycle?.alpha ?? 1;
     ctx.translate(enemy.x, enemy.y);
     ctx.fillStyle = enemy.kind === 'big' ? '#d98a6a' : enemy.kind === 'ray' ? '#7189d8' : '#ffab5e';
     if (enemy.kind === 'ray') {
@@ -3036,9 +3077,10 @@
       const selected = enemy.itemId === selectedId;
       if (!Sprites.draw(ctx, `enemy.${enemy.kind}`, enemy.x, enemy.y, {
         t: enemy.age,
+        alpha: enemy.lifecycle?.alpha ?? 1,
         flipX: enemy.directionX > 0,
-        outline: selected ? '#ffffff' : undefined,
-        outlineAlpha: selected ? 0.9 : undefined,
+        outline: selected ? '#ffffff' : (enemy.lifecycle?.outline ? '#d8f4ec' : undefined),
+        outlineAlpha: selected ? 0.9 : (enemy.lifecycle?.outline ? 0.75 : undefined),
       })) drawFallbackEnemy(enemy);
     }
     drawSpritePlacementGhost();

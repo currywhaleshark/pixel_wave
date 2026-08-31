@@ -640,11 +640,12 @@ Stage Sequencer tool milestones M1–M7.
 
 ### G2 — Shared enemy and ride grammar
 
-- Carry `enemy.params` end-to-end.
-- Add viper reveal, ghost materialization, rear-entry warning, and U-turn cue.
-- Parameterize tracking.
-- Optionize turtle rides.
-- Add common wreck spawning and rendering-width correctness.
+- [x] Carry `enemy.params` end-to-end.
+- [x] Add viper reveal and ghost materialization.
+- [ ] Add rear-entry warning and U-turn cue.
+- [x] Parameterize tracking.
+- [ ] Optionize turtle rides.
+- [ ] Add common wreck spawning and rendering-width correctness.
 
 ### G3 — Stages 1 and 2
 
@@ -783,3 +784,29 @@ Deferred intentionally:
 - position-aware linear, radial, and tangential fields remain part of the Boss
   6 and Boss 7 work;
 - the production default remains the legacy runtime until G7 integration QA.
+
+### 2026-08-31 — G2 enemy lifecycle foundation
+
+Implemented decisions:
+
+- `enemy.params` is validated, normalized, compiled, simulated, and forwarded
+  to the live `Enemy` without discarding extension keys.
+- Vipers now use the shared `unlit → glint → hunt → leave` lifecycle. Unlit
+  and glint phases are excluded from collision, damage, homing, dolphin
+  targeting, firing, tracking, and darkness-mask eye light.
+- Ghosts now use `warning → outline → solid` timing instead of spawning solid.
+  Only the solid phase can collide, take damage, be targeted, or fire.
+- Ghost `phaseOffset` and per-spawn `phaseStep` provide deterministic grouped
+  or staggered materialization.
+- Tracking duration and turn rate are authored movement parameters shared by
+  the preview and live game.
+- The Stage Sequencer exposes enemy-specific lifecycle timing fields and shows
+  the same alpha/outline phase as the runtime.
+- The registry label for `viper` is corrected from the boss name `부우` to
+  `독니고기`.
+
+Still required to complete G2:
+
+- rear-entry and U-turn presentation cues;
+- boss-safe turtle-ride options;
+- common wreck spawn payloads and exact authored width rendering.

@@ -21,8 +21,23 @@
       Object.freeze({ id: 'ray', name: '가오리', description: '멈춰 사격하는 중형 적', defaults: Object.freeze({ hp: 4, speed: 150 }) }),
       Object.freeze({ id: 'turret', name: '산호 포대', description: '지형 가까이에 배치하는 고정 포대', defaults: Object.freeze({ hp: 7, speed: 0 }) }),
       Object.freeze({ id: 'lantern', name: '등불해파리', description: '어둠을 밝히는 이동 광원', defaults: Object.freeze({ hp: 5, speed: 55 }) }),
-      Object.freeze({ id: 'viper', name: '부우', description: '길게 휘며 돌진하는 곰치', defaults: Object.freeze({ hp: 3, speed: 120 }) }),
-      Object.freeze({ id: 'ghost', name: '유령 물고기', description: '나타났다 사라지는 난파선 적', defaults: Object.freeze({ hp: 2, speed: 115 }) }),
+      Object.freeze({
+        id: 'viper', name: '독니고기', description: '어둠 속에서 안광을 켠 뒤 추적하는 심해어', defaults: Object.freeze({ hp: 3, speed: 120 }),
+        fields: Object.freeze([
+          Object.freeze({ key: 'revealDelay', label: '잠복 시간', min: 0, max: 30, step: 0.05, default: 0.8 }),
+          Object.freeze({ key: 'glintDuration', label: '안광 예고', min: 0.05, max: 10, step: 0.05, default: 0.55 }),
+        ]),
+      }),
+      Object.freeze({
+        id: 'ghost', name: '유령 물고기', description: '반투명 예고 뒤 실체화하는 난파선 적', defaults: Object.freeze({ hp: 2, speed: 115 }),
+        fields: Object.freeze([
+          Object.freeze({ key: 'warningDuration', label: '반투명 예고', min: 0, max: 30, step: 0.05, default: 0.8 }),
+          Object.freeze({ key: 'outlineDuration', label: '윤곽 점멸', min: 0, max: 10, step: 0.05, default: 0.2 }),
+          Object.freeze({ key: 'solidDuration', label: '실체 유지', min: 0.05, max: 30, step: 0.05, default: 1.6 }),
+          Object.freeze({ key: 'phaseOffset', label: '시작 위상', min: 0, max: 120, step: 0.05, default: 0 }),
+          Object.freeze({ key: 'phaseStep', label: '개체별 시차', min: 0, max: 120, step: 0.05, default: 0 }),
+        ]),
+      }),
       Object.freeze({ id: 'big', name: '대물', description: '높은 체력과 탄막을 가진 대형 적', defaults: Object.freeze({ hp: 48, speed: 105 }) }),
     ]),
     entryPresets: Object.freeze([
@@ -67,7 +82,13 @@
         ]),
       }),
       Object.freeze({ id: 'custom-path', name: '직접 경로', description: '미리보기 위의 번호 점을 직접 움직여 경로를 작성', fields: Object.freeze([]) }),
-      Object.freeze({ id: 'tracking', name: '완만 추적', description: '플레이어 쪽으로 천천히 방향을 틀다가 직진 이탈', fields: Object.freeze([]) }),
+      Object.freeze({
+        id: 'tracking', name: '완만 추적', description: '플레이어 쪽으로 천천히 방향을 틀다가 직진 이탈',
+        fields: Object.freeze([
+          Object.freeze({ key: 'trackingDuration', target: 'params', label: '추적 시간', min: 0, max: 60, step: 0.1, default: 9 }),
+          Object.freeze({ key: 'turnRate', target: 'params', label: '회전 속도', min: 0, max: 10, step: 0.05, default: 1.1 }),
+        ]),
+      }),
       Object.freeze({ id: 'turret-scroll', name: '지형 포대 이동', description: '배경 스크롤 속도로 바닥과 함께 이동', fields: Object.freeze([]) }),
       Object.freeze({
         id: 'current-surf', name: '해류 편승', description: '폭풍 해류를 타며 물결치듯 이동',

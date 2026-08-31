@@ -116,8 +116,7 @@ class Dolphin {
     this.beamTick = S.tick;
     const y = this.y, half = S.h + 4;
     for (const e of game.enemies) {
-      if (e.kind === 'wreck') continue;
-      if (e.kind === 'ghost' && !e.solid) continue;
+      if (typeof e.isHittable === 'function' && !e.isHittable()) continue;
       const er = (typeof KIND_R !== 'undefined' ? (KIND_R[e.kind] ?? 10) : 10);
       if (e.x >= this.x - 10 && Math.abs(e.y - y) < half + er) e.takeDamage(S.dmg, game);
     }

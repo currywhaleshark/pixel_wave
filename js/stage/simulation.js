@@ -8,6 +8,7 @@
   const RandomApi = root.StageRandom || (typeof require === 'function' ? require('./random.js') : null);
   const PathApi = root.StagePath || (typeof require === 'function' ? require('./path.js') : null);
   const BehaviorApi = root.StageBehavior || (typeof require === 'function' ? require('./behavior.js') : null);
+  const EnemyStateApi = root.StageEnemyState || (typeof require === 'function' ? require('./enemyState.js') : null);
   const BarrageApi = root.StageBarrage || (typeof require === 'function' ? require('./barrage.js') : null);
   const BudgetApi = root.StageBudget || (typeof require === 'function' ? require('./budget.js') : null);
   const PluginApi = root.StagePlugin || (typeof require === 'function' ? require('./plugin.js') : null);
@@ -84,6 +85,8 @@
         source.id = event.id;
         source.itemId = event.itemId;
         source.age = 0;
+        source.lifecycle = EnemyStateApi.resolve(source.kind, 0, source.params, source.movement?.params);
+        source.solid = source.lifecycle.collidable;
         source.y0 = source.y;
         source.x0 = source.x;
         source.state = 'enter';
@@ -282,6 +285,8 @@
       enemy.age += dt;
       const movement = enemy.movement?.presetId || 'straight';
       const params = enemy.movement?.params || {};
+      enemy.lifecycle = EnemyStateApi.resolve(enemy.kind, enemy.age, enemy.params, params);
+      enemy.solid = enemy.lifecycle.collidable;
       const directionX = Number(enemy.directionX) || 0;
       const directionY = Number(enemy.directionY) || 0;
       const directionLength = Math.hypot(directionX, directionY) || 1;
@@ -330,13 +335,18 @@
         }
       } else if (movement === 'tracking') {
         if (enemy.vx === null) { enemy.vx = -enemy.speed; enemy.vy = 0; }
-        if (enemy.age < 9) {
+        const trackingDuration = params.trackingDuration ?? 9;
+        const trackingActive = enemy.kind === 'viper'
+          ? enemy.lifecycle.tracking
+          : enemy.age < trackingDuration;
+        if (trackingActive) {
           const wanted = Math.atan2(this.player.y - enemy.y, this.player.x - enemy.x);
           const current = Math.atan2(enemy.vy, enemy.vx);
           let difference = wanted - current;
           while (difference > Math.PI) difference -= Math.PI * 2;
           while (difference < -Math.PI) difference += Math.PI * 2;
-          const angle = current + Math.max(-1.1 * dt, Math.min(1.1 * dt, difference));
+          const turn = (params.turnRate ?? 1.1) * dt;
+          const angle = current + Math.max(-turn, Math.min(turn, difference));
           enemy.vx = Math.cos(angle) * enemy.speed;
           enemy.vy = Math.sin(angle) * enemy.speed;
         }
@@ -370,7 +380,7 @@
 
       if (enemy.pathComplete) return;
       const onScreen = enemy.x > 30 && enemy.x < this.compiled.viewport.width - 10;
-      const canFire = movement !== 'enter-pause-exit' || enemy.state === 'pause';
+      const canFire = enemy.lifecycle.canFire && (movement !== 'enter-pause-exit' || enemy.state === 'pause');
       if (enemy.weapon?.patternId) {
         const runner = this.barrageRunners.get(enemy.id);
         const canContinueOffScreen = enemy.weapon.stopWhenLeaving === false && runner?.started;
@@ -658,7 +668,10 @@
         scroll: round(this.scroll),
         pendingDuration: round(this.pendingDuration),
         eventCursor: this.eventCursor,
-        enemies: this.enemies.map(enemy => [enemy.id, round(enemy.x), round(enemy.y), round(enemy.age), enemy.state, round(enemy.fireRemaining)]),
+        enemies: this.enemies.map(enemy => [
+          enemy.id, round(enemy.x), round(enemy.y), round(enemy.age), enemy.state,
+          enemy.lifecycle?.phase || 'active', round(enemy.fireRemaining),
+        ]),
         bullets: this.bullets.map(bullet => [round(bullet.x), round(bullet.y), round(bullet.vx), round(bullet.vy), bullet.kind]),
         pearls: this.pearls.map(pearl => [round(pearl.x), round(pearl.y), round(pearl.age)]),
         activeItems: [...this.activeItems.keys()].sort(),

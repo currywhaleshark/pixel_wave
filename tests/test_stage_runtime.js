@@ -120,6 +120,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
     'js/stage/path.js',
     'js/stage/formation.js',
     'js/stage/plugin.js',
+    'js/stage/enemyState.js',
     'js/stage/registry.js',
     'js/stage/behavior.js',
     'js/stage/barrage.js',
@@ -133,6 +134,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   for (const script of required) assert.ok(html.includes(script), `${script}가 도구 페이지에 연결되어야 한다`);
   assert.ok(html.indexOf('js/stage/path.js') < html.indexOf('js/stage/compiler.js'));
   assert.ok(html.indexOf('js/stage/plugin.js') < html.indexOf('js/stage/registry.js'));
+  assert.ok(html.indexOf('js/stage/enemyState.js') < html.indexOf('js/stage/compiler.js'));
   assert.ok(html.indexOf('js/stage/entry.js') < html.indexOf('js/stage/compiler.js'));
   assert.ok(html.indexOf('js/stage/formation.js') < html.indexOf('js/stage/compiler.js'));
   assert.ok(html.indexOf('js/stage/behavior.js') < html.indexOf('js/stage/compiler.js'));
@@ -156,7 +158,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(html.includes('id="schemaNotice"'));
   assert.ok(html.includes('tools/stage-sequencer.css?v=2'));
   assert.ok(html.includes('js/stage/document.js?v=4'));
-  assert.ok(html.includes('tools/stage-sequencer.js?v=20'));
+  assert.ok(html.includes('tools/stage-sequencer.js?v=21'));
   assert.ok(html.includes('js/stage/previewPlacement.js?v=1'));
   const sequencer = fs.readFileSync(path.join(root, 'tools/stage-sequencer.js'), 'utf8');
   assert.ok(sequencer.includes('function updateGameTestLink()'));
@@ -185,6 +187,8 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(sequencer.includes('혼합값은 그대로 유지됩니다'));
   assert.ok(sequencer.includes("'v-spread': 'V 편대 간격 조정'"));
   assert.ok(sequencer.includes("definitionOptionList('enemyKinds'"));
+  assert.ok(sequencer.includes('data-enemy-param-section'));
+  assert.ok(sequencer.includes('function readEnemyParams('));
   assert.ok(sequencer.includes("definitionOptionList('movementPresets'"));
   assert.ok(sequencer.includes("definitionOptionList('weaponPresets'"));
   assert.ok(sequencer.includes('data-behavior-section'));
@@ -216,9 +220,10 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(serviceWorker.includes('../js/stage/barrage.js'));
   assert.ok(serviceWorker.includes('../js/stage/budget.js'));
   assert.ok(serviceWorker.includes('../js/stage/plugin.js'));
+  assert.ok(serviceWorker.includes('../js/stage/enemyState.js'));
   assert.ok(serviceWorker.includes('../js/stage/layerTransform.js'));
   assert.ok(serviceWorker.includes('../js/stage/terrain.js'));
-  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m7-v7'));
+  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m7-v8'));
   assert.ok(serviceWorker.includes('../js/stage/previewPlacement.js'));
   assert.ok(serviceWorker.includes('stage5.v1.draft.json'));
   assert.ok(serviceWorker.includes('assets/backgrounds/stage6-near-strip.png'));

@@ -18,6 +18,8 @@ const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/sta
   assert.equal(StageRegistry.get('weaponPresets', 'legacy-death-shot').fields.length, 0);
   assert.equal(StageRegistry.get('movementPresets', 'current-surf').name, '해류 편승');
   assert.equal(StageRegistry.get('weaponPresets', 'legacy-mine').name, '등불 기뢰');
+  assert.equal(StageRegistry.get('enemyKinds', 'viper').name, '독니고기');
+  assert.equal(StageRegistry.get('movementPresets', 'tracking').fields.length, 2);
 }
 
 {
@@ -41,6 +43,8 @@ const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/sta
   assert.deepEqual(StageBehavior.validateWeapon({ presetId: 'legacy-ring', params: { count: 4.5 } }), [
     "무기 '원형탄'의 기본 탄 수 값이 올바르지 않습니다.",
   ]);
+  assert.equal(StageBehavior.effectiveMovement({ presetId: 'tracking' }).params.trackingDuration, 9);
+  assert.equal(StageBehavior.effectiveMovement({ presetId: 'tracking' }).params.turnRate, 1.1);
 }
 
 {

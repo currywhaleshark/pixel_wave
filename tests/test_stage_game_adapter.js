@@ -22,10 +22,11 @@ const legacy = timelines[2];
 
 const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 assert.ok(indexHtml.includes('js/stages.generated.js?v=2'));
-assert.ok(indexHtml.includes('js/entities.js?v=7'));
+assert.ok(indexHtml.includes('js/stage/enemyState.js?v=1'));
+assert.ok(indexHtml.includes('js/entities.js?v=8'));
 assert.ok(indexHtml.includes('js/stage/layerTransform.js?v=2'));
 assert.ok(indexHtml.includes('js/stage/plugin.js?v=4'));
-assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=5'));
+assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=6'));
 assert.ok(indexHtml.indexOf('js/stage/compiler.js') < indexHtml.indexOf('js/stage/gameAdapter.js'));
 const mainSource = fs.readFileSync(path.join(root, 'js/main.js'), 'utf8');
 assert.ok(mainSource.includes("stageTestParams.get('stageRuntime') === 'data'"));
@@ -80,6 +81,8 @@ assert.equal(fakeGame.paused, true);
 const editedStage = JSON.parse(JSON.stringify(global.STAGE_DATA_REGISTRY.stage3));
 const editedWave = editedStage.items.find(item => item.id === 's3-w001');
 editedWave.timing.start = 9.25;
+editedWave.payload.enemy.params = { extensionValue: 7 };
+editedWave.payload.movement.params.turnRate = 0.65;
 editedWave.payload.weapon = {
   patternId: 'pangpang-needle-fan',
   startDelay: 0.25,
@@ -115,6 +118,8 @@ assert.equal(testGame.enemies[0].barragePatternId, 'pangpang-needle-fan');
 assert.equal(testGame.enemies[0].barragePattern.id, 'pangpang-needle-fan');
 assert.equal(testGame.enemies[0].fireDelay, 0.25);
 assert.equal(testGame.enemies[0].barrageStopWhenLeaving, false);
+assert.equal(testGame.enemies[0].params.extensionValue, 7, 'enemy.params를 실제 Enemy까지 전달한다');
+assert.equal(testGame.enemies[0].movementParams.turnRate, 0.65, '이동 파라미터를 실제 Enemy까지 전달한다');
 assert.equal(testGame.finished, 'range');
 delete global.sessionStorage;
 
