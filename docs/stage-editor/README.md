@@ -104,9 +104,11 @@ remain intentionally outside this slice.
 
 1. `STAGE_SEQUENCER_ROADMAP_V1.md` — product boundary, mobile interaction,
    architecture, milestones, and acceptance criteria
-2. `stage.schema.v1.json` — authored Stage JSON shape
-3. `PRESET_REGISTRY_V1.md` — shared runtime and editor registry contract
-4. `TERRAIN_PROFILE_V1.md` — foreground geometry, sockets, review, and transform
+2. `STAGE_GAMEPLAY_REWORK_PLAN_V1.md` — canonical Stage 1–7 gameplay,
+   difficulty, boss-extension, runtime-prerequisite, and verification plan
+3. `stage.schema.v1.json` — authored Stage JSON shape
+4. `PRESET_REGISTRY_V1.md` — shared runtime and editor registry contract
+5. `TERRAIN_PROFILE_V1.md` — foreground geometry, sockets, review, and transform
 
 ## Schemas
 
