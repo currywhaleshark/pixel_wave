@@ -24,6 +24,32 @@ const viewport = { width: 960, height: 540 };
   assert.equal(StageEntry.resolve({ presetId: 'diagonal', x: 0.8, params: { vertical: 'up' } }, viewport).directionY, -0.83);
   assert.ok(StageEntry.validate({ presetId: 'diagonal', params: { vertical: 'sideways' } })
     .some(error => error.includes('대각')));
+  assert.deepEqual(StageEntry.rearWarning({ presetId: 'left-to-right', y: 0.5 }), { enabled: true, lead: 0.9 });
+  assert.deepEqual(StageEntry.rearWarning({
+    presetId: 'left-to-right', y: 0.5, params: { warningEnabled: false, warningLead: 1.4 },
+  }), { enabled: false, lead: 1.4 });
+  assert.equal(StageEntry.rearWarning({ presetId: 'right-to-left' }), null);
+  assert.ok(StageEntry.validate({ presetId: 'left-to-right', params: { warningLead: 0.1 } })
+    .some(error => error.includes('0.2~5초')));
+}
+
+{
+  const compiled = StageCompiler.compile(source, { difficulty: 'easy' });
+  const warning = compiled.events.find(event => event.id === 's3-w004-rear-warning');
+  assert.ok(warning, '후방 진입 웨이브는 한 번의 경고 이벤트를 만든다');
+  assert.equal(warning.at, 10.6);
+  assert.equal(warning.warning.y, 270);
+  assert.equal(warning.warning.spawnAt, 11.5);
+  assert.equal(warning.warning.count, 6);
+
+  const simulation = new Simulation(compiled);
+  simulation.seek(11);
+  assert.equal(simulation.entryWarnings.length, 1, '진입 전에는 높이 경고가 보여야 한다');
+  const snapshot = simulation.createSnapshot();
+  simulation.seek(11.5);
+  assert.equal(simulation.entryWarnings.length, 0, '적이 나타나는 순간 경고를 치운다');
+  simulation.restore(snapshot);
+  assert.equal(simulation.entryWarnings[0].itemId, 's3-w004', '경고도 snapshot에서 복원되어야 한다');
 }
 
 {

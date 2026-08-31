@@ -12,6 +12,7 @@
     'bottom-to-top',
     'diagonal',
   ]);
+  const REAR_WARNING_DEFAULTS = Object.freeze({ enabled: true, lead: 0.9 });
 
   function clone(value) {
     return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
@@ -57,7 +58,27 @@
     if (entry.presetId === 'diagonal' && entry.params?.vertical !== undefined && !['down', 'up'].includes(entry.params.vertical)) {
       errors.push('대각 진입 방향이 올바르지 않습니다.');
     }
+    if (entry.presetId === 'left-to-right') {
+      if (entry.params?.warningEnabled !== undefined && typeof entry.params.warningEnabled !== 'boolean') {
+        errors.push('후방 진입 경고 표시 여부가 올바르지 않습니다.');
+      }
+      if (entry.params?.warningLead !== undefined) {
+        const lead = Number(entry.params.warningLead);
+        if (!Number.isFinite(lead) || lead < 0.2 || lead > 5) {
+          errors.push('후방 진입 경고 시간은 0.2~5초여야 합니다.');
+        }
+      }
+    }
     return errors;
+  }
+
+  function rearWarning(entry) {
+    const normalized = normalize(entry);
+    if (normalized.presetId !== 'left-to-right') return null;
+    return {
+      enabled: normalized.params?.warningEnabled !== false,
+      lead: clamp(normalized.params?.warningLead ?? REAR_WARNING_DEFAULTS.lead, 0.2, 5),
+    };
   }
 
   function resolve(entry, viewport, margin = 30) {
@@ -89,7 +110,7 @@
     return { entry: normalized, x: width + margin, y, directionX: -1, directionY: 0, coordinate: 'y' };
   }
 
-  const api = Object.freeze({ PRESETS, normalize, validate, resolve });
+  const api = Object.freeze({ PRESETS, REAR_WARNING_DEFAULTS, normalize, validate, rearWarning, resolve });
   root.StageEntry = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -257,7 +257,11 @@
     }
 
     _apply(event) {
-      if (event.type === 'spawn-enemy') this._spawn(event);
+      if (event.type === 'entry-warning') {
+        if (typeof this.game.addStageEntryWarning === 'function') this.game.addStageEntryWarning(event.warning);
+        else (this.game.entryWarnings ||= []).push(JSON.parse(JSON.stringify(event.warning)));
+      }
+      else if (event.type === 'spawn-enemy') this._spawn(event);
       else if (event.type === 'cue' && event.payload?.pluginId === 'boss-warning') this.game.startBossWarning();
       else if (event.type === 'boss') {
         this.runtimeEnabled = false;
@@ -284,6 +288,11 @@
       const at = Math.max(0, Number(start) || 0);
       this.idx = this.events.findIndex(event => event.at >= at);
       if (this.idx < 0) this.idx = this.events.length;
+      if (typeof this.game.clearStageEntryWarnings === 'function') this.game.clearStageEntryWarnings();
+      else this.game.entryWarnings = [];
+      for (const event of this.events) {
+        if (event.type === 'entry-warning' && event.at < at && event.warning?.spawnAt > at) this._apply(event);
+      }
       this.runtimeEnabled = true;
       this._seekRuntime(at);
       const ride = this.compiled.items.find(item => item.payload?.pluginId === 'turtle-ride'

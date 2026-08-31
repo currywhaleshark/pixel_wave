@@ -642,7 +642,7 @@ Stage Sequencer tool milestones M1–M7.
 
 - [x] Carry `enemy.params` end-to-end.
 - [x] Add viper reveal and ghost materialization.
-- [ ] Add rear-entry warning.
+- [x] Add rear-entry warning.
 - [x] Add authored U-turn position and braking cue.
 - [x] Parameterize tracking.
 - [ ] Optionize turtle rides.
@@ -808,7 +808,6 @@ Implemented decisions:
 
 Still required to complete G2:
 
-- rear-entry warning;
 - boss-safe turtle-ride options;
 - common wreck spawn payloads and exact authored width rendering.
 
@@ -828,3 +827,21 @@ Implemented decisions:
 - The Stage Sequencer exposes a numeric `회전 X 위치` control and a draggable
   `U` handle on the preview. Base and per-difficulty edit scopes use the same
   existing commit path.
+
+### 2026-09-01 — G2 rear-entry warning
+
+Implemented decisions:
+
+- Every `left-to-right` wave receives one lane-specific warning before its
+  first enemy appears. The default lead is 0.9 seconds.
+- The warning is a native-resolution edge arrow with three countdown cells and
+  an optional formation count. It communicates direction, height, and timing
+  without covering the play field with text.
+- `entry.params.warningEnabled` and `entry.params.warningLead` are authored in
+  the Stage Sequencer. Missing values preserve the safe default, while a wave
+  can explicitly disable the warning when a different telegraph owns the cue.
+- The compiler emits a deterministic `entry-warning` event. Preview snapshots
+  and live selected-range tests restore a warning already in progress, so
+  seeking into its lead window matches continuous play.
+- The warning disappears at the exact first-spawn time and remains independent
+  of formation interval or enemy count.

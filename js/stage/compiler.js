@@ -296,11 +296,31 @@
         makeEnemy(index, item.timing.start + index * interval, baseX, baseY);
       }
     }
+    const rearWarning = EntryApi.rearWarning(entry);
+    if (rearWarning?.enabled) {
+      const at = Math.max(0, item.timing.start - rearWarning.lead);
+      if (item.timing.start - at > 0.05) {
+        events.push({
+          id: `${item.id}-rear-warning`,
+          itemId: item.id,
+          type: 'entry-warning',
+          at,
+          warning: {
+            side: 'left',
+            y: baseY,
+            spawnAt: item.timing.start,
+            duration: item.timing.start - at,
+            count,
+            enemyKind: payload.enemy.kind,
+          },
+        });
+      }
+    }
     return { item, events, resolvedCount: count };
   }
 
   function eventPriority(event) {
-    return { 'item-start': 0, 'spawn-enemy': 1, cue: 2, boss: 3, 'item-end': 4 }[event.type] ?? 9;
+    return { 'item-start': 0, 'entry-warning': 1, 'spawn-enemy': 2, cue: 3, boss: 4, 'item-end': 5 }[event.type] ?? 9;
   }
 
   function projectTerrainTime(item, stage) {

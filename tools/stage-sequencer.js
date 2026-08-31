@@ -962,16 +962,25 @@
       const existingEntryParams = next.payload.entry?.presetId === entryId
         ? StageDocument.clone(next.payload.entry.params || {})
         : {};
+      delete existingEntryParams.warningEnabled;
+      delete existingEntryParams.warningLead;
       const entryDefinition = StageRegistry.get('entryPresets', entryId);
       const entryCoordinate = Math.max(0, Math.min(1, Number(values.get('entryCoordinate')) || 0));
+      const entryParams = entryId === 'diagonal'
+        ? { ...existingEntryParams, vertical: String(values.get('entryVertical') || 'down') }
+        : entryId === 'left-to-right'
+          ? {
+            ...existingEntryParams,
+            warningEnabled: values.has('rearWarningEnabled'),
+            warningLead: Math.max(0.2, Math.min(5, Number(values.get('rearWarningLead')) || 0.9)),
+          }
+          : existingEntryParams;
       next.payload.entry = StageEntry.normalize({
         ...next.payload.entry,
         presetId: entryId,
         x: entryDefinition?.coordinate === 'x' ? entryCoordinate : (next.payload.entry.x ?? 0.5),
         y: entryDefinition?.coordinate === 'y' ? entryCoordinate : (next.payload.entry.y ?? 0.5),
-        params: entryId === 'diagonal'
-          ? { ...existingEntryParams, vertical: String(values.get('entryVertical') || 'down') }
-          : existingEntryParams,
+        params: entryParams,
       });
       const existingFormationParams = next.payload.formation?.presetId === formationId
         ? StageDocument.clone(next.payload.formation.params || {})
@@ -1213,6 +1222,12 @@
     if (coordinateLabel) coordinateLabel.textContent = entryDefinition?.coordinate === 'x' ? '진입 X 위치' : '진입 높이';
     const diagonalControl = form?.querySelector('[data-entry-diagonal]');
     if (diagonalControl) diagonalControl.hidden = entrySelect?.value !== 'diagonal';
+    const rearWarningControl = form?.querySelector('[data-entry-rear-warning]');
+    if (rearWarningControl) {
+      const active = entrySelect?.value === 'left-to-right';
+      rearWarningControl.hidden = !active;
+      rearWarningControl.querySelectorAll('input').forEach(input => { input.disabled = !active; });
+    }
 
     const targetAxis = entryDefinition?.coordinate === 'x' ? 'y' : 'x';
     const behaviorContext = {
@@ -1906,6 +1921,7 @@
       ? StageFormation.normalize(formItem.payload.formation, formItem.payload.spawn?.count)
       : null;
     const formEntry = formItem.type === 'wave' ? StageEntry.normalize(formItem.payload.entry) : null;
+    const formRearWarning = formEntry ? StageEntry.rearWarning(formEntry) : null;
     const formEntryDefinition = formEntry ? StageRegistry.get('entryPresets', formEntry.presetId) : null;
     const formEntryCoordinate = formEntryDefinition?.coordinate === 'x' ? formEntry.x : formEntry?.y;
     const formWeaponMode = formItem.type === 'wave' && formItem.payload.weapon?.patternId ? 'pattern' : 'preset';
@@ -1976,6 +1992,14 @@
               <label>편대<select name="formation">${definitionOptionList('formationPresets', formItem.payload.formation.presetId)}</select></label>
             </div>
             <label data-entry-diagonal ${formEntry.presetId === 'diagonal' ? '' : 'hidden'}>대각 진행<select name="entryVertical"><option value="down" ${formEntry.params?.vertical !== 'up' ? 'selected' : ''}>위에서 아래로</option><option value="up" ${formEntry.params?.vertical === 'up' ? 'selected' : ''}>아래에서 위로</option></select></label>
+            <section class="formation-editor" data-entry-rear-warning ${formEntry.presetId === 'left-to-right' ? '' : 'hidden'}>
+              <div class="formation-editor-heading"><strong>후방 진입 경고</strong><span>왼쪽 가장자리</span></div>
+              <p>적이 나타나기 전에 진입 높이와 남은 시간을 표시합니다.</p>
+              <div class="form-row two">
+                <label>표시<input name="rearWarningEnabled" type="checkbox" ${formRearWarning?.enabled !== false ? 'checked' : ''}></label>
+                <label>예고 시간(초)<input name="rearWarningLead" type="number" min="0.2" max="5" step="0.05" value="${formRearWarning?.lead ?? 0.9}"></label>
+              </div>
+            </section>
             <p class="library-hint" data-entry-hint>${escapeHtml(formEntryDefinition?.description || '')}</p>
             <section class="formation-editor">
               <div class="formation-editor-heading"><strong>편대 배치</strong><span>해석 마릿수 <b data-formation-resolved-count>${formationCount}</b></span></div>
@@ -3063,6 +3087,41 @@
     ctx.restore();
   }
 
+  function drawEntryWarnings() {
+    for (const warning of simulation?.entryWarnings || []) {
+      const remaining = Math.max(0, warning.spawnAt - simulation.time);
+      const progress = 1 - Math.min(1, remaining / Math.max(0.05, warning.duration));
+      const pulse = Math.floor(simulation.time * 10) % 2 === 0 ? 1 : 0.62;
+      const left = warning.side !== 'right';
+      const x = left ? 18 : canvas.width - 18;
+      const direction = left ? 1 : -1;
+      const y = Math.max(24, Math.min(canvas.height - 24, warning.y));
+      ctx.save();
+      ctx.globalAlpha = pulse;
+      ctx.fillStyle = '#ffdd73';
+      ctx.strokeStyle = warning.itemId === selectedId ? '#ffffff' : '#5b2447';
+      ctx.lineWidth = warning.itemId === selectedId ? 4 : 3;
+      ctx.beginPath();
+      ctx.moveTo(x + direction * 16, y);
+      ctx.lineTo(x - direction * 7, y - 13);
+      ctx.lineTo(x - direction * 7, y + 13);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      const filled = Math.max(1, Math.ceil(progress * 3));
+      for (let index = 0; index < 3; index++) {
+        ctx.fillStyle = index < filled ? '#fff2b8' : 'rgba(255,242,184,0.28)';
+        ctx.fillRect(x - direction * (12 + index * 8) - 3, y + 19, 6, 6);
+      }
+      if (warning.count > 1) {
+        ctx.fillStyle = '#fff2b8';
+        ctx.font = "bold 12px 'Galmuri11', monospace";
+        ctx.textAlign = left ? 'left' : 'right';
+        ctx.fillText(`×${warning.count}`, x + direction * 24, y + 4);
+      }
+      ctx.restore();
+    }
+  }
+
   function renderPreview() {
     drawFallbackBackground();
     let drewBackground = false;
@@ -3081,6 +3140,7 @@
     drawTerrainReviewOverlay();
     drawSpeedLines();
     drawPluginBackdrop();
+    drawEntryWarnings();
 
     for (const pearl of simulation.pearls) {
       if (!Sprites.draw(ctx, 'pearl.small', pearl.x, pearl.y, { t: pearl.age })) {

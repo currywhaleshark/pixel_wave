@@ -95,7 +95,7 @@ const Game = {
   bootT: 0,              // 로딩 화면 경과 (에셋이 막혀도 6초 후 입장 허용)
   stageIdx: 0,           // 현재 해역 (STAGES 인덱스)
   player: null,
-  enemies: [], shots: [], ebullets: [], pearls: [], fx: [], msgs: [],
+  enemies: [], shots: [], ebullets: [], pearls: [], fx: [], msgs: [], entryWarnings: [],
   explosions: [],
   boss: null, spawner: null,
   ride: null,            // 거북 택시 탑승 구간 {t, dur, ...}
@@ -131,6 +131,7 @@ const Game = {
     this.player = new Player();
     this.enemies = []; this.shots = []; this.ebullets = [];
     this.pearls = []; this.fx = []; this.msgs = [];
+    this.entryWarnings = [];
     this.explosions = [];
     this.boss = null;
     this.ride = null;
@@ -406,6 +407,22 @@ const Game = {
       strikeT: Math.max(0, finiteOr(options.strikeDuration, CFG.boltStrikeT)),
       hitDone: false,
     });
+  },
+
+  addStageEntryWarning(warning) {
+    const source = warning && typeof warning === 'object' ? warning : {};
+    this.entryWarnings.push({
+      side: source.side === 'right' ? 'right' : 'left',
+      y: Math.max(24, Math.min(CFG.H - 24, Number(source.y) || CFG.H * 0.5)),
+      spawnAt: Math.max(this.stageT, Number(source.spawnAt) || this.stageT),
+      duration: Math.max(0.05, Number(source.duration) || 0.9),
+      count: Math.max(1, Math.round(Number(source.count) || 1)),
+    });
+    Sound.sfx('warn');
+  },
+
+  clearStageEntryWarnings() {
+    this.entryWarnings = [];
   },
 
   applyStageRuntimeState(state) {
@@ -974,6 +991,7 @@ const Game = {
     this.fx = this.fx.filter(f => f.life > 0);
     for (const m of this.msgs) { m.t += dt; m.life -= dt; }
     this.msgs = this.msgs.filter(m => m.life > 0);
+    this.entryWarnings = this.entryWarnings.filter(warning => warning.spawnAt > this.stageT);
   },
 
   collide() {
@@ -1113,6 +1131,7 @@ const Game = {
 
     this.beginWorld();
     this.drawBackground();
+    this.drawEntryWarnings();
 
     // 진주 → 적 → 보스 → 탄 → 플레이어 순
     for (const p of this.pearls) p.draw(ctx);
@@ -1220,6 +1239,41 @@ const Game = {
     if (this.paused) this.drawPause();
     if (this.state === 'victory') this.drawVictory();
     ErrLog.draw(ctx);
+  },
+
+  drawEntryWarnings() {
+    for (const warning of this.entryWarnings) {
+      const remaining = Math.max(0, warning.spawnAt - this.stageT);
+      const progress = 1 - Math.min(1, remaining / warning.duration);
+      const pulse = Math.floor(this.stageT * 10) % 2 === 0 ? 1 : 0.62;
+      const left = warning.side !== 'right';
+      const x = left ? 18 : CFG.W - 18;
+      const direction = left ? 1 : -1;
+      const y = warning.y;
+      ctx.save();
+      ctx.globalAlpha = pulse;
+      ctx.fillStyle = '#ffdd73';
+      ctx.strokeStyle = '#5b2447';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + direction * 16, y);
+      ctx.lineTo(x - direction * 7, y - 13);
+      ctx.lineTo(x - direction * 7, y + 13);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      const filled = Math.max(1, Math.ceil(progress * 3));
+      for (let index = 0; index < 3; index++) {
+        ctx.fillStyle = index < filled ? '#fff2b8' : 'rgba(255,242,184,0.28)';
+        ctx.fillRect(x - direction * (12 + index * 8) - 3, y + 19, 6, 6);
+      }
+      if (warning.count > 1) {
+        ctx.fillStyle = '#fff2b8';
+        ctx.font = "bold 12px 'Galmuri11', monospace";
+        ctx.textAlign = left ? 'left' : 'right';
+        ctx.fillText(`×${warning.count}`, x + direction * 24, y + 4);
+      }
+      ctx.restore();
+    }
   },
 
   drawPause() {

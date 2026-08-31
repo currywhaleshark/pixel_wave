@@ -26,7 +26,7 @@ assert.ok(indexHtml.includes('js/stage/enemyState.js?v=1'));
 assert.ok(indexHtml.includes('js/entities.js?v=9'));
 assert.ok(indexHtml.includes('js/stage/layerTransform.js?v=2'));
 assert.ok(indexHtml.includes('js/stage/plugin.js?v=4'));
-assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=6'));
+assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=7'));
 assert.ok(indexHtml.indexOf('js/stage/compiler.js') < indexHtml.indexOf('js/stage/gameAdapter.js'));
 const mainSource = fs.readFileSync(path.join(root, 'js/main.js'), 'utf8');
 assert.ok(mainSource.includes("stageTestParams.get('stageRuntime') === 'data'"));
@@ -36,6 +36,8 @@ assert.ok(mainSource.includes("finishStageTest(reason = 'complete')"));
 assert.ok(mainSource.includes('applyStageRuntimeState(state)'));
 assert.ok(mainSource.includes("sampleStageCurrent(targetId = 'player')"));
 assert.ok(mainSource.includes('spawnBolt(xFrac, options = {})'));
+assert.ok(mainSource.includes('addStageEntryWarning(warning)'));
+assert.ok(mainSource.includes('drawEntryWarnings()'));
 
 assert.equal(Adapter.CONFIG.defaultMode, 'legacy');
 assert.equal(Adapter.requestedMode('?debug&stageRuntime=data'), 'data');
@@ -77,6 +79,17 @@ spawner.update(37);
 assert.ok(fakeGame.enemies.length > 0);
 spawner.update(57);
 assert.equal(fakeGame.paused, true);
+
+const rearWarningGame = {
+  enemies: [], groups: {}, entryWarnings: [], player: { x: 180, y: 270 },
+  startRide() {}, startBossWarning() {}, startBoss() {}, message() {},
+  addStageEntryWarning(warning) { this.entryWarnings.push(warning); },
+  clearStageEntryWarnings() { this.entryWarnings = []; },
+};
+const rearWarningSpawner = Adapter.createSpawner('stage3', 0, rearWarningGame, legacy, '?debug&stageRuntime=data');
+rearWarningSpawner.seekRange(11);
+assert.equal(rearWarningGame.entryWarnings.length, 1, '구간 중간 seek도 진행 중인 후방 경고를 복원한다');
+assert.equal(rearWarningGame.entryWarnings[0].y, 270);
 
 const editedStage = JSON.parse(JSON.stringify(global.STAGE_DATA_REGISTRY.stage3));
 const editedWave = editedStage.items.find(item => item.id === 's3-w001');

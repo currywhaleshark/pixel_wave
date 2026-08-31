@@ -53,6 +53,7 @@
       this.pearls = [];
       this.activeItems = new Map();
       this.messages = [];
+      this.entryWarnings = [];
       this.ride = null;
       this.boss = null;
       this.warningUntil = 0;
@@ -76,6 +77,10 @@
     }
 
     _applyEvent(event) {
+      if (event.type === 'entry-warning') {
+        this.entryWarnings.push({ id: event.id, itemId: event.itemId, ...clone(event.warning) });
+        return;
+      }
       if (event.type === 'spawn-enemy') {
         const source = clone(event.enemy);
         if (source.movement?.presetId === 'u-turn') {
@@ -548,6 +553,7 @@
       }
       this.pearls = this.pearls.filter(pearl => pearl.age < pearl.life && pearl.x > -40 && pearl.x < width + 100);
       this.messages = this.messages.filter(message => message.until > toTime);
+      this.entryWarnings = this.entryWarnings.filter(warning => warning.spawnAt > toTime);
       if (this.boss) this.boss.age += dt;
       this.pluginState = PluginApi.evaluateRuntimeState(this.pluginState, this.activeItems, toTime, dt, this.compiled.viewport);
       this.terrainObjects = TerrainApi.resolveObjects(this.compiled.items, this.terrainProfile, this.scroll);
@@ -616,6 +622,7 @@
         pearls: this.pearls,
         activeItems: [...this.activeItems.entries()],
         messages: this.messages,
+        entryWarnings: this.entryWarnings,
         ride: this.ride,
         boss: this.boss,
         warningUntil: this.warningUntil,
@@ -645,6 +652,7 @@
       this.pearls = state.pearls;
       this.activeItems = new Map(state.activeItems);
       this.messages = state.messages;
+      this.entryWarnings = state.entryWarnings || [];
       this.ride = state.ride;
       this.boss = state.boss;
       this.warningUntil = state.warningUntil;
@@ -715,6 +723,9 @@
         bullets: this.bullets.map(bullet => [round(bullet.x), round(bullet.y), round(bullet.vx), round(bullet.vy), bullet.kind]),
         pearls: this.pearls.map(pearl => [round(pearl.x), round(pearl.y), round(pearl.age)]),
         activeItems: [...this.activeItems.keys()].sort(),
+        entryWarnings: this.entryWarnings.map(warning => [
+          warning.id, round(warning.y), round(warning.spawnAt), warning.count,
+        ]),
         ride: this.ride ? [round(this.ride.nextTrail), round(this.ride.nextRing)] : null,
         boss: this.boss ? [this.boss.id, round(this.boss.x), round(this.boss.y)] : null,
         plugin: [
@@ -747,6 +758,7 @@
         budgetAnalysis: this.budgetAnalysis,
         pluginState: clone(this.pluginState),
         terrainObjects: clone(this.terrainObjects),
+        entryWarnings: clone(this.entryWarnings),
         stateHash: this.stateHash(),
       };
     }
