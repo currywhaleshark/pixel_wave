@@ -2359,6 +2359,22 @@
     ctx.restore();
   }
 
+  function drawUTurnCue(enemy) {
+    if (enemy.uTurnPhase !== 'brake') return;
+    const scale = previewPixelScale();
+    const direction = enemy.directionX || -1;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(190, 245, 255, 0.72)';
+    ctx.lineWidth = 2 * scale;
+    for (let index = 0; index < 4; index++) {
+      const phase = (enemy.uTurnAge || 0) * 8 + index * 1.7;
+      const bx = enemy.x - direction * (10 + index * 5 + Math.sin(phase) * 2) * scale;
+      const by = enemy.y + Math.sin(phase * 1.3) * (4 + index) * scale;
+      ctx.beginPath(); ctx.arc(bx, by, (1.5 + index * 0.45) * scale, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   function renderTerrainReviewInspector() {
     if (!terrainProfile) return;
     const socket = terrainProfile.sockets.find(entry => entry.id === selectedTerrainSocket);
@@ -2836,6 +2852,18 @@
         label: '틈',
       });
     }
+    if (item.payload.movement?.presetId === 'u-turn') {
+      const movement = StageBehavior.effectiveMovement(item.payload.movement, {
+        entryPresetId: entry.entry.presetId,
+        entryVertical: entry.entry.params?.vertical,
+      });
+      handles.push({
+        type: 'u-turn',
+        x: movement.params.turnX * canvas.width,
+        y: anchorY,
+        label: '유턴',
+      });
+    }
     return { item, formation, anchorX, anchorY, directionX: formationDirectionX, directionY: formationDirectionY, layout, handles };
   }
 
@@ -2884,7 +2912,7 @@
     for (const rawHandle of ghost.handles) {
       const handle = formationHandlePosition(rawHandle, scale);
       const size = 10 * scale;
-      ctx.fillStyle = rawHandle.type === 'entry' ? '#ff87bd' : '#ffd66e';
+      ctx.fillStyle = rawHandle.type === 'entry' ? '#ff87bd' : rawHandle.type === 'u-turn' ? '#7dffd8' : '#ffd66e';
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2 * scale;
       ctx.fillRect(handle.x - size, handle.y - size, size * 2, size * 2);
@@ -2893,7 +2921,7 @@
       ctx.font = `bold ${7 * scale}px 'Galmuri11', monospace`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(rawHandle.type === 'entry' ? 'E' : rawHandle.type === 'v-spread' ? 'V' : 'G', handle.x, handle.y + scale);
+      ctx.fillText(rawHandle.type === 'entry' ? 'E' : rawHandle.type === 'v-spread' ? 'V' : rawHandle.type === 'u-turn' ? 'U' : 'G', handle.x, handle.y + scale);
       ctx.fillStyle = '#fff4c4';
       ctx.font = `${7 * scale}px 'Galmuri11', monospace`;
       ctx.fillText(rawHandle.label, handle.x, handle.y - 17 * scale);
@@ -2945,6 +2973,9 @@
     if (drag.handleType === 'entry') {
       if (drag.coordinate === 'x') drag.working.payload.entry.x = +Math.max(0, Math.min(1, pointer.x / canvas.width)).toFixed(2);
       else drag.working.payload.entry.y = +Math.max(0, Math.min(1, pointer.y / canvas.height)).toFixed(2);
+    } else if (drag.handleType === 'u-turn') {
+      drag.working.payload.movement.params = StageDocument.clone(drag.working.payload.movement.params || {});
+      drag.working.payload.movement.params.turnX = +Math.max(0.08, Math.min(0.95, pointer.x / canvas.width)).toFixed(2);
     } else if (drag.handleType === 'v-spread') {
       const ghost = formationGhost(drag.working);
       const formation = StageFormation.normalize(drag.working.payload.formation, drag.working.payload.spawn?.count);
@@ -2987,7 +3018,7 @@
       return;
     }
     const authored = stageDocument.findItem(drag.itemId);
-    const labels = { entry: drag.coordinate === 'x' ? '진입 X 이동' : '진입 높이 이동', 'v-spread': 'V 편대 간격 조정', 'wall-gap': '벽 편대 틈 이동' };
+    const labels = { entry: drag.coordinate === 'x' ? '진입 X 이동' : '진입 높이 이동', 'u-turn': '유턴 위치 이동', 'v-spread': 'V 편대 간격 조정', 'wall-gap': '벽 편대 틈 이동' };
     const label = labels[drag.handleType] || '편대 조정';
     if (drag.scope === 'difficulty') replaceDifficultyItem(authored.id, drag.working, `${activeDifficulty().name} ${label}`);
     else replaceAuthoredItem(authored.id, drag.working, label);
@@ -3075,6 +3106,7 @@
     }
     for (const enemy of simulation.enemies) {
       const selected = enemy.itemId === selectedId;
+      drawUTurnCue(enemy);
       if (!Sprites.draw(ctx, `enemy.${enemy.kind}`, enemy.x, enemy.y, {
         t: enemy.age,
         alpha: enemy.lifecycle?.alpha ?? 1,

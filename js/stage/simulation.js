@@ -307,10 +307,50 @@
         }
         enemy.waveOffset = waveOffset;
       } else if (movement === 'u-turn') {
-        if (enemy.vx === null) enemy.vx = -enemy.speed;
-        enemy.vx = Math.min(enemy.speed * params.maxSpeedMultiplier, enemy.vx + enemy.speed * params.acceleration * dt);
-        enemy.x += enemy.vx * dt;
-        enemy.y = enemy.y0 + Math.sin(enemy.age * params.verticalFrequency) * params.verticalAmplitude;
+        const entryDirection = directionX || -1;
+        const acceleration = Math.max(0.01, params.acceleration ?? 0.85);
+        const maxMultiplier = Math.max(0.1, params.maxSpeedMultiplier ?? 1.15);
+        const turnX = (params.turnX ?? 0.93) * this.compiled.viewport.width;
+        if (enemy.vx === null) {
+          enemy.vx = entryDirection * enemy.speed;
+          enemy.uTurnPhase = 'approach';
+          enemy.uTurnAge = 0;
+          const availableDistance = Math.max(0.001, (turnX - enemy.x) * entryDirection);
+          enemy.uTurnBrakeAcceleration = Math.max(acceleration, enemy.speed / (2 * availableDistance));
+        }
+        const brakingAcceleration = enemy.uTurnBrakeAcceleration || acceleration;
+        const brakingDistance = enemy.speed / (2 * brakingAcceleration);
+        const brakingStartX = turnX - entryDirection * brakingDistance;
+        if (enemy.uTurnPhase === 'approach') {
+          const nextX = enemy.x + enemy.vx * dt;
+          const reached = entryDirection > 0 ? nextX >= brakingStartX : nextX <= brakingStartX;
+          enemy.x = reached ? brakingStartX : nextX;
+          if (reached) { enemy.uTurnPhase = 'brake'; enemy.uTurnAge = 0; }
+        } else if (enemy.uTurnPhase === 'brake') {
+          enemy.uTurnAge += dt;
+          const previousVx = enemy.vx;
+          enemy.vx += -entryDirection * enemy.speed * brakingAcceleration * dt;
+          if (enemy.vx * entryDirection <= 0) {
+            enemy.vx = 0;
+            enemy.x = turnX;
+            enemy.uTurnPhase = 'turn';
+          } else enemy.x += (previousVx + enemy.vx) * 0.5 * dt;
+        } else if (enemy.uTurnPhase === 'turn') {
+          enemy.uTurnAge += dt;
+          const reverseLimit = -entryDirection * enemy.speed * maxMultiplier;
+          const nextVx = enemy.vx - entryDirection * enemy.speed * acceleration * dt;
+          enemy.vx = entryDirection > 0 ? Math.max(reverseLimit, nextVx) : Math.min(reverseLimit, nextVx);
+          enemy.x += enemy.vx * dt;
+          if (Math.abs(enemy.vx) >= enemy.speed * maxMultiplier - 1e-6) enemy.uTurnPhase = 'exit';
+        } else enemy.x += enemy.vx * dt;
+        if (enemy.uTurnPhase === 'brake' || enemy.uTurnPhase === 'turn') {
+          const velocityProgress = enemy.uTurnPhase === 'brake'
+            ? (1 - Math.min(1, Math.abs(enemy.vx) / Math.max(1, enemy.speed))) * 0.5
+            : 0.5 + Math.min(1, Math.abs(enemy.vx) / Math.max(1, enemy.speed * maxMultiplier)) * 0.5;
+          const envelope = Math.sin(velocityProgress * Math.PI);
+          const arc = Math.sin(enemy.uTurnAge * (params.verticalFrequency ?? 1.8) + Math.PI / 2);
+          enemy.y = enemy.y0 + envelope * arc * (params.verticalAmplitude ?? 18);
+        } else enemy.y = enemy.y0;
       } else if (movement === 'enter-pause-exit') {
         if (enemy.state === 'enter') {
           enemy.x += directionX * enemy.speed * dt;
@@ -670,7 +710,7 @@
         eventCursor: this.eventCursor,
         enemies: this.enemies.map(enemy => [
           enemy.id, round(enemy.x), round(enemy.y), round(enemy.age), enemy.state,
-          enemy.lifecycle?.phase || 'active', round(enemy.fireRemaining),
+          enemy.uTurnPhase || '', enemy.lifecycle?.phase || 'active', round(enemy.fireRemaining),
         ]),
         bullets: this.bullets.map(bullet => [round(bullet.x), round(bullet.y), round(bullet.vx), round(bullet.vy), bullet.kind]),
         pearls: this.pearls.map(pearl => [round(pearl.x), round(pearl.y), round(pearl.age)]),

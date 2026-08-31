@@ -80,6 +80,21 @@ const endTravel = context.StageLayerTransform.layerTravelNative(turretGame.scrol
 assert.equal(turretStartX - turret.x, (endTravel - startTravel) * context.StageLayerTransform.PIXEL_UNIT, '실제 포대는 near 지형과 같은 픽셀 오프셋으로 이동해야 한다');
 assert.equal(turret.y, 420);
 
+const turning = vm.runInContext(`new Enemy({
+  kind: 'fish', hp: 2, spd: 160, x: 990, y: 270, dirX: -1, dirY: 0,
+  M: 4, S: 0, movementParams: { turnX: 0.7, acceleration: 0.85, maxSpeedMultiplier: 1.15 },
+})`, context);
+let minimumTurnX = turning.x;
+let sawTurnWarning = false;
+for (let step = 0; step < 600; step++) {
+  turning.update(1 / 120, enemyGame);
+  minimumTurnX = Math.min(minimumTurnX, turning.x);
+  sawTurnWarning ||= turning.uTurnPhase === 'brake';
+  if (turning.uTurnPhase === 'exit') break;
+}
+assert.ok(Math.abs(minimumTurnX - 0.7 * vm.runInContext('CFG.W', context)) < 1.5, '실제 적도 저작한 X 위치에서 유턴해야 한다');
+assert.equal(sawTurnWarning, true, '실제 적이 유턴 전 물보라 예고 상태를 거쳐야 한다');
+
 const mainSource = fs.readFileSync(path.join(root, 'js/main.js'), 'utf8');
 assert.match(mainSource, /BarrageRuntime\.updateProjectile\(b, dt/, '실제 게임은 공통 탄 이동·행동 실행기를 사용한다');
 assert.match(mainSource, /BarrageRuntime\.laserHits\(b, pl/, '실제 게임은 레이저 선분 충돌을 사용한다');

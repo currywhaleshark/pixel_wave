@@ -75,6 +75,7 @@
       Object.freeze({
         id: 'u-turn', name: '유턴', description: '반대 방향으로 진입한 뒤 가속해 되돌아가는 곡선 이동',
         fields: Object.freeze([
+          Object.freeze({ key: 'turnX', target: 'params', label: '회전 X 위치', min: 0.08, max: 0.95, step: 0.01, default: 0.93, entryAxis: 'x' }),
           Object.freeze({ key: 'acceleration', target: 'params', label: '유턴 가속', min: 0, max: 5, step: 0.05, default: 0.85 }),
           Object.freeze({ key: 'maxSpeedMultiplier', target: 'params', label: '최대 속도 배율', min: 0.1, max: 5, step: 0.05, default: 1.15 }),
           Object.freeze({ key: 'verticalAmplitude', target: 'params', label: '곡선 높이', min: 0, max: 300, step: 1, default: 18 }),

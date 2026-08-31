@@ -45,6 +45,7 @@ const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/sta
   ]);
   assert.equal(StageBehavior.effectiveMovement({ presetId: 'tracking' }).params.trackingDuration, 9);
   assert.equal(StageBehavior.effectiveMovement({ presetId: 'tracking' }).params.turnRate, 1.1);
+  assert.equal(StageBehavior.effectiveMovement({ presetId: 'u-turn' }).params.turnX, 0.93);
 }
 
 {
@@ -95,6 +96,28 @@ const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/sta
   const changedEnemy = changedSimulation.enemies.find(enemy => enemy.itemId === 's3-w007');
   assert.notEqual(changedEnemy.x, baselineEnemy.x, '유턴 가속과 최대 속도가 이동에 반영되어야 한다');
   assert.notEqual(changedEnemy.y, baselineEnemy.y, '유턴 곡선 파라미터가 이동에 반영되어야 한다');
+}
+
+{
+  const positioned = StageCompiler.clone(source);
+  const wave = positioned.items.find(item => item.id === 's3-w007');
+  wave.payload.spawn = { count: 1, interval: 0 };
+  wave.timing.duration = 0;
+  wave.payload.movement.params = { turnX: 0.7 };
+  const compiled = StageCompiler.compile(positioned, { difficulty: 'easy' });
+  const simulation = new Simulation(compiled, { fixedStep: 1 / 120 }).seek(wave.timing.start);
+  let minimumX = Infinity;
+  let sawBrakeCue = false;
+  for (let step = 0; step < 600; step++) {
+    simulation.advance(1 / 120);
+    const enemy = simulation.enemies.find(item => item.itemId === wave.id);
+    if (!enemy) break;
+    minimumX = Math.min(minimumX, enemy.x);
+    sawBrakeCue ||= enemy.uTurnPhase === 'brake';
+    if (enemy.uTurnPhase === 'exit') break;
+  }
+  assert.ok(Math.abs(minimumX - positioned.viewport.width * 0.7) < 1.5, '저작한 회전 X가 유턴 꼭짓점이어야 한다');
+  assert.equal(sawBrakeCue, true, '유턴 전 감속 예고 상태를 거쳐야 한다');
 }
 
 console.log('stage behavior: ok');

@@ -642,7 +642,8 @@ Stage Sequencer tool milestones M1–M7.
 
 - [x] Carry `enemy.params` end-to-end.
 - [x] Add viper reveal and ghost materialization.
-- [ ] Add rear-entry warning and U-turn cue.
+- [ ] Add rear-entry warning.
+- [x] Add authored U-turn position and braking cue.
 - [x] Parameterize tracking.
 - [ ] Optionize turtle rides.
 - [ ] Add common wreck spawning and rendering-width correctness.
@@ -807,6 +808,23 @@ Implemented decisions:
 
 Still required to complete G2:
 
-- rear-entry and U-turn presentation cues;
+- rear-entry warning;
 - boss-safe turtle-ride options;
 - common wreck spawn payloads and exact authored width rendering.
+
+### 2026-09-01 — G2 authored U-turn point
+
+Implemented decisions:
+
+- `movement.params.turnX` is the normalized horizontal apex of the U-turn,
+  rather than an approximate delay before reversal.
+- Enemies approach at full speed, begin braking early enough to reach zero
+  horizontal speed at the authored apex, then accelerate back out.
+- If the authored acceleration cannot stop within the available entry distance,
+  braking strength is raised only as much as required to preserve the authored
+  turn point.
+- The braking half emits a deterministic bubble/wake cue in the live game and
+  Stage Sequencer preview.
+- The Stage Sequencer exposes a numeric `회전 X 위치` control and a draggable
+  `U` handle on the preview. Base and per-difficulty edit scopes use the same
+  existing commit path.

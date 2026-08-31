@@ -367,10 +367,52 @@ class Enemy {
       this.x += (this.dirX || -1) * spd * dt;
       this.y = this.y0 + this.amp * Math.sin(this.t * this.freq + this.phase);
     } else if (M === 4) {       // 유턴: 들어왔다가 호를 그리며 되돌아감 (뒤통수 교육)
-      if (this.vx === undefined) this.vx = -spd;
-      this.vx = Math.min(spd * 1.15, this.vx + spd * 0.85 * dt);
-      this.x += this.vx * dt;
-      this.y = this.y0 + Math.sin(this.t * 1.8) * 18;
+      const entryDirection = this.dirX || -1;
+      const acceleration = Math.max(0.01, this.movementParams.acceleration ?? 0.85);
+      const maxMultiplier = Math.max(0.1, this.movementParams.maxSpeedMultiplier ?? 1.15);
+      const turnX = (this.movementParams.turnX ?? 0.93) * CFG.W;
+      if (this.vx === undefined) {
+        this.vx = entryDirection * spd;
+        this.uTurnPhase = 'approach';
+        this.uTurnAge = 0;
+        const availableDistance = Math.max(0.001, (turnX - this.x) * entryDirection);
+        this.uTurnBrakeAcceleration = Math.max(acceleration, spd / (2 * availableDistance));
+      }
+      const brakingAcceleration = this.uTurnBrakeAcceleration || acceleration;
+      const brakingDistance = spd / (2 * brakingAcceleration);
+      const brakingStartX = turnX - entryDirection * brakingDistance;
+      if (this.uTurnPhase === 'approach') {
+        const nextX = this.x + this.vx * dt;
+        const reached = entryDirection > 0 ? nextX >= brakingStartX : nextX <= brakingStartX;
+        this.x = reached ? brakingStartX : nextX;
+        if (reached) { this.uTurnPhase = 'brake'; this.uTurnAge = 0; }
+      } else if (this.uTurnPhase === 'brake') {
+        this.uTurnAge += dt;
+        const previousVx = this.vx;
+        this.vx += -entryDirection * spd * brakingAcceleration * dt;
+        if (this.vx * entryDirection <= 0) {
+          this.vx = 0;
+          this.x = turnX;
+          this.uTurnPhase = 'turn';
+        } else this.x += (previousVx + this.vx) * 0.5 * dt;
+      } else if (this.uTurnPhase === 'turn') {
+        this.uTurnAge += dt;
+        const reverseLimit = -entryDirection * spd * maxMultiplier;
+        const nextVx = this.vx - entryDirection * spd * acceleration * dt;
+        this.vx = entryDirection > 0 ? Math.max(reverseLimit, nextVx) : Math.min(reverseLimit, nextVx);
+        this.x += this.vx * dt;
+        if (Math.abs(this.vx) >= spd * maxMultiplier - 1e-6) this.uTurnPhase = 'exit';
+      } else {
+        this.x += this.vx * dt;
+      }
+      if (this.uTurnPhase === 'brake' || this.uTurnPhase === 'turn') {
+        const velocityProgress = this.uTurnPhase === 'brake'
+          ? (1 - Math.min(1, Math.abs(this.vx) / Math.max(1, spd))) * 0.5
+          : 0.5 + Math.min(1, Math.abs(this.vx) / Math.max(1, spd * maxMultiplier)) * 0.5;
+        const envelope = Math.sin(velocityProgress * Math.PI);
+        const arc = Math.sin(this.uTurnAge * (this.movementParams.verticalFrequency ?? 1.8) + Math.PI / 2);
+        this.y = this.y0 + envelope * arc * (this.movementParams.verticalAmplitude ?? 18);
+      } else this.y = this.y0;
     } else if (M === 5) {       // 완만 추적 (급선회 금지 — 몸으로 피해지는 수준)
       if (this.vx === undefined) { this.vx = -spd; this.vy = 0; }
       const trackingDuration = this.movementParams.trackingDuration ?? 9;
@@ -545,6 +587,24 @@ class Enemy {
       ctx.strokeStyle = `rgba(216, 244, 236, ${0.75 * alpha})`;
       ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(this.x, this.y, pulse, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    }
+    if (this.M === 4 && this.uTurnPhase === 'brake') {
+      const direction = this.dirX || -1;
+      ctx.save();
+      ctx.strokeStyle = `rgba(190, 245, 255, ${0.65 * alpha})`;
+      ctx.fillStyle = `rgba(220, 250, 255, ${0.55 * alpha})`;
+      ctx.lineWidth = 2;
+      for (let index = 0; index < 4; index++) {
+        const phase = this.uTurnAge * 8 + index * 1.7;
+        const bx = this.x - direction * (10 + index * 5 + Math.sin(phase) * 2);
+        const by = this.y + Math.sin(phase * 1.3) * (4 + index);
+        ctx.beginPath(); ctx.arc(bx, by, 1.5 + index * 0.45, 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.moveTo(this.x - direction * 8, this.y - 7);
+      ctx.quadraticCurveTo(this.x - direction * 20, this.y - 13, this.x - direction * 30, this.y - 5);
+      ctx.stroke();
       ctx.restore();
     }
     if (Sprites.draw(ctx, `enemy.${this.kind}`, this.x, this.y, {
