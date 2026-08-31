@@ -5,7 +5,10 @@
   const Compiler = root.StageCompiler || (typeof require === 'function' ? require('./compiler.js') : null);
   const DATA = root.STAGE_DATA_REGISTRY || (typeof STAGE_DATA_REGISTRY !== 'undefined' ? STAGE_DATA_REGISTRY : {});
   const TEST_STORAGE_KEY = 'pixel-wave-stage-test-payload';
-  const CONFIG = Object.freeze({ defaultMode: 'legacy', optInStageIds: Object.freeze(['stage3']) });
+  const CONFIG = Object.freeze({
+    defaultMode: 'legacy',
+    optInStageIds: Object.freeze(['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7']),
+  });
 
   function query(search = root.location?.search || '') {
     return new URLSearchParams(search);
@@ -46,7 +49,9 @@
   function parityReport(stageId, legacyTimeline, difficulty = 0, sourceOverride = null) {
     const compiled = compile(stageId, difficulty, sourceOverride);
     if (!compiled) return { ok: false, errors: [`${stageId} 데이터가 없습니다.`], summary: {} };
-    const legacyWaves = (legacyTimeline || []).filter(entry => !entry.warning && !entry.boss && !entry.ride && entry.bolt === undefined);
+    const legacyWaves = (legacyTimeline || []).filter(entry => (
+      !entry.warning && !entry.boss && !entry.ride && entry.bolt === undefined && entry.kind !== 'wreck'
+    ));
     const dataWaves = compiled.items.filter(item => item.type === 'wave');
     const errors = [];
     if (legacyWaves.length !== dataWaves.length) errors.push(`웨이브 수 ${legacyWaves.length}/${dataWaves.length}`);
@@ -60,6 +65,19 @@
     const legacyRide = (legacyTimeline || []).find(entry => entry.ride);
     const dataRide = compiled.items.find(item => item.payload?.pluginId === 'turtle-ride');
     if (!!legacyRide !== !!dataRide || (legacyRide && (legacyRide.t !== dataRide.timing.start || legacyRide.ride !== dataRide.timing.duration))) errors.push('거북 택시 시간이 다릅니다.');
+    const legacyWrecks = (legacyTimeline || []).filter(entry => entry.kind === 'wreck');
+    const dataWrecks = compiled.items.filter(item => item.payload?.pluginId === 'wreck-corridor');
+    if (legacyWrecks.length !== dataWrecks.length) errors.push(`난파선 수 ${legacyWrecks.length}/${dataWrecks.length}`);
+    for (let index = 0; index < Math.min(legacyWrecks.length, dataWrecks.length); index++) {
+      if (Math.abs(legacyWrecks[index].t - dataWrecks[index].timing.start) > 0.011) errors.push(`난파선 ${index + 1} 시작 시간이 다릅니다.`);
+    }
+    const legacyBolts = (legacyTimeline || []).filter(entry => entry.bolt !== undefined);
+    const dataBolts = compiled.items.filter(item => item.payload?.pluginId === 'lightning-strike');
+    if (legacyBolts.length !== dataBolts.length) errors.push(`번개 수 ${legacyBolts.length}/${dataBolts.length}`);
+    for (let index = 0; index < Math.min(legacyBolts.length, dataBolts.length); index++) {
+      if (Math.abs(legacyBolts[index].t - dataBolts[index].timing.start) > 0.011
+        || Math.abs(legacyBolts[index].bolt - dataBolts[index].payload.params.xRatio) > 0.001) errors.push(`번개 ${index + 1} 값이 다릅니다.`);
+    }
     const legacyWarning = (legacyTimeline || []).find(entry => entry.warning)?.t;
     const dataWarning = compiled.items.find(item => item.payload?.pluginId === 'boss-warning')?.timing.start;
     const legacyBoss = (legacyTimeline || []).find(entry => entry.boss)?.t;
@@ -71,17 +89,24 @@
       errors,
       summary: {
         stageId, difficulty: difficultyId(difficulty), waves: dataWaves.length,
-        enemies: compiled.resolvedEnemyCount, warningAt: dataWarning, bossAt: dataBoss,
+        enemies: compiled.resolvedEnemyCount, wrecks: dataWrecks.length, bolts: dataBolts.length,
+        warningAt: dataWarning, bossAt: dataBoss,
       },
     };
   }
 
   function movementCode(movement) {
-    return { straight: 1, sine: 2, 'enter-pause-exit': 3, 'u-turn': 4 }[movement?.presetId] || 1;
+    return {
+      straight: 1, sine: 2, 'enter-pause-exit': 3, 'u-turn': 4,
+      tracking: 5, 'turret-scroll': 6, 'current-surf': 7,
+    }[movement?.presetId] || 1;
   }
 
   function weaponCode(weapon) {
-    return { none: 0, 'legacy-aimed': 1, 'legacy-ring': 2, 'legacy-death-shot': 5 }[weapon?.presetId] || 0;
+    return {
+      none: 0, 'legacy-aimed': 1, 'legacy-ring': 2, 'legacy-drop': 3,
+      'legacy-mine': 4, 'legacy-death-shot': 5,
+    }[weapon?.presetId] || 0;
   }
 
   class GameSpawner {
@@ -119,9 +144,21 @@
       const enemy = event.enemy;
       const movement = enemy.movement || { presetId: 'straight', params: {} };
       const weapon = enemy.weapon || { presetId: 'none', params: {} };
+      let spawnX = enemy.x;
+      let spawnY = enemy.y;
+      let directionX = enemy.directionX;
+      let directionY = enemy.directionY;
+      if (Number.isFinite(enemy.surroundAngle) && Number.isFinite(enemy.surroundRadius)) {
+        const center = this.game.player;
+        spawnX = Math.min(center.x + Math.cos(enemy.surroundAngle) * enemy.surroundRadius, this.compiled.viewport.width + 90);
+        spawnY = Math.max(-70, Math.min(this.compiled.viewport.height + 70, center.y + Math.sin(enemy.surroundAngle) * enemy.surroundRadius));
+        const length = Math.hypot(center.x - spawnX, center.y - spawnY) || 1;
+        directionX = (center.x - spawnX) / length;
+        directionY = (center.y - spawnY) / length;
+      }
       const spec = {
         kind: enemy.kind, hp: enemy.hp, spd: enemy.speed,
-        x: enemy.x, y: enemy.y, dirX: enemy.directionX, dirY: enemy.directionY,
+        x: spawnX, y: spawnY, dirX: directionX, dirY: directionY,
         phase: enemy.phase, M: movementCode(movement), S: weaponCode(weapon),
         amp: movement.params?.amplitude || 0, freq: movement.params?.frequency || 3,
         targetX: enemy.targetXOffset !== undefined
@@ -139,6 +176,21 @@
       this.game.enemies.push(new Enemy(spec));
     }
 
+    _spawnWreck(event) {
+      const params = event.payload?.params || {};
+      const height = (params.heightFraction ?? 0.4) * this.compiled.viewport.height;
+      const side = params.side === 'top' ? 'top' : 'bot';
+      const groupId = this._group(event.itemId);
+      this.game.groups[groupId].total = 1;
+      this.game.groups[groupId].isFormation = false;
+      this.game.enemies.push(new Enemy({
+        kind: 'wreck', x: this.compiled.viewport.width + 60,
+        y: side === 'top' ? height / 2 : this.compiled.viewport.height - height / 2,
+        hp: 999999, spd: params.speed ?? 100, M: 1, S: 0,
+        dirX: -1, dirY: 0, wreckW: params.width ?? 74, wreckH: height, side, groupId,
+      }));
+    }
+
     _apply(event) {
       if (event.type === 'spawn-enemy') this._spawn(event);
       else if (event.type === 'cue' && event.payload?.pluginId === 'boss-warning') this.game.startBossWarning();
@@ -147,6 +199,8 @@
         const item = this.compiled.items.find(candidate => candidate.id === event.itemId);
         this.game.startRide(item?.timing?.duration || 0);
       }
+      else if (event.type === 'item-start' && event.payload?.pluginId === 'wreck-corridor') this._spawnWreck(event);
+      else if (event.type === 'item-start' && event.payload?.pluginId === 'lightning-strike') this.game.spawnBolt(event.payload.params?.xRatio ?? 0.5);
     }
 
     seekRange(start) {

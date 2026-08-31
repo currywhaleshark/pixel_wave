@@ -12,16 +12,21 @@ const Adapter = require('../js/stage/gameAdapter.js');
 const wavesSource = fs.readFileSync(path.join(root, 'js/waves.js'), 'utf8');
 const context = vm.createContext({ console, Math });
 for (const boss of ['Boss', 'BossMongsil', 'BossSsing', 'BossChorong', 'BossBuu', 'BossUreu', 'BossHwii']) context[boss] = function BossStub() {};
-vm.runInContext(`${wavesSource}\nglobalThis.__stage3Timeline = STAGE3_TIMELINE;`, context);
-const legacy = context.__stage3Timeline;
+vm.runInContext(`${wavesSource}\nglobalThis.__stageTimelines = [
+  STAGE1_TIMELINE, STAGE2_TIMELINE, STAGE3_TIMELINE, STAGE4_TIMELINE,
+  STAGE5_TIMELINE, STAGE6_TIMELINE, STAGE7_TIMELINE,
+];`, context);
+const timelines = context.__stageTimelines;
+const legacy = timelines[2];
 
 const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-assert.ok(indexHtml.includes('js/stages.generated.js?v=1'));
+assert.ok(indexHtml.includes('js/stages.generated.js?v=2'));
 assert.ok(indexHtml.includes('js/entities.js?v=5'));
-assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=3'));
+assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=4'));
 assert.ok(indexHtml.indexOf('js/stage/compiler.js') < indexHtml.indexOf('js/stage/gameAdapter.js'));
 const mainSource = fs.readFileSync(path.join(root, 'js/main.js'), 'utf8');
 assert.ok(mainSource.includes("stageTestParams.get('stageRuntime') === 'data'"));
+assert.ok(mainSource.includes('STAGES.findIndex(stage => stage.id === testStageId)'));
 assert.ok(mainSource.includes("this.stageRuntimeMode = dataSpawner ? 'data' : 'legacy'"));
 assert.ok(mainSource.includes("finishStageTest(reason = 'complete')"));
 
@@ -29,13 +34,22 @@ assert.equal(Adapter.CONFIG.defaultMode, 'legacy');
 assert.equal(Adapter.requestedMode('?debug&stageRuntime=data'), 'data');
 assert.equal(Adapter.requestedMode('?stageRuntime=data'), 'legacy', 'debug 없는 프로덕션 URL은 데이터 런타임을 켜면 안 된다');
 
-for (let difficulty = 0; difficulty < 3; difficulty++) {
-  const report = Adapter.parityReport('stage3', legacy, difficulty);
-  assert.deepEqual(report.errors, [], `${report.summary.difficulty}: ${report.errors.join(' / ')}`);
-  assert.equal(report.summary.waves, 37);
-  assert.equal(report.summary.enemies, 207);
-  assert.equal(report.summary.warningAt, 116);
-  assert.equal(report.summary.bossAt, 120);
+const expected = [
+  [38, 189, 0, 0, 110, 114], [38, 193, 0, 0, 110, 114], [37, 207, 0, 0, 116, 120],
+  [39, 170, 0, 0, 111, 115], [31, 162, 11, 0, 111, 115],
+  [35, 187, 0, 16, 111, 115], [34, 191, 2, 6, 111, 115],
+];
+assert.deepEqual(Adapter.CONFIG.optInStageIds, ['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7']);
+for (let stageIndex = 0; stageIndex < timelines.length; stageIndex++) {
+  for (let difficulty = 0; difficulty < 3; difficulty++) {
+    const report = Adapter.parityReport(`stage${stageIndex + 1}`, timelines[stageIndex], difficulty);
+    assert.deepEqual(report.errors, [], `stage${stageIndex + 1}/${report.summary.difficulty}: ${report.errors.join(' / ')}`);
+    const [waves, enemies, wrecks, bolts, warningAt, bossAt] = expected[stageIndex];
+    assert.deepEqual(
+      [report.summary.waves, report.summary.enemies, report.summary.wrecks, report.summary.bolts, report.summary.warningAt, report.summary.bossAt],
+      [waves, enemies, wrecks, bolts, warningAt, bossAt],
+    );
+  }
 }
 
 global.Enemy = class EnemyStub { constructor(spec) { Object.assign(this, spec); } };
@@ -97,6 +111,39 @@ assert.equal(testGame.enemies[0].fireDelay, 0.25);
 assert.equal(testGame.enemies[0].barrageStopWhenLeaving, false);
 assert.equal(testGame.finished, 'range');
 delete global.sessionStorage;
+
+const hazardGame = {
+  enemies: [], groups: {}, bolts: [],
+  player: { x: 180, y: 270 },
+  startRide() {}, startBossWarning() {}, startBoss() {}, message() {},
+  spawnBolt(value) { this.bolts.push(value); },
+};
+const wreckSpawner = Adapter.createSpawner('stage5', 0, hazardGame, timelines[4], '?debug&stageRuntime=data');
+wreckSpawner.seekRange(7.9);
+wreckSpawner.update(8);
+assert.equal(hazardGame.enemies[0].kind, 'wreck');
+assert.equal(hazardGame.enemies[0].wreckH, 0.38 * 540);
+const stormSpawner = Adapter.createSpawner('stage6', 0, hazardGame, timelines[5], '?debug&stageRuntime=data');
+stormSpawner.seekRange(19.4);
+stormSpawner.update(19.5);
+assert.deepEqual(hazardGame.bolts, [0.42]);
+
+function spawnAt(stageId, timeline, at) {
+  const game = {
+    enemies: [], groups: {}, player: { x: 180, y: 270 },
+    startRide() {}, startBossWarning() {}, startBoss() {}, spawnBolt() {}, message() {},
+  };
+  const dataSpawner = Adapter.createSpawner(stageId, 0, game, timeline, '?debug&stageRuntime=data');
+  dataSpawner.seekRange(at);
+  dataSpawner.update(at);
+  return game.enemies[0];
+}
+assert.equal(spawnAt('stage2', timelines[1], 22).S, 4, '등불 기뢰 무기를 실제 S4로 연결한다');
+assert.equal(spawnAt('stage4', timelines[3], 15.5).M, 5, '심해 추적 이동을 실제 M5로 연결한다');
+assert.equal(spawnAt('stage6', timelines[5], 2).M, 7, '폭풍 해류 이동을 실제 M7로 연결한다');
+const surround = spawnAt('stage5', timelines[4], 41);
+assert.equal(surround.M, 1);
+assert.ok(Math.hypot(surround.x - 180, surround.y - 270) > 250, '포위 편대가 현재 플레이어 둘레에 생성된다');
 
 delete global.Enemy;
 console.log('stage game adapter: ok');

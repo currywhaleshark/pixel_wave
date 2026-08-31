@@ -1,0 +1,1883 @@
+{
+  "format": "pixel-wave-stage",
+  "schemaVersion": 1,
+  "registryVersion": 1,
+  "draft": true,
+  "id": "stage6",
+  "name": "폭풍 수면",
+  "seed": 6006,
+  "timeline": {
+    "duration": 115,
+    "endBehavior": "boss-start"
+  },
+  "viewport": {
+    "width": 960,
+    "height": 540
+  },
+  "background": {
+    "presetId": "stage6",
+    "baseScrollSpeed": 45,
+    "scrollScale": 1
+  },
+  "difficultyProfileId": "legacy-diffs-v1",
+  "sections": [
+    {
+      "id": "act-1",
+      "name": "바람이 분다",
+      "start": 0,
+      "end": 35
+    },
+    {
+      "id": "act-2",
+      "name": "폭풍 속으로",
+      "start": 35,
+      "end": 76
+    },
+    {
+      "id": "act-3",
+      "name": "뇌우",
+      "start": 76,
+      "end": 111
+    },
+    {
+      "id": "boss-entry",
+      "name": "보스 진입",
+      "start": 111,
+      "end": 115
+    }
+  ],
+  "dependencies": {
+    "enemyKinds": [
+      "fish",
+      "jelly",
+      "ray",
+      "big"
+    ],
+    "entryPresets": [
+      "right-to-left",
+      "top-to-bottom",
+      "left-to-right"
+    ],
+    "formationPresets": [
+      "column",
+      "v",
+      "single",
+      "wall-gap"
+    ],
+    "movementPresets": [
+      "current-surf",
+      "sine",
+      "straight",
+      "enter-pause-exit"
+    ],
+    "weaponPresets": [
+      "none",
+      "legacy-aimed",
+      "legacy-drop",
+      "legacy-ring"
+    ],
+    "barragePatterns": [],
+    "itemPlugins": [
+      "scroll-speed",
+      "storm-current",
+      "lightning-strike",
+      "boss-warning",
+      "boss-start"
+    ],
+    "terrainObjects": [],
+    "terrainProfiles": [],
+    "bosses": [
+      "ureu"
+    ]
+  },
+  "items": [
+    {
+      "id": "s6-scroll-base",
+      "type": "environment",
+      "name": "기본 스크롤",
+      "timing": {
+        "domain": "time",
+        "start": 0,
+        "duration": 115
+      },
+      "payload": {
+        "pluginId": "scroll-speed",
+        "params": {
+          "curve": [
+            {
+              "at": 0,
+              "value": 1
+            },
+            {
+              "at": 115,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "s6-storm",
+      "type": "environment",
+      "name": "폭풍 해류",
+      "timing": {
+        "domain": "time",
+        "start": 0,
+        "duration": 115
+      },
+      "payload": {
+        "pluginId": "storm-current",
+        "params": {
+          "scale": 1,
+          "surfaceBoundaryY": 58,
+          "drawSurfaceWaves": true,
+          "drawCurrentIndicator": true,
+          "current": {
+            "xAmplitude": 70,
+            "xAngularFrequency": 0.45,
+            "yAmplitude": 26,
+            "yAngularFrequency": 0.85
+          },
+          "influence": {
+            "player": {
+              "x": 1,
+              "y": 1
+            },
+            "pointerTarget": {
+              "x": 0.6,
+              "y": 0.6
+            },
+            "enemyProjectile": {
+              "x": 0.75,
+              "y": 0.6
+            },
+            "currentSurfEnemy": {
+              "x": 1.4,
+              "y": 0.6
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "s6-w001",
+      "type": "wave",
+      "name": "물고기 웨이브 01",
+      "timing": {
+        "domain": "time",
+        "start": 2,
+        "duration": 1.5
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 120
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.3
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.35
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "current-surf",
+          "params": {
+            "amplitude": 25,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-w002",
+      "type": "wave",
+      "name": "물고기 웨이브 02",
+      "timing": {
+        "domain": "time",
+        "start": 4.5,
+        "duration": 1.5
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 120
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.3
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.65
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "current-surf",
+          "params": {
+            "amplitude": 25,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-w003",
+      "type": "wave",
+      "name": "물고기 웨이브 03",
+      "timing": {
+        "domain": "time",
+        "start": 8,
+        "duration": 1.8
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 115
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.45
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.3
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 22,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2.3
+        }
+      }
+    },
+    {
+      "id": "s6-w004",
+      "type": "wave",
+      "name": "해파리 웨이브 04",
+      "timing": {
+        "domain": "time",
+        "start": 9,
+        "duration": 1.5
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 72
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.5
+        },
+        "entry": {
+          "presetId": "top-to-bottom",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-w005",
+      "type": "wave",
+      "name": "가오리 웨이브 05",
+      "timing": {
+        "domain": "time",
+        "start": 12.5,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "ray",
+          "hp": 4,
+          "speed": 145
+        },
+        "spawn": {
+          "count": 3,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "v"
+        },
+        "movement": {
+          "presetId": "enter-pause-exit",
+          "params": {
+            "targetX": 0.68,
+            "pauseDuration": 2.8
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 1.5
+        }
+      }
+    },
+    {
+      "id": "s6-w006",
+      "type": "wave",
+      "name": "물고기 웨이브 06",
+      "timing": {
+        "domain": "time",
+        "start": 16,
+        "duration": 1.6800000000000002
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 125
+        },
+        "spawn": {
+          "count": 7,
+          "interval": 0.28
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "current-surf",
+          "params": {
+            "amplitude": 50,
+            "frequency": 2.8
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-01",
+      "type": "hazard",
+      "name": "물속 번개 01",
+      "timing": {
+        "domain": "time",
+        "start": 19.5,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.42,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4
+        }
+      }
+    },
+    {
+      "id": "s6-w007",
+      "type": "wave",
+      "name": "물고기 웨이브 07",
+      "timing": {
+        "domain": "time",
+        "start": 20.5,
+        "duration": 1.2
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 128
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.3
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.72
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 20,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-02",
+      "type": "hazard",
+      "name": "물속 번개 02",
+      "timing": {
+        "domain": "time",
+        "start": 24,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.62,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4
+        }
+      }
+    },
+    {
+      "id": "s6-w008",
+      "type": "wave",
+      "name": "해파리 웨이브 08",
+      "timing": {
+        "domain": "time",
+        "start": 24.5,
+        "duration": 1.6500000000000001
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 68
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.55
+        },
+        "entry": {
+          "presetId": "top-to-bottom",
+          "x": 0.45,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "legacy-drop",
+          "interval": 1.1
+        }
+      }
+    },
+    {
+      "id": "s6-w009",
+      "type": "wave",
+      "name": "물고기 웨이브 09",
+      "timing": {
+        "domain": "time",
+        "start": 28,
+        "duration": 1.2
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 125
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.3
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.3
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "current-surf",
+          "params": {
+            "amplitude": 22,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-w010",
+      "type": "wave",
+      "name": "물고기 웨이브 10",
+      "timing": {
+        "domain": "time",
+        "start": 28.5,
+        "duration": 1.2
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 125
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.3
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.7
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "current-surf",
+          "params": {
+            "amplitude": 22,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-w011",
+      "type": "wave",
+      "name": "물고기 웨이브 11",
+      "timing": {
+        "domain": "time",
+        "start": 31.5,
+        "duration": 1.82
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 140
+        },
+        "spawn": {
+          "count": 8,
+          "interval": 0.26
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.45
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 45,
+            "frequency": 2.8
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-w012",
+      "type": "wave",
+      "name": "가오리 웨이브 12",
+      "timing": {
+        "domain": "time",
+        "start": 35,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "ray",
+          "hp": 4,
+          "speed": 148
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.45
+        },
+        "formation": {
+          "presetId": "v"
+        },
+        "movement": {
+          "presetId": "enter-pause-exit",
+          "params": {
+            "targetX": 0.66,
+            "pauseDuration": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 1.3
+        }
+      }
+    },
+    {
+      "id": "s6-w013",
+      "type": "wave",
+      "name": "물고기 웨이브 13",
+      "timing": {
+        "domain": "time",
+        "start": 36.5,
+        "duration": 1.2
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 125
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.3
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.75
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "current-surf",
+          "params": {
+            "amplitude": 20,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-03",
+      "type": "hazard",
+      "name": "물속 번개 03",
+      "timing": {
+        "domain": "time",
+        "start": 40,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.3,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-04",
+      "type": "hazard",
+      "name": "물속 번개 04",
+      "timing": {
+        "domain": "time",
+        "start": 40.6,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.55,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4
+        }
+      }
+    },
+    {
+      "id": "s6-w014",
+      "type": "wave",
+      "name": "해파리 웨이브 14",
+      "timing": {
+        "domain": "time",
+        "start": 41.5,
+        "duration": 2
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 70
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.5
+        },
+        "entry": {
+          "presetId": "top-to-bottom",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "legacy-drop",
+          "interval": 1
+        }
+      }
+    },
+    {
+      "id": "s6-w015",
+      "type": "wave",
+      "name": "대물 웨이브 15",
+      "timing": {
+        "domain": "time",
+        "start": 45.5,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "big",
+          "hp": 65,
+          "speed": 95
+        },
+        "spawn": {
+          "count": 1,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "enter-pause-exit",
+          "params": {
+            "targetX": 0.72,
+            "pauseDuration": 6.5
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-ring",
+          "interval": 1.7,
+          "params": {
+            "count": 12
+          }
+        }
+      }
+    },
+    {
+      "id": "s6-w016",
+      "type": "wave",
+      "name": "물고기 웨이브 16",
+      "timing": {
+        "domain": "time",
+        "start": 47,
+        "duration": 1.2
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 128
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.3
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.22
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "current-surf",
+          "params": {
+            "amplitude": 18,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-05",
+      "type": "hazard",
+      "name": "물속 번개 05",
+      "timing": {
+        "domain": "time",
+        "start": 51,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.7,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-06",
+      "type": "hazard",
+      "name": "물속 번개 06",
+      "timing": {
+        "domain": "time",
+        "start": 51.7,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.45,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4
+        }
+      }
+    },
+    {
+      "id": "s6-w017",
+      "type": "wave",
+      "name": "물고기 웨이브 17",
+      "timing": {
+        "domain": "time",
+        "start": 52.5,
+        "duration": 1.26
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 120
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.42
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.28
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 20,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2.2
+        }
+      }
+    },
+    {
+      "id": "s6-w018",
+      "type": "wave",
+      "name": "물고기 웨이브 18",
+      "timing": {
+        "domain": "time",
+        "start": 53,
+        "duration": 1.26
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 120
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.42
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.72
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 20,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2.2
+        }
+      }
+    },
+    {
+      "id": "s6-w019",
+      "type": "wave",
+      "name": "해파리 웨이브 19",
+      "timing": {
+        "domain": "time",
+        "start": 57.5,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 100
+        },
+        "spawn": {
+          "count": 9,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "top-to-bottom",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "wall-gap",
+          "params": {
+            "slotCount": 10,
+            "gapSlots": 2,
+            "gapStartRange": [
+              1,
+              7
+            ],
+            "topPadding": 40,
+            "bottomPadding": 20
+          }
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-w020",
+      "type": "wave",
+      "name": "물고기 웨이브 20",
+      "timing": {
+        "domain": "time",
+        "start": 59,
+        "duration": 1.2
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 125
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.3
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.55
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "current-surf",
+          "params": {
+            "amplitude": 30,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-w021",
+      "type": "wave",
+      "name": "가오리 웨이브 21",
+      "timing": {
+        "domain": "time",
+        "start": 62.5,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "ray",
+          "hp": 4,
+          "speed": 148
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.55
+        },
+        "formation": {
+          "presetId": "v"
+        },
+        "movement": {
+          "presetId": "enter-pause-exit",
+          "params": {
+            "targetX": 0.68,
+            "pauseDuration": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 1.2
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-07",
+      "type": "hazard",
+      "name": "물속 번개 07",
+      "timing": {
+        "domain": "time",
+        "start": 63.5,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.5,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4
+        }
+      }
+    },
+    {
+      "id": "s6-w022",
+      "type": "wave",
+      "name": "물고기 웨이브 22",
+      "timing": {
+        "domain": "time",
+        "start": 67,
+        "duration": 1.35
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 160
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.45
+        },
+        "entry": {
+          "presetId": "left-to-right",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 20,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2.4
+        }
+      }
+    },
+    {
+      "id": "s6-w023",
+      "type": "wave",
+      "name": "물고기 웨이브 23",
+      "timing": {
+        "domain": "time",
+        "start": 68,
+        "duration": 1.4000000000000001
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 128
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.28
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.3
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "current-surf",
+          "params": {
+            "amplitude": 25,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-w024",
+      "type": "wave",
+      "name": "물고기 웨이브 24",
+      "timing": {
+        "domain": "time",
+        "start": 71.5,
+        "duration": 1.82
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 142
+        },
+        "spawn": {
+          "count": 8,
+          "interval": 0.26
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 40,
+            "frequency": 2.8
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-08",
+      "type": "hazard",
+      "name": "물속 번개 08",
+      "timing": {
+        "domain": "time",
+        "start": 76,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.2,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-09",
+      "type": "hazard",
+      "name": "물속 번개 09",
+      "timing": {
+        "domain": "time",
+        "start": 76.5,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.4,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-10",
+      "type": "hazard",
+      "name": "물속 번개 10",
+      "timing": {
+        "domain": "time",
+        "start": 77,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.6,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-11",
+      "type": "hazard",
+      "name": "물속 번개 11",
+      "timing": {
+        "domain": "time",
+        "start": 77.5,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.78,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4
+        }
+      }
+    },
+    {
+      "id": "s6-w025",
+      "type": "wave",
+      "name": "물고기 웨이브 25",
+      "timing": {
+        "domain": "time",
+        "start": 78,
+        "duration": 1.4000000000000001
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 128
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.28
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.6
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "current-surf",
+          "params": {
+            "amplitude": 30,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-w026",
+      "type": "wave",
+      "name": "대물 웨이브 26",
+      "timing": {
+        "domain": "time",
+        "start": 81.5,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "big",
+          "hp": 65,
+          "speed": 92
+        },
+        "spawn": {
+          "count": 1,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.45
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 40,
+            "frequency": 0.8
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-ring",
+          "interval": 1.8,
+          "params": {
+            "count": 14
+          }
+        }
+      }
+    },
+    {
+      "id": "s6-w027",
+      "type": "wave",
+      "name": "해파리 웨이브 27",
+      "timing": {
+        "domain": "time",
+        "start": 83,
+        "duration": 2.5
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 70
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.5
+        },
+        "entry": {
+          "presetId": "top-to-bottom",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "legacy-drop",
+          "interval": 1
+        }
+      }
+    },
+    {
+      "id": "s6-w028",
+      "type": "wave",
+      "name": "가오리 웨이브 28",
+      "timing": {
+        "domain": "time",
+        "start": 87.5,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "ray",
+          "hp": 4,
+          "speed": 150
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.3
+        },
+        "formation": {
+          "presetId": "v"
+        },
+        "movement": {
+          "presetId": "enter-pause-exit",
+          "params": {
+            "targetX": 0.7,
+            "pauseDuration": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 1.2
+        }
+      }
+    },
+    {
+      "id": "s6-w029",
+      "type": "wave",
+      "name": "가오리 웨이브 29",
+      "timing": {
+        "domain": "time",
+        "start": 88.5,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "ray",
+          "hp": 4,
+          "speed": 150
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.7
+        },
+        "formation": {
+          "presetId": "v"
+        },
+        "movement": {
+          "presetId": "enter-pause-exit",
+          "params": {
+            "targetX": 0.64,
+            "pauseDuration": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 1.2
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-12",
+      "type": "hazard",
+      "name": "물속 번개 12",
+      "timing": {
+        "domain": "time",
+        "start": 93,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.72,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-13",
+      "type": "hazard",
+      "name": "물속 번개 13",
+      "timing": {
+        "domain": "time",
+        "start": 93.5,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.5,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-14",
+      "type": "hazard",
+      "name": "물속 번개 14",
+      "timing": {
+        "domain": "time",
+        "start": 94,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.28,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4
+        }
+      }
+    },
+    {
+      "id": "s6-w030",
+      "type": "wave",
+      "name": "물고기 웨이브 30",
+      "timing": {
+        "domain": "time",
+        "start": 94.5,
+        "duration": 1.52
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 122
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.38
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.3
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 22,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2
+        }
+      }
+    },
+    {
+      "id": "s6-w031",
+      "type": "wave",
+      "name": "물고기 웨이브 31",
+      "timing": {
+        "domain": "time",
+        "start": 95,
+        "duration": 1.52
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 122
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.38
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.7
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 22,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2
+        }
+      }
+    },
+    {
+      "id": "s6-w032",
+      "type": "wave",
+      "name": "해파리 웨이브 32",
+      "timing": {
+        "domain": "time",
+        "start": 99.5,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 102
+        },
+        "spawn": {
+          "count": 10,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "top-to-bottom",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "wall-gap",
+          "params": {
+            "slotCount": 11,
+            "gapSlots": 2,
+            "gapStartRange": [
+              1,
+              8
+            ],
+            "topPadding": 40,
+            "bottomPadding": 20
+          }
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-w033",
+      "type": "wave",
+      "name": "물고기 웨이브 33",
+      "timing": {
+        "domain": "time",
+        "start": 101,
+        "duration": 1.3
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 132
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.26
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.4
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "current-surf",
+          "params": {
+            "amplitude": 28,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-15",
+      "type": "hazard",
+      "name": "물속 번개 15",
+      "timing": {
+        "domain": "time",
+        "start": 103.5,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.35,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-16",
+      "type": "hazard",
+      "name": "물속 번개 16",
+      "timing": {
+        "domain": "time",
+        "start": 103.6,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.65,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4
+        }
+      }
+    },
+    {
+      "id": "s6-w034",
+      "type": "wave",
+      "name": "물고기 웨이브 34",
+      "timing": {
+        "domain": "time",
+        "start": 105.5,
+        "duration": 1.68
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 145
+        },
+        "spawn": {
+          "count": 8,
+          "interval": 0.24
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.35
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 35,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-w035",
+      "type": "wave",
+      "name": "물고기 웨이브 35",
+      "timing": {
+        "domain": "time",
+        "start": 107,
+        "duration": 1.68
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 145
+        },
+        "spawn": {
+          "count": 8,
+          "interval": 0.24
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.65
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 35,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-boss-warning",
+      "type": "cue",
+      "name": "보스 경고",
+      "timing": {
+        "domain": "time",
+        "start": 111,
+        "duration": 4
+      },
+      "payload": {
+        "pluginId": "boss-warning",
+        "params": {
+          "message": "!! 뭔가 다가온다 !!",
+          "color": "#ff8f8f",
+          "screenShake": 0.6,
+          "soundId": "warn"
+        }
+      }
+    },
+    {
+      "id": "s6-boss-start",
+      "type": "boss",
+      "name": "우르릉 등장",
+      "timing": {
+        "domain": "time",
+        "start": 115,
+        "duration": 0
+      },
+      "payload": {
+        "pluginId": "boss-start",
+        "bossId": "ureu"
+      }
+    }
+  ]
+}

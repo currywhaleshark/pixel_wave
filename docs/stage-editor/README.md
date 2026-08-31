@@ -1,10 +1,8 @@
 # Pixel Wave Stage Sequencer design index
 
-The Stage Sequencer contract now has complete M3 wave authoring and M4
-environment authoring, including editable scroll-speed curves, shared plugin
-simulation, and deterministic special-system seeking. The
-current game runtime has not been replaced; the editor remains isolated under
-`tools/` until preview parity is proven.
+The Stage Sequencer now loads complete Stage JSON for all seven stages. The
+production default remains the legacy runtime, while debug and editor game-test
+URLs can run the matching data-driven stage through the shared game bridge.
 
 ## Run the editor
 
@@ -56,15 +54,16 @@ current game runtime has not been replaced; the editor remains isolated under
 12. Timeline clips show inherited, patched, replaced, disabled, and
    active-difficulty-only states. The editor also supports duplicate/delete,
    undo/redo, Stage 3 JSON import, device autosave, and JSON export.
-13. Append `?stage=stage5` or `?stage=stage6` to open the checked-in M4 coverage
-    fixtures. Registered environment and hazard plugins use one metadata-driven
+13. Append `?stage=stage1` through `?stage=stage7` to open any complete stage.
+    Registered environment and hazard plugins use one metadata-driven
     inspector. Exclusive state-channel overlaps appear above the timeline; each
     warning has buttons that select and seek to both conflicting clips.
-14. Append `?stage=stage1` to open the M5 terrain fixture. Toggle `지형 검토`
+14. The separate Stage 1 M5 terrain coverage fixture remains available for
+    structural-mask QA. Toggle `지형 검토`
     to see the cyan structural contour and reviewed sockets. Terrain clips are
     projected from absolute layer distance onto the timeline; their inspector
     selects approved sockets and edits offset, HP, and fire interval.
-15. On Stage 3, `게임 시험` copies the current in-device draft into a
+15. On every complete stage, `게임 시험` copies the current in-device draft into a
     same-tab test session, then opens the current difficulty and selected range
     in the opt-in production bridge. The HUD says `STAGE DRAFT`, and an edited
     draft is expected to report parity differences from the checked-in legacy
@@ -72,9 +71,8 @@ current game runtime has not been replaced; the editor remains isolated under
     after boss victory, and the pause menu can return early. Test runs do not
     write clear rewards or scoreboard state. Direct URLs without a test payload
     still use the checked-in generated Stage JSON. Removing `stageRuntime=data`
-    always restores the legacy runtime. Stage 1/5/6 coverage fixtures remain
-    preview-only, so their game-test link is disabled instead of silently
-    launching an unrelated legacy stage.
+    always restores the legacy runtime. Partial coverage fixtures remain
+    preview-only and are not used by the normal stage selector.
 16. M7 adds `여러 선택`, one-step bulk movement/deletion, portable clip
     fragments, and reusable section templates. `Ctrl/Cmd+C`, `Ctrl/Cmd+V`,
     `Ctrl/Cmd+Z`, `Shift+Ctrl/Cmd+Z`, `Delete`, and touch controls share the
@@ -110,6 +108,7 @@ remain intentionally outside this slice.
 
 ## Parity and coverage fixtures
 
+- `stage1.v1.draft.json` through `stage7.v1.draft.json` — complete editable stages
 - `stage3.v1.draft.json` — complete Stage 3 draft conversion
 - `coverage-stage1-terrain.v1.draft.json` — current coral turret migration
 - `coverage-stage5-wreck.v1.draft.json` — all current wreck obstacles
@@ -158,3 +157,9 @@ crash recovery, quota diagnostics, explicit v0 → v1 migration, accessible
 selection state, and a 2,000-item limit regression. Hosted synchronization is
 optional; its conflict resolver returns both immutable versions and never picks
 a winner when histories diverge.
+
+The all-stage bridge adds deterministic conversion for Stages 1, 2, 4, 5, 6,
+and 7, extends the shared vocabulary for legacy drop/mine weapons, tracking,
+turret/current movement, and surround formations, and connects wreck and
+lightning hazards to the existing game systems. All seven stages pass ordered
+timing/count/special-event parity in all three difficulties.

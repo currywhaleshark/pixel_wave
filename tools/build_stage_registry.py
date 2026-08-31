@@ -9,7 +9,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = {
+    'stage1': ROOT / 'docs/stage-editor/stage1.v1.draft.json',
+    'stage2': ROOT / 'docs/stage-editor/stage2.v1.draft.json',
     'stage3': ROOT / 'docs/stage-editor/stage3.v1.draft.json',
+    'stage4': ROOT / 'docs/stage-editor/stage4.v1.draft.json',
+    'stage5': ROOT / 'docs/stage-editor/stage5.v1.draft.json',
+    'stage6': ROOT / 'docs/stage-editor/stage6.v1.draft.json',
+    'stage7': ROOT / 'docs/stage-editor/stage7.v1.draft.json',
 }
 TYPE_PRIORITY = {'environment': 0, 'gimmick': 1, 'hazard': 2, 'wave': 3, 'terrain-object': 4, 'cue': 5, 'boss': 6}
 

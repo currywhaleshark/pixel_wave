@@ -5,7 +5,7 @@
 (function initStageFormation(root) {
   'use strict';
 
-  const PRESETS = Object.freeze(['single', 'column', 'v', 'wall-gap']);
+  const PRESETS = Object.freeze(['single', 'column', 'v', 'wall-gap', 'surround-ring']);
 
   function clone(value) {
     return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
@@ -58,6 +58,16 @@
         },
       };
     }
+    if (presetId === 'surround-ring') {
+      return {
+        presetId,
+        params: {
+          ...sourceParams,
+          radius: clamp(sourceParams.radius ?? 300, 20, 1000),
+          angleJitter: clamp(sourceParams.angleJitter ?? 0.25, 0, Math.PI * 2),
+        },
+      };
+    }
     const output = { presetId };
     if (Object.keys(sourceParams).length) output.params = sourceParams;
     return output;
@@ -88,6 +98,10 @@
           errors.push('벽 편대의 틈 위치가 올바르지 않습니다.');
         }
       }
+    }
+    if (formation.presetId === 'surround-ring') {
+      if (!validNumber(params.radius, 20, 1000)) errors.push('포위 편대의 반지름이 올바르지 않습니다.');
+      if (!validNumber(params.angleJitter, 0, Math.PI * 2)) errors.push('포위 편대의 각도 흔들림이 올바르지 않습니다.');
     }
     if (formation.presetId !== 'wall-gap' && (!Number.isFinite(Number(spawnCount)) || spawnCount < 1 || spawnCount > 256)) {
       errors.push('편대의 생성 마릿수가 올바르지 않습니다.');
@@ -154,6 +168,24 @@
           targetYOffset: backwardY * backward + sideY * spread,
         });
       }
+      return { formation: normalized, points, resolvedCount: count, width, height };
+    }
+    if (normalized.presetId === 'surround-ring') {
+      const centerX = finite(options.centerX, width * 0.2);
+      const centerY = finite(options.centerY, height * 0.5);
+      const points = Array.from({ length: count }, (_, index) => {
+        const angle = finite(options.angles?.[index], index / count * Math.PI * 2);
+        let x = centerX + Math.cos(angle) * normalized.params.radius;
+        let y = centerY + Math.sin(angle) * normalized.params.radius;
+        x = Math.min(x, width + 90);
+        y = Math.max(-70, Math.min(height + 70, y));
+        const length = Math.hypot(centerX - x, centerY - y) || 1;
+        return {
+          x, y, rank: index, side: 0, surroundAngle: angle,
+          directionX: (centerX - x) / length,
+          directionY: (centerY - y) / length,
+        };
+      });
       return { formation: normalized, points, resolvedCount: count, width, height };
     }
     return {

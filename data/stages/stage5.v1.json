@@ -1,0 +1,1600 @@
+{
+  "format": "pixel-wave-stage",
+  "schemaVersion": 1,
+  "registryVersion": 1,
+  "draft": true,
+  "id": "stage5",
+  "name": "난파선 묘지",
+  "seed": 5005,
+  "timeline": {
+    "duration": 115,
+    "endBehavior": "boss-start"
+  },
+  "viewport": {
+    "width": 960,
+    "height": 540
+  },
+  "background": {
+    "presetId": "stage5",
+    "baseScrollSpeed": 45,
+    "scrollScale": 1
+  },
+  "difficultyProfileId": "legacy-diffs-v1",
+  "sections": [
+    {
+      "id": "act-1",
+      "name": "잔해 사이로",
+      "start": 0,
+      "end": 35
+    },
+    {
+      "id": "act-2",
+      "name": "유령의 시간",
+      "start": 35,
+      "end": 76
+    },
+    {
+      "id": "act-3",
+      "name": "좁아지는 묘지",
+      "start": 76,
+      "end": 111
+    },
+    {
+      "id": "boss-entry",
+      "name": "보스 진입",
+      "start": 111,
+      "end": 115
+    }
+  ],
+  "dependencies": {
+    "enemyKinds": [
+      "fish",
+      "ghost",
+      "jelly",
+      "turret",
+      "big"
+    ],
+    "entryPresets": [
+      "right-to-left",
+      "diagonal",
+      "top-to-bottom"
+    ],
+    "formationPresets": [
+      "column",
+      "single",
+      "surround-ring"
+    ],
+    "movementPresets": [
+      "sine",
+      "straight",
+      "turret-scroll",
+      "enter-pause-exit"
+    ],
+    "weaponPresets": [
+      "none",
+      "legacy-aimed",
+      "legacy-drop",
+      "legacy-ring"
+    ],
+    "barragePatterns": [],
+    "itemPlugins": [
+      "scroll-speed",
+      "darkness",
+      "wreck-corridor",
+      "boss-warning",
+      "boss-start"
+    ],
+    "terrainObjects": [],
+    "terrainProfiles": [],
+    "bosses": [
+      "buu"
+    ]
+  },
+  "items": [
+    {
+      "id": "s5-darkness",
+      "type": "environment",
+      "name": "수중 암전",
+      "timing": {
+        "domain": "time",
+        "start": 0,
+        "duration": 115
+      },
+      "payload": {
+        "pluginId": "darkness",
+        "params": {
+          "target": 0.3,
+          "responseRate": 1.2
+        }
+      }
+    },
+    {
+      "id": "s5-scroll-base",
+      "type": "environment",
+      "name": "기본 스크롤",
+      "timing": {
+        "domain": "time",
+        "start": 0,
+        "duration": 115
+      },
+      "payload": {
+        "pluginId": "scroll-speed",
+        "params": {
+          "curve": [
+            {
+              "at": 0,
+              "value": 1
+            },
+            {
+              "at": 115,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "s5-w001",
+      "type": "wave",
+      "name": "물고기 웨이브 01",
+      "timing": {
+        "domain": "time",
+        "start": 2,
+        "duration": 1.6
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 125
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.32
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.35
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 30,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-w002",
+      "type": "wave",
+      "name": "물고기 웨이브 02",
+      "timing": {
+        "domain": "time",
+        "start": 4.5,
+        "duration": 1.6
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 125
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.32
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.65
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 30,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-wreck-01",
+      "type": "hazard",
+      "name": "하단 난파선 38%",
+      "timing": {
+        "domain": "time",
+        "start": 8,
+        "duration": 11.579
+      },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": {
+          "side": "bottom",
+          "heightFraction": 0.38,
+          "speed": 95,
+          "width": 74,
+          "indestructible": true
+        }
+      }
+    },
+    {
+      "id": "s5-w003",
+      "type": "wave",
+      "name": "물고기 웨이브 03",
+      "timing": {
+        "domain": "time",
+        "start": 9,
+        "duration": 1.5
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 130
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.3
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.22
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 20,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-w004",
+      "type": "wave",
+      "name": "유령 물고기 웨이브 04",
+      "timing": {
+        "domain": "time",
+        "start": 13,
+        "duration": 1.35
+      },
+      "payload": {
+        "enemy": {
+          "kind": "ghost",
+          "hp": 2,
+          "speed": 110
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.45
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 30,
+            "frequency": 2.5
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-wreck-02",
+      "type": "hazard",
+      "name": "상단 난파선 38%",
+      "timing": {
+        "domain": "time",
+        "start": 16.5,
+        "duration": 11.579
+      },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": {
+          "side": "top",
+          "heightFraction": 0.38,
+          "speed": 95,
+          "width": 74,
+          "indestructible": true
+        }
+      }
+    },
+    {
+      "id": "s5-w005",
+      "type": "wave",
+      "name": "물고기 웨이브 05",
+      "timing": {
+        "domain": "time",
+        "start": 17.5,
+        "duration": 1.8
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 115
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.45
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.72
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 22,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2.3
+        }
+      }
+    },
+    {
+      "id": "s5-w006",
+      "type": "wave",
+      "name": "유령 물고기 웨이브 06",
+      "timing": {
+        "domain": "time",
+        "start": 21.5,
+        "duration": 1.2000000000000002
+      },
+      "payload": {
+        "enemy": {
+          "kind": "ghost",
+          "hp": 2,
+          "speed": 120
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.4
+        },
+        "entry": {
+          "presetId": "diagonal",
+          "x": 0.75,
+          "y": 0.5,
+          "params": {
+            "vertical": "down"
+          }
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-w007",
+      "type": "wave",
+      "name": "물고기 웨이브 07",
+      "timing": {
+        "domain": "time",
+        "start": 22.5,
+        "duration": 1.2
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 130
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.3
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.8
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 18,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-wreck-03",
+      "type": "hazard",
+      "name": "하단 난파선 50%",
+      "timing": {
+        "domain": "time",
+        "start": 26.5,
+        "duration": 11
+      },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": {
+          "side": "bottom",
+          "heightFraction": 0.5,
+          "speed": 100,
+          "width": 74,
+          "indestructible": true
+        }
+      }
+    },
+    {
+      "id": "s5-w008",
+      "type": "wave",
+      "name": "해파리 웨이브 08",
+      "timing": {
+        "domain": "time",
+        "start": 27.5,
+        "duration": 1.7999999999999998
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 62
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.6
+        },
+        "entry": {
+          "presetId": "top-to-bottom",
+          "x": 0.45,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "legacy-drop",
+          "interval": 1.1
+        }
+      }
+    },
+    {
+      "id": "s5-w009",
+      "type": "wave",
+      "name": "물고기 웨이브 09",
+      "timing": {
+        "domain": "time",
+        "start": 31.5,
+        "duration": 1.82
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 140
+        },
+        "spawn": {
+          "count": 8,
+          "interval": 0.26
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.45
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 45,
+            "frequency": 2.8
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-w010",
+      "type": "wave",
+      "name": "산호 포대 웨이브 10",
+      "timing": {
+        "domain": "time",
+        "start": 35,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "turret",
+          "hp": 7,
+          "speed": 0
+        },
+        "spawn": {
+          "count": 1,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.93
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "turret-scroll"
+        },
+        "weapon": {
+          "presetId": "legacy-ring",
+          "interval": 2.6,
+          "params": {
+            "count": 8
+          }
+        }
+      }
+    },
+    {
+      "id": "s5-w011",
+      "type": "wave",
+      "name": "물고기 웨이브 11",
+      "timing": {
+        "domain": "time",
+        "start": 36,
+        "duration": 1.4000000000000001
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 128
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.28
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.25
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 25,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-w012",
+      "type": "wave",
+      "name": "산호 포대 웨이브 12",
+      "timing": {
+        "domain": "time",
+        "start": 37.5,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "turret",
+          "hp": 7,
+          "speed": 0
+        },
+        "spawn": {
+          "count": 1,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.93
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "turret-scroll"
+        },
+        "weapon": {
+          "presetId": "legacy-ring",
+          "interval": 2.6,
+          "params": {
+            "count": 8
+          }
+        }
+      }
+    },
+    {
+      "id": "s5-w013",
+      "type": "wave",
+      "name": "유령 물고기 웨이브 13",
+      "timing": {
+        "domain": "time",
+        "start": 41,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "ghost",
+          "hp": 2,
+          "speed": 60
+        },
+        "spawn": {
+          "count": 8,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "surround-ring",
+          "params": {
+            "radius": 300,
+            "angleJitter": 0.25
+          }
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-wreck-04",
+      "type": "hazard",
+      "name": "상단 난파선 32%",
+      "timing": {
+        "domain": "time",
+        "start": 45,
+        "duration": 11
+      },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": {
+          "side": "top",
+          "heightFraction": 0.32,
+          "speed": 100,
+          "width": 74,
+          "indestructible": true
+        }
+      }
+    },
+    {
+      "id": "s5-wreck-05",
+      "type": "hazard",
+      "name": "하단 난파선 32%",
+      "timing": {
+        "domain": "time",
+        "start": 45.2,
+        "duration": 11
+      },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": {
+          "side": "bottom",
+          "heightFraction": 0.32,
+          "speed": 100,
+          "width": 74,
+          "indestructible": true
+        }
+      }
+    },
+    {
+      "id": "s5-w014",
+      "type": "wave",
+      "name": "물고기 웨이브 14",
+      "timing": {
+        "domain": "time",
+        "start": 46.5,
+        "duration": 1.4000000000000001
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 135
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.28
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 12,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-w015",
+      "type": "wave",
+      "name": "유령 물고기 웨이브 15",
+      "timing": {
+        "domain": "time",
+        "start": 50.5,
+        "duration": 1.35
+      },
+      "payload": {
+        "enemy": {
+          "kind": "ghost",
+          "hp": 2,
+          "speed": 112
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.45
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.35
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 25,
+            "frequency": 2.5
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2.3
+        }
+      }
+    },
+    {
+      "id": "s5-w016",
+      "type": "wave",
+      "name": "해파리 웨이브 16",
+      "timing": {
+        "domain": "time",
+        "start": 51.5,
+        "duration": 1.5
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 66
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.5
+        },
+        "entry": {
+          "presetId": "top-to-bottom",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-w017",
+      "type": "wave",
+      "name": "대물 웨이브 17",
+      "timing": {
+        "domain": "time",
+        "start": 55.5,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "big",
+          "hp": 60,
+          "speed": 95
+        },
+        "spawn": {
+          "count": 1,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "enter-pause-exit",
+          "params": {
+            "targetX": 0.72,
+            "pauseDuration": 6.5
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-ring",
+          "interval": 1.7,
+          "params": {
+            "count": 12
+          }
+        }
+      }
+    },
+    {
+      "id": "s5-w018",
+      "type": "wave",
+      "name": "유령 물고기 웨이브 18",
+      "timing": {
+        "domain": "time",
+        "start": 57,
+        "duration": 1.2000000000000002
+      },
+      "payload": {
+        "enemy": {
+          "kind": "ghost",
+          "hp": 2,
+          "speed": 120
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.4
+        },
+        "entry": {
+          "presetId": "diagonal",
+          "x": 0.75,
+          "y": 0.5,
+          "params": {
+            "vertical": "up"
+          }
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-wreck-06",
+      "type": "hazard",
+      "name": "하단 난파선 55%",
+      "timing": {
+        "domain": "time",
+        "start": 61.5,
+        "duration": 11
+      },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": {
+          "side": "bottom",
+          "heightFraction": 0.55,
+          "speed": 100,
+          "width": 74,
+          "indestructible": true
+        }
+      }
+    },
+    {
+      "id": "s5-w019",
+      "type": "wave",
+      "name": "물고기 웨이브 19",
+      "timing": {
+        "domain": "time",
+        "start": 62.5,
+        "duration": 1.26
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 120
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.42
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.22
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 18,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2.2
+        }
+      }
+    },
+    {
+      "id": "s5-w020",
+      "type": "wave",
+      "name": "유령 물고기 웨이브 20",
+      "timing": {
+        "domain": "time",
+        "start": 66.5,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "ghost",
+          "hp": 2,
+          "speed": 62
+        },
+        "spawn": {
+          "count": 10,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "surround-ring",
+          "params": {
+            "radius": 310,
+            "angleJitter": 0.25
+          }
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-w021",
+      "type": "wave",
+      "name": "물고기 웨이브 21",
+      "timing": {
+        "domain": "time",
+        "start": 68,
+        "duration": 1.4000000000000001
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 132
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.28
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.6
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 30,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-wreck-07",
+      "type": "hazard",
+      "name": "상단 난파선 45%",
+      "timing": {
+        "domain": "time",
+        "start": 76,
+        "duration": 10.476
+      },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": {
+          "side": "top",
+          "heightFraction": 0.45,
+          "speed": 105,
+          "width": 74,
+          "indestructible": true
+        }
+      }
+    },
+    {
+      "id": "s5-w022",
+      "type": "wave",
+      "name": "유령 물고기 웨이브 22",
+      "timing": {
+        "domain": "time",
+        "start": 78,
+        "duration": 1.26
+      },
+      "payload": {
+        "enemy": {
+          "kind": "ghost",
+          "hp": 2,
+          "speed": 115
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.42
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.75
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 20,
+            "frequency": 2.5
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2.2
+        }
+      }
+    },
+    {
+      "id": "s5-wreck-08",
+      "type": "hazard",
+      "name": "하단 난파선 45%",
+      "timing": {
+        "domain": "time",
+        "start": 80,
+        "duration": 10.476
+      },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": {
+          "side": "bottom",
+          "heightFraction": 0.45,
+          "speed": 105,
+          "width": 74,
+          "indestructible": true
+        }
+      }
+    },
+    {
+      "id": "s5-w023",
+      "type": "wave",
+      "name": "해파리 웨이브 23",
+      "timing": {
+        "domain": "time",
+        "start": 82,
+        "duration": 2.2
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 64
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.55
+        },
+        "entry": {
+          "presetId": "top-to-bottom",
+          "x": 0.4,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "legacy-drop",
+          "interval": 1.1
+        }
+      }
+    },
+    {
+      "id": "s5-wreck-09",
+      "type": "hazard",
+      "name": "상단 난파선 45%",
+      "timing": {
+        "domain": "time",
+        "start": 84,
+        "duration": 10.476
+      },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": {
+          "side": "top",
+          "heightFraction": 0.45,
+          "speed": 105,
+          "width": 74,
+          "indestructible": true
+        }
+      }
+    },
+    {
+      "id": "s5-w024",
+      "type": "wave",
+      "name": "대물 웨이브 24",
+      "timing": {
+        "domain": "time",
+        "start": 88,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "big",
+          "hp": 60,
+          "speed": 90
+        },
+        "spawn": {
+          "count": 1,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 40,
+            "frequency": 0.8
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-ring",
+          "interval": 1.8,
+          "params": {
+            "count": 14
+          }
+        }
+      }
+    },
+    {
+      "id": "s5-w025",
+      "type": "wave",
+      "name": "유령 물고기 웨이브 25",
+      "timing": {
+        "domain": "time",
+        "start": 89.5,
+        "duration": 1.4
+      },
+      "payload": {
+        "enemy": {
+          "kind": "ghost",
+          "hp": 2,
+          "speed": 125
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.35
+        },
+        "entry": {
+          "presetId": "diagonal",
+          "x": 0.75,
+          "y": 0.5,
+          "params": {
+            "vertical": "down"
+          }
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-w026",
+      "type": "wave",
+      "name": "유령 물고기 웨이브 26",
+      "timing": {
+        "domain": "time",
+        "start": 94,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "ghost",
+          "hp": 2,
+          "speed": 64
+        },
+        "spawn": {
+          "count": 12,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "surround-ring",
+          "params": {
+            "radius": 320,
+            "angleJitter": 0.25
+          }
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-w027",
+      "type": "wave",
+      "name": "물고기 웨이브 27",
+      "timing": {
+        "domain": "time",
+        "start": 95.5,
+        "duration": 1.52
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 122
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.38
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.25
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 22,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2
+        }
+      }
+    },
+    {
+      "id": "s5-w028",
+      "type": "wave",
+      "name": "물고기 웨이브 28",
+      "timing": {
+        "domain": "time",
+        "start": 96,
+        "duration": 1.52
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 122
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.38
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.75
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 22,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2
+        }
+      }
+    },
+    {
+      "id": "s5-wreck-10",
+      "type": "hazard",
+      "name": "상단 난파선 34%",
+      "timing": {
+        "domain": "time",
+        "start": 100.5,
+        "duration": 10.476
+      },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": {
+          "side": "top",
+          "heightFraction": 0.34,
+          "speed": 105,
+          "width": 74,
+          "indestructible": true
+        }
+      }
+    },
+    {
+      "id": "s5-wreck-11",
+      "type": "hazard",
+      "name": "하단 난파선 34%",
+      "timing": {
+        "domain": "time",
+        "start": 100.7,
+        "duration": 10.476
+      },
+      "payload": {
+        "pluginId": "wreck-corridor",
+        "params": {
+          "side": "bottom",
+          "heightFraction": 0.34,
+          "speed": 105,
+          "width": 74,
+          "indestructible": true
+        }
+      }
+    },
+    {
+      "id": "s5-w029",
+      "type": "wave",
+      "name": "유령 물고기 웨이브 29",
+      "timing": {
+        "domain": "time",
+        "start": 102,
+        "duration": 1.5
+      },
+      "payload": {
+        "enemy": {
+          "kind": "ghost",
+          "hp": 2,
+          "speed": 130
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.3
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 14,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-w030",
+      "type": "wave",
+      "name": "물고기 웨이브 30",
+      "timing": {
+        "domain": "time",
+        "start": 105.5,
+        "duration": 1.68
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 145
+        },
+        "spawn": {
+          "count": 8,
+          "interval": 0.24
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.35
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 35,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-w031",
+      "type": "wave",
+      "name": "물고기 웨이브 31",
+      "timing": {
+        "domain": "time",
+        "start": 107,
+        "duration": 1.68
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 145
+        },
+        "spawn": {
+          "count": 8,
+          "interval": 0.24
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.65
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 35,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-boss-warning",
+      "type": "cue",
+      "name": "보스 경고",
+      "timing": {
+        "domain": "time",
+        "start": 111,
+        "duration": 4
+      },
+      "payload": {
+        "pluginId": "boss-warning",
+        "params": {
+          "message": "!! 뭔가 다가온다 !!",
+          "color": "#ff8f8f",
+          "screenShake": 0.6,
+          "soundId": "warn"
+        }
+      }
+    },
+    {
+      "id": "s5-boss-start",
+      "type": "boss",
+      "name": "부우 등장",
+      "timing": {
+        "domain": "time",
+        "start": 115,
+        "duration": 0
+      },
+      "payload": {
+        "pluginId": "boss-start",
+        "bossId": "buu"
+      }
+    }
+  ]
+}

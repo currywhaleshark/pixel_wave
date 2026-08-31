@@ -1,0 +1,1665 @@
+{
+  "format": "pixel-wave-stage",
+  "schemaVersion": 1,
+  "registryVersion": 1,
+  "draft": true,
+  "id": "stage4",
+  "name": "심해 협곡",
+  "seed": 4004,
+  "timeline": {
+    "duration": 115,
+    "endBehavior": "boss-start"
+  },
+  "viewport": {
+    "width": 960,
+    "height": 540
+  },
+  "background": {
+    "presetId": "stage4",
+    "baseScrollSpeed": 45,
+    "scrollScale": 1
+  },
+  "difficultyProfileId": "legacy-diffs-v1",
+  "sections": [
+    {
+      "id": "act-1",
+      "name": "어둠 적응",
+      "start": 0,
+      "end": 35
+    },
+    {
+      "id": "act-2",
+      "name": "협곡 깊이",
+      "start": 35,
+      "end": 76
+    },
+    {
+      "id": "act-3",
+      "name": "심해 러시",
+      "start": 76,
+      "end": 111
+    },
+    {
+      "id": "boss-entry",
+      "name": "보스 진입",
+      "start": 111,
+      "end": 115
+    }
+  ],
+  "dependencies": {
+    "enemyKinds": [
+      "lantern",
+      "fish",
+      "jelly",
+      "viper",
+      "big"
+    ],
+    "entryPresets": [
+      "right-to-left",
+      "top-to-bottom",
+      "bottom-to-top"
+    ],
+    "formationPresets": [
+      "single",
+      "column",
+      "wall-gap"
+    ],
+    "movementPresets": [
+      "sine",
+      "straight",
+      "tracking",
+      "enter-pause-exit"
+    ],
+    "weaponPresets": [
+      "none",
+      "legacy-aimed",
+      "legacy-drop",
+      "legacy-ring"
+    ],
+    "barragePatterns": [],
+    "itemPlugins": [
+      "scroll-speed",
+      "darkness",
+      "boss-warning",
+      "boss-start"
+    ],
+    "terrainObjects": [],
+    "terrainProfiles": [],
+    "bosses": [
+      "chorong"
+    ]
+  },
+  "items": [
+    {
+      "id": "s4-scroll-base",
+      "type": "environment",
+      "name": "기본 스크롤",
+      "timing": {
+        "domain": "time",
+        "start": 0,
+        "duration": 115
+      },
+      "payload": {
+        "pluginId": "scroll-speed",
+        "params": {
+          "curve": [
+            {
+              "at": 0,
+              "value": 1
+            },
+            {
+              "at": 115,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "s4-darkness",
+      "type": "environment",
+      "name": "수중 암전",
+      "timing": {
+        "domain": "time",
+        "start": 0,
+        "duration": 115
+      },
+      "payload": {
+        "pluginId": "darkness",
+        "params": {
+          "target": 0.86,
+          "responseRate": 1.2
+        }
+      }
+    },
+    {
+      "id": "s4-w001",
+      "type": "wave",
+      "name": "등불해파리 웨이브 01",
+      "timing": {
+        "domain": "time",
+        "start": 2,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "lantern",
+          "hp": 5,
+          "speed": 50
+        },
+        "spawn": {
+          "count": 1,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 30,
+            "frequency": 1.2
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w002",
+      "type": "wave",
+      "name": "물고기 웨이브 02",
+      "timing": {
+        "domain": "time",
+        "start": 3.5,
+        "duration": 1.6
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 120
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.32
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.35
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 30,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w003",
+      "type": "wave",
+      "name": "물고기 웨이브 03",
+      "timing": {
+        "domain": "time",
+        "start": 6.5,
+        "duration": 1.6
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 120
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.32
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.65
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 30,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w004",
+      "type": "wave",
+      "name": "해파리 웨이브 04",
+      "timing": {
+        "domain": "time",
+        "start": 8,
+        "duration": 1.6500000000000001
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 68
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.55
+        },
+        "entry": {
+          "presetId": "top-to-bottom",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w005",
+      "type": "wave",
+      "name": "등불해파리 웨이브 05",
+      "timing": {
+        "domain": "time",
+        "start": 11,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "lantern",
+          "hp": 5,
+          "speed": 52
+        },
+        "spawn": {
+          "count": 1,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.3
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 25,
+            "frequency": 1.3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w006",
+      "type": "wave",
+      "name": "물고기 웨이브 06",
+      "timing": {
+        "domain": "time",
+        "start": 12,
+        "duration": 1.8
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 110
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.45
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.7
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 25,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2.4
+        }
+      }
+    },
+    {
+      "id": "s4-w007",
+      "type": "wave",
+      "name": "독니고기 웨이브 07",
+      "timing": {
+        "domain": "time",
+        "start": 15.5,
+        "duration": 1
+      },
+      "payload": {
+        "enemy": {
+          "kind": "viper",
+          "hp": 3,
+          "speed": 115
+        },
+        "spawn": {
+          "count": 2,
+          "interval": 1
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.4
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "tracking"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w008",
+      "type": "wave",
+      "name": "물고기 웨이브 08",
+      "timing": {
+        "domain": "time",
+        "start": 18.5,
+        "duration": 1.5
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 125
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.3
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.25
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 22,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w009",
+      "type": "wave",
+      "name": "해파리 웨이브 09",
+      "timing": {
+        "domain": "time",
+        "start": 20,
+        "duration": 1.6500000000000001
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 62
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.55
+        },
+        "entry": {
+          "presetId": "bottom-to-top",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w010",
+      "type": "wave",
+      "name": "등불해파리 웨이브 10",
+      "timing": {
+        "domain": "time",
+        "start": 23,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "lantern",
+          "hp": 5,
+          "speed": 52
+        },
+        "spawn": {
+          "count": 1,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.6
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 30,
+            "frequency": 1.2
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w011",
+      "type": "wave",
+      "name": "독니고기 웨이브 11",
+      "timing": {
+        "domain": "time",
+        "start": 24,
+        "duration": 1.8
+      },
+      "payload": {
+        "enemy": {
+          "kind": "viper",
+          "hp": 3,
+          "speed": 118
+        },
+        "spawn": {
+          "count": 3,
+          "interval": 0.9
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.55
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "tracking"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w012",
+      "type": "wave",
+      "name": "해파리 웨이브 12",
+      "timing": {
+        "domain": "time",
+        "start": 27.5,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 85
+        },
+        "spawn": {
+          "count": 9,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "top-to-bottom",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "wall-gap",
+          "params": {
+            "slotCount": 10,
+            "gapSlots": 2,
+            "gapStartRange": [
+              1,
+              7
+            ],
+            "topPadding": 40,
+            "bottomPadding": 20
+          }
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w013",
+      "type": "wave",
+      "name": "물고기 웨이브 13",
+      "timing": {
+        "domain": "time",
+        "start": 31,
+        "duration": 1.82
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 140
+        },
+        "spawn": {
+          "count": 8,
+          "interval": 0.26
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.45
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 45,
+            "frequency": 2.8
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w014",
+      "type": "wave",
+      "name": "등불해파리 웨이브 14",
+      "timing": {
+        "domain": "time",
+        "start": 35,
+        "duration": 2.2
+      },
+      "payload": {
+        "enemy": {
+          "kind": "lantern",
+          "hp": 5,
+          "speed": 55
+        },
+        "spawn": {
+          "count": 3,
+          "interval": 1.1
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.4
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 28,
+            "frequency": 1.2
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w015",
+      "type": "wave",
+      "name": "해파리 웨이브 15",
+      "timing": {
+        "domain": "time",
+        "start": 36.5,
+        "duration": 2.2
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 62
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.55
+        },
+        "entry": {
+          "presetId": "top-to-bottom",
+          "x": 0.55,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "legacy-drop",
+          "interval": 1.1
+        }
+      }
+    },
+    {
+      "id": "s4-w016",
+      "type": "wave",
+      "name": "독니고기 웨이브 16",
+      "timing": {
+        "domain": "time",
+        "start": 40.5,
+        "duration": 1.8
+      },
+      "payload": {
+        "enemy": {
+          "kind": "viper",
+          "hp": 3,
+          "speed": 120
+        },
+        "spawn": {
+          "count": 3,
+          "interval": 0.9
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.45
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "tracking"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w017",
+      "type": "wave",
+      "name": "물고기 웨이브 17",
+      "timing": {
+        "domain": "time",
+        "start": 41.5,
+        "duration": 1.35
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 115
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.45
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.25
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 22,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2.2
+        }
+      }
+    },
+    {
+      "id": "s4-w018",
+      "type": "wave",
+      "name": "대물 웨이브 18",
+      "timing": {
+        "domain": "time",
+        "start": 45.5,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "big",
+          "hp": 55,
+          "speed": 95
+        },
+        "spawn": {
+          "count": 1,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "enter-pause-exit",
+          "params": {
+            "targetX": 0.72,
+            "pauseDuration": 6.5
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-ring",
+          "interval": 1.7,
+          "params": {
+            "count": 12
+          }
+        }
+      }
+    },
+    {
+      "id": "s4-w019",
+      "type": "wave",
+      "name": "등불해파리 웨이브 19",
+      "timing": {
+        "domain": "time",
+        "start": 47,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "lantern",
+          "hp": 5,
+          "speed": 54
+        },
+        "spawn": {
+          "count": 1,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.25
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 25,
+            "frequency": 1.3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w020",
+      "type": "wave",
+      "name": "해파리 웨이브 20",
+      "timing": {
+        "domain": "time",
+        "start": 51.5,
+        "duration": 2.5
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 64
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.5
+        },
+        "entry": {
+          "presetId": "top-to-bottom",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "legacy-drop",
+          "interval": 1
+        }
+      }
+    },
+    {
+      "id": "s4-w021",
+      "type": "wave",
+      "name": "독니고기 웨이브 21",
+      "timing": {
+        "domain": "time",
+        "start": 53,
+        "duration": 1.8
+      },
+      "payload": {
+        "enemy": {
+          "kind": "viper",
+          "hp": 3,
+          "speed": 122
+        },
+        "spawn": {
+          "count": 3,
+          "interval": 0.9
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.6
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "tracking"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w022",
+      "type": "wave",
+      "name": "해파리 웨이브 22",
+      "timing": {
+        "domain": "time",
+        "start": 57,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 90
+        },
+        "spawn": {
+          "count": 10,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "top-to-bottom",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "wall-gap",
+          "params": {
+            "slotCount": 11,
+            "gapSlots": 2,
+            "gapStartRange": [
+              1,
+              8
+            ],
+            "topPadding": 40,
+            "bottomPadding": 20
+          }
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w023",
+      "type": "wave",
+      "name": "물고기 웨이브 23",
+      "timing": {
+        "domain": "time",
+        "start": 58.5,
+        "duration": 1.4000000000000001
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 130
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.28
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.3
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 22,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w024",
+      "type": "wave",
+      "name": "등불해파리 웨이브 24",
+      "timing": {
+        "domain": "time",
+        "start": 62.5,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "lantern",
+          "hp": 6,
+          "speed": 90
+        },
+        "spawn": {
+          "count": 1,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "enter-pause-exit",
+          "params": {
+            "targetX": 0.55,
+            "pauseDuration": 8
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w025",
+      "type": "wave",
+      "name": "해파리 웨이브 25",
+      "timing": {
+        "domain": "time",
+        "start": 63.5,
+        "duration": 2
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 64
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.5
+        },
+        "entry": {
+          "presetId": "bottom-to-top",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "legacy-drop",
+          "interval": 1.1
+        }
+      }
+    },
+    {
+      "id": "s4-w026",
+      "type": "wave",
+      "name": "독니고기 웨이브 26",
+      "timing": {
+        "domain": "time",
+        "start": 68,
+        "duration": 2.4000000000000004
+      },
+      "payload": {
+        "enemy": {
+          "kind": "viper",
+          "hp": 3,
+          "speed": 125
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.8
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "tracking"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w027",
+      "type": "wave",
+      "name": "물고기 웨이브 27",
+      "timing": {
+        "domain": "time",
+        "start": 69.5,
+        "duration": 1.26
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 118
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.42
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.2
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 20,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2.2
+        }
+      }
+    },
+    {
+      "id": "s4-w028",
+      "type": "wave",
+      "name": "해파리 웨이브 28",
+      "timing": {
+        "domain": "time",
+        "start": 76,
+        "duration": 2.7
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 64
+        },
+        "spawn": {
+          "count": 7,
+          "interval": 0.45
+        },
+        "entry": {
+          "presetId": "top-to-bottom",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "legacy-drop",
+          "interval": 1
+        }
+      }
+    },
+    {
+      "id": "s4-w029",
+      "type": "wave",
+      "name": "독니고기 웨이브 29",
+      "timing": {
+        "domain": "time",
+        "start": 77,
+        "duration": 1.8
+      },
+      "payload": {
+        "enemy": {
+          "kind": "viper",
+          "hp": 3,
+          "speed": 122
+        },
+        "spawn": {
+          "count": 3,
+          "interval": 0.9
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.35
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "tracking"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w030",
+      "type": "wave",
+      "name": "대물 웨이브 30",
+      "timing": {
+        "domain": "time",
+        "start": 81.5,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "big",
+          "hp": 55,
+          "speed": 90
+        },
+        "spawn": {
+          "count": 1,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.45
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 40,
+            "frequency": 0.8
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-ring",
+          "interval": 1.8,
+          "params": {
+            "count": 14
+          }
+        }
+      }
+    },
+    {
+      "id": "s4-w031",
+      "type": "wave",
+      "name": "등불해파리 웨이브 31",
+      "timing": {
+        "domain": "time",
+        "start": 83,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "lantern",
+          "hp": 5,
+          "speed": 54
+        },
+        "spawn": {
+          "count": 1,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.7
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 25,
+            "frequency": 1.3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w032",
+      "type": "wave",
+      "name": "해파리 웨이브 32",
+      "timing": {
+        "domain": "time",
+        "start": 87.5,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 92
+        },
+        "spawn": {
+          "count": 10,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "top-to-bottom",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "wall-gap",
+          "params": {
+            "slotCount": 11,
+            "gapSlots": 2,
+            "gapStartRange": [
+              1,
+              8
+            ],
+            "topPadding": 40,
+            "bottomPadding": 20
+          }
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w033",
+      "type": "wave",
+      "name": "물고기 웨이브 33",
+      "timing": {
+        "domain": "time",
+        "start": 89,
+        "duration": 1.68
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 120
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.42
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 30,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2
+        }
+      }
+    },
+    {
+      "id": "s4-w034",
+      "type": "wave",
+      "name": "독니고기 웨이브 34",
+      "timing": {
+        "domain": "time",
+        "start": 93.5,
+        "duration": 2.8
+      },
+      "payload": {
+        "enemy": {
+          "kind": "viper",
+          "hp": 3,
+          "speed": 128
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.7
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "single"
+        },
+        "movement": {
+          "presetId": "tracking"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w035",
+      "type": "wave",
+      "name": "등불해파리 웨이브 35",
+      "timing": {
+        "domain": "time",
+        "start": 95,
+        "duration": 2
+      },
+      "payload": {
+        "enemy": {
+          "kind": "lantern",
+          "hp": 5,
+          "speed": 56
+        },
+        "spawn": {
+          "count": 3,
+          "interval": 1
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.35
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 28,
+            "frequency": 1.2
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w036",
+      "type": "wave",
+      "name": "해파리 웨이브 36",
+      "timing": {
+        "domain": "time",
+        "start": 99.5,
+        "duration": 2.5
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 66
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.5
+        },
+        "entry": {
+          "presetId": "top-to-bottom",
+          "x": 0.55,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "legacy-drop",
+          "interval": 1
+        }
+      }
+    },
+    {
+      "id": "s4-w037",
+      "type": "wave",
+      "name": "해파리 웨이브 37",
+      "timing": {
+        "domain": "time",
+        "start": 100.5,
+        "duration": 1.5
+      },
+      "payload": {
+        "enemy": {
+          "kind": "jelly",
+          "hp": 2,
+          "speed": 62
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.5
+        },
+        "entry": {
+          "presetId": "bottom-to-top",
+          "x": 0.4,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "straight"
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w038",
+      "type": "wave",
+      "name": "물고기 웨이브 38",
+      "timing": {
+        "domain": "time",
+        "start": 104.5,
+        "duration": 1.68
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 145
+        },
+        "spawn": {
+          "count": 8,
+          "interval": 0.24
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.35
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 35,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-w039",
+      "type": "wave",
+      "name": "물고기 웨이브 39",
+      "timing": {
+        "domain": "time",
+        "start": 106,
+        "duration": 1.68
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 145
+        },
+        "spawn": {
+          "count": 8,
+          "interval": 0.24
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.65
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 35,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s4-boss-warning",
+      "type": "cue",
+      "name": "보스 경고",
+      "timing": {
+        "domain": "time",
+        "start": 111,
+        "duration": 4
+      },
+      "payload": {
+        "pluginId": "boss-warning",
+        "params": {
+          "message": "!! 뭔가 다가온다 !!",
+          "color": "#ff8f8f",
+          "screenShake": 0.6,
+          "soundId": "warn"
+        }
+      }
+    },
+    {
+      "id": "s4-boss-start",
+      "type": "boss",
+      "name": "초롱 등장",
+      "timing": {
+        "domain": "time",
+        "start": 115,
+        "duration": 0
+      },
+      "payload": {
+        "pluginId": "boss-start",
+        "bossId": "chorong"
+      }
+    }
+  ]
+}

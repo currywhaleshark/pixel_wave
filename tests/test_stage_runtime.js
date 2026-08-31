@@ -68,6 +68,19 @@ assert.deepEqual(formationByDifficulty[0], formationByDifficulty[1], '난이도�
 assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
 
 {
+  require('../js/stages.generated.js');
+  const bossIds = ['pangpang', 'mongsil', 'ssing', 'chorong', 'buu', 'ureu', 'hwii'];
+  const enemyCounts = [189, 193, 207, 170, 162, 187, 191];
+  for (let index = 0; index < bossIds.length; index++) {
+    const stage = global.STAGE_DATA_REGISTRY[`stage${index + 1}`];
+    const full = StageCompiler.compile(stage, { difficulty: 'easy' });
+    const fullSimulation = new Simulation(full, { fixedStep: 1 / 60 }).seek(full.timeline.duration);
+    assert.equal(fullSimulation.stats().spawnedEnemyCount, enemyCounts[index]);
+    assert.equal(fullSimulation.boss?.id, bossIds[index]);
+  }
+}
+
+{
   const patched = StageCompiler.clone(source);
   patched.items.find(item => item.id === 's3-w001').difficulty = {
     hard: {
@@ -136,10 +149,11 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(html.includes('class="difficulty-legend"'));
   assert.ok(html.includes('id="activeDifficultyOnlyOption"'));
   assert.ok(html.includes('id="gameTestLink"'));
+  assert.ok(html.includes('id="stagePicker"'));
   assert.ok(html.includes('id="multiSelect"'));
   assert.ok(html.includes('id="saveSectionTemplate"'));
   assert.ok(html.includes('id="schemaNotice"'));
-  assert.ok(html.includes('tools/stage-sequencer.js?v=16'));
+  assert.ok(html.includes('tools/stage-sequencer.js?v=17'));
   const sequencer = fs.readFileSync(path.join(root, 'tools/stage-sequencer.js'), 'utf8');
   assert.ok(sequencer.includes('function updateGameTestLink()'));
   assert.ok(sequencer.includes('function prepareGameTest(event)'));
@@ -175,9 +189,9 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(sequencer.includes('function drawPluginForeground()'));
   assert.ok(sequencer.includes('function drawTerrainReviewOverlay()'));
   assert.ok(sequencer.includes('function handleTerrainReviewPointer(event)'));
-  assert.ok(sequencer.includes("stage1: 'docs/stage-editor/coverage-stage1-terrain.v1.draft.json'"));
+  assert.ok(sequencer.includes("stage1: 'docs/stage-editor/stage1.v1.draft.json'"));
   assert.ok(sequencer.includes('step="0.001" value="${formItem.timing.duration}"'));
-  assert.ok(sequencer.includes("stage6: 'docs/stage-editor/coverage-stage6-storm.v1.draft.json'"));
+  assert.ok(sequencer.includes("stage7: 'docs/stage-editor/stage7.v1.draft.json'"));
   assert.ok(sequencer.includes('ensureWaveDependencies(candidate'));
   assert.ok(sequencer.includes("drag.coordinate === 'x' ? '진입 X 이동'"));
   assert.ok(sequencer.includes('validateStageCandidate(candidate)'));
@@ -193,8 +207,8 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(serviceWorker.includes('../js/stage/plugin.js'));
   assert.ok(serviceWorker.includes('../js/stage/layerTransform.js'));
   assert.ok(serviceWorker.includes('../js/stage/terrain.js'));
-  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m7-v2'));
-  assert.ok(serviceWorker.includes('coverage-stage5-wreck.v1.draft.json'));
+  assert.ok(serviceWorker.includes('pixel-wave-stage-sequencer-m7-v3'));
+  assert.ok(serviceWorker.includes('stage5.v1.draft.json'));
   assert.ok(serviceWorker.includes('assets/backgrounds/stage6-near-strip.png'));
 }
 

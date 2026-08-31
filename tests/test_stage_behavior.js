@@ -16,6 +16,8 @@ const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/sta
   assert.equal(StageRegistry.get('movementPresets', 'sine').name, '물결');
   assert.equal(StageRegistry.get('weaponPresets', 'legacy-ring').name, '원형탄');
   assert.equal(StageRegistry.get('weaponPresets', 'legacy-death-shot').fields.length, 0);
+  assert.equal(StageRegistry.get('movementPresets', 'current-surf').name, '해류 편승');
+  assert.equal(StageRegistry.get('weaponPresets', 'legacy-mine').name, '등불 기뢰');
 }
 
 {

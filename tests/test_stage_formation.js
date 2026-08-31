@@ -57,6 +57,16 @@ const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/sta
 }
 
 {
+  const formation = StageFormation.normalize({ presetId: 'surround-ring', params: { radius: 300, angleJitter: 0 } }, 8);
+  const layout = StageFormation.layout(formation, 8, { width: 960, height: 540, centerX: 192, centerY: 270 });
+  assert.equal(layout.resolvedCount, 8);
+  assert.equal(layout.points[0].x, 492);
+  assert.equal(layout.points[0].y, 270);
+  assert.equal(layout.points[0].directionX, -1);
+  assert.deepEqual(StageFormation.validate(formation), []);
+}
+
+{
   const document = new DocumentSession(source);
   document.setDifficultyOverride('s3-w003', 'hard', {
     enabled: true,

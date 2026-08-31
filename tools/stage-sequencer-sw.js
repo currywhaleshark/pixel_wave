@@ -1,4 +1,4 @@
-const CACHE = 'pixel-wave-stage-sequencer-m7-v2';
+const CACHE = 'pixel-wave-stage-sequencer-m7-v3';
 const SHELL = [
   './stage-sequencer.html',
   './stage-sequencer.css',
@@ -26,10 +26,13 @@ const SHELL = [
   '../js/stage/simulation.js',
   '../js/stage/document.js',
   '../js/stage/persistence.js',
+  '../docs/stage-editor/stage1.v1.draft.json',
+  '../docs/stage-editor/stage2.v1.draft.json',
   '../docs/stage-editor/stage3.v1.draft.json',
-  '../docs/stage-editor/coverage-stage1-terrain.v1.draft.json',
-  '../docs/stage-editor/coverage-stage5-wreck.v1.draft.json',
-  '../docs/stage-editor/coverage-stage6-storm.v1.draft.json',
+  '../docs/stage-editor/stage4.v1.draft.json',
+  '../docs/stage-editor/stage5.v1.draft.json',
+  '../docs/stage-editor/stage6.v1.draft.json',
+  '../docs/stage-editor/stage7.v1.draft.json',
   '../assets/fonts/Galmuri11.woff2',
   '../assets/sprites.png',
   '../assets/bosses.png',
@@ -43,6 +46,10 @@ const SHELL = [
   '../assets/backgrounds/stage1-far-strip.png',
   '../assets/backgrounds/stage1-mid-strip.png',
   '../assets/backgrounds/stage1-near-strip.png',
+  '../assets/backgrounds/stage2-sea-strip.png',
+  '../assets/backgrounds/stage2-far-strip.png',
+  '../assets/backgrounds/stage2-mid-strip.png',
+  '../assets/backgrounds/stage2-near-strip.png',
   '../assets/backgrounds/stage5-sea-strip.png',
   '../assets/backgrounds/stage5-far-strip.png',
   '../assets/backgrounds/stage5-mid-strip.png',
@@ -51,6 +58,14 @@ const SHELL = [
   '../assets/backgrounds/stage6-far-strip.png',
   '../assets/backgrounds/stage6-mid-strip.png',
   '../assets/backgrounds/stage6-near-strip.png',
+  '../assets/backgrounds/stage4-sea-strip.png',
+  '../assets/backgrounds/stage4-far-strip.png',
+  '../assets/backgrounds/stage4-mid-strip.png',
+  '../assets/backgrounds/stage4-near-strip.png',
+  '../assets/backgrounds/stage7-sea-strip.png',
+  '../assets/backgrounds/stage7-far-strip.png',
+  '../assets/backgrounds/stage7-mid-strip.png',
+  '../assets/backgrounds/stage7-near-strip.png',
 ];
 
 self.addEventListener('install', event => {

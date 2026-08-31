@@ -244,7 +244,24 @@
       });
     };
 
-    if (formation.presetId === 'wall-gap') {
+    if (formation.presetId === 'surround-ring') {
+      const angles = Array.from({ length: count }, (_, index) => (
+        index / count * Math.PI * 2 + itemRandom.range(0, formation.params.angleJitter)
+      ));
+      const resolved = FormationApi.layout(formation, count, {
+        width: viewport.width, height: viewport.height,
+        centerX: viewport.width * 0.2, centerY: viewport.height * 0.5, angles,
+      });
+      for (const [index, point] of resolved.points.entries()) {
+        makeEnemy(index, item.timing.start, point.x, point.y, {
+          directionX: point.directionX,
+          directionY: point.directionY,
+          surroundAngle: point.surroundAngle,
+          surroundRadius: formation.params.radius,
+        });
+      }
+      interval = 0;
+    } else if (formation.presetId === 'wall-gap') {
       const params = formation.params;
       const range = params.gapStartRange;
       const gapStart = itemRandom.int(

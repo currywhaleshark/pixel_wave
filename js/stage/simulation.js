@@ -233,6 +233,16 @@
             this.firedBulletCount++;
           }
         }
+      } else if (weapon.presetId === 'legacy-drop') {
+        const count = 1 + difficultyIndex;
+        for (let index = 0; index < count; index++) {
+          const vx = count === 1 ? -20 : (index - (count - 1) / 2) * 55;
+          this.bullets.push({ x: enemy.x, y: enemy.y + 8, vx, vy: 125 * speedScale, radius: 5, kind: 'drop', age: 0 });
+          this.firedBulletCount++;
+        }
+      } else if (weapon.presetId === 'legacy-mine') {
+        this.bullets.push({ x: enemy.x, y: enemy.y + 8, vx: -8, vy: 14, radius: 7, kind: 'mine', age: 0, timer: 1.8 });
+        this.firedBulletCount++;
       }
     }
 
@@ -310,6 +320,26 @@
           enemy.x += directionX * enemy.speed * exitMultiplier * dt;
           enemy.y += directionY * enemy.speed * exitMultiplier * dt;
         }
+      } else if (movement === 'tracking') {
+        if (enemy.vx === null) { enemy.vx = -enemy.speed; enemy.vy = 0; }
+        if (enemy.age < 9) {
+          const wanted = Math.atan2(this.player.y - enemy.y, this.player.x - enemy.x);
+          const current = Math.atan2(enemy.vy, enemy.vx);
+          let difference = wanted - current;
+          while (difference > Math.PI) difference -= Math.PI * 2;
+          while (difference < -Math.PI) difference += Math.PI * 2;
+          const angle = current + Math.max(-1.1 * dt, Math.min(1.1 * dt, difference));
+          enemy.vx = Math.cos(angle) * enemy.speed;
+          enemy.vy = Math.sin(angle) * enemy.speed;
+        }
+        enemy.x += enemy.vx * dt;
+        enemy.y += enemy.vy * dt;
+      } else if (movement === 'turret-scroll') {
+        enemy.x -= (this.compiled.background.baseScrollSpeed || 45) * dt;
+      } else if (movement === 'current-surf') {
+        const current = this.pluginState.current || { x: 0, y: 0 };
+        enemy.x += (directionX * enemy.speed + current.x * 1.4) * dt;
+        enemy.y = enemy.y0 + (params.amplitude || 0) * Math.sin(enemy.age * (params.frequency ?? 3) + enemy.phase) + current.y * 0.6;
       } else if (movement === 'custom-path') {
         const point = PathApi.sample(enemy.movement.path, enemy.age, this.compiled.viewport);
         if (point) {
@@ -426,6 +456,21 @@
           bullet.age += dt;
           bullet.x += bullet.vx * dt;
           bullet.y += bullet.vy * dt;
+          if (bullet.kind === 'mine' && Number.isFinite(bullet.timer)) {
+            bullet.timer -= dt;
+            if (bullet.timer <= 0) {
+              bullet.dead = true;
+              const count = 6 + ['easy', 'normal', 'hard'].indexOf(this.compiled.difficulty.id);
+              for (let index = 0; index < count; index++) {
+                const angle = index / count * Math.PI * 2;
+                spawnedProjectiles.push({
+                  x: bullet.x, y: bullet.y,
+                  vx: Math.cos(angle) * 95, vy: Math.sin(angle) * 95,
+                  radius: 5, kind: 'bubble', age: 0,
+                });
+              }
+            }
+          }
         }
       }
       this.firedBulletCount += spawnedProjectiles.length;

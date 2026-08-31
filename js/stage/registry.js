@@ -32,6 +32,13 @@
       Object.freeze({ id: 'bottom-to-top', name: '아래 → 위', description: '화면 아래에서 떠오름', coordinate: 'x' }),
       Object.freeze({ id: 'diagonal', name: '대각선', description: '위나 아래에서 비스듬히 진입', coordinate: 'x' }),
     ]),
+    formationPresets: Object.freeze([
+      Object.freeze({ id: 'single', name: '단독', description: '한 지점에서 개별 또는 시차 생성' }),
+      Object.freeze({ id: 'column', name: '종대', description: '같은 경로를 차례로 통과' }),
+      Object.freeze({ id: 'v', name: 'V 편대', description: '선두 뒤로 양쪽이 벌어지는 동시 편대' }),
+      Object.freeze({ id: 'wall-gap', name: '틈새 벽', description: '빈 통로를 남긴 화면 횡단 벽' }),
+      Object.freeze({ id: 'surround-ring', name: '포위 링', description: '플레이어 둘레에서 동시에 안쪽으로 진입' }),
+    ]),
     movementPresets: Object.freeze([
       Object.freeze({ id: 'straight', name: '직선', description: '진입 방향과 속도를 유지해 곧게 이동', fields: Object.freeze([]) }),
       Object.freeze({
@@ -60,6 +67,15 @@
         ]),
       }),
       Object.freeze({ id: 'custom-path', name: '직접 경로', description: '미리보기 위의 번호 점을 직접 움직여 경로를 작성', fields: Object.freeze([]) }),
+      Object.freeze({ id: 'tracking', name: '완만 추적', description: '플레이어 쪽으로 천천히 방향을 틀다가 직진 이탈', fields: Object.freeze([]) }),
+      Object.freeze({ id: 'turret-scroll', name: '지형 포대 이동', description: '배경 스크롤 속도로 바닥과 함께 이동', fields: Object.freeze([]) }),
+      Object.freeze({
+        id: 'current-surf', name: '해류 편승', description: '폭풍 해류를 타며 물결치듯 이동',
+        fields: Object.freeze([
+          Object.freeze({ key: 'amplitude', target: 'params', label: '물결 폭', min: 0, max: 300, step: 1, default: 0 }),
+          Object.freeze({ key: 'frequency', target: 'params', label: '물결 속도', min: 0, max: 20, step: 0.1, default: 3 }),
+        ]),
+      }),
     ]),
     weaponPresets: Object.freeze([
       Object.freeze({ id: 'none', name: '사격 없음', description: '이 웨이브에서는 탄을 발사하지 않음', fields: Object.freeze([]) }),
@@ -82,6 +98,20 @@
         id: 'legacy-death-shot', name: '유언탄', description: '적이 격파될 때 난이도별 탄을 발사. 무피격 시퀀서 미리보기에서는 발생하지 않음',
         fields: Object.freeze([]),
       }),
+      Object.freeze({
+        id: 'legacy-drop', name: '낙하탄', description: '아래 방향으로 난이도별 부채꼴 탄을 떨어뜨림',
+        fields: Object.freeze([
+          Object.freeze({ key: 'interval', target: 'root', label: '발사 간격', min: 0.03, max: 120, step: 0.01, default: 2 }),
+          Object.freeze({ key: 'startDelay', target: 'root', label: '첫 발 지연', min: 0, max: 120, step: 0.05, default: 0.6 }),
+        ]),
+      }),
+      Object.freeze({
+        id: 'legacy-mine', name: '등불 기뢰', description: '시간이 지나면 원형 탄으로 터지는 기뢰를 설치',
+        fields: Object.freeze([
+          Object.freeze({ key: 'interval', target: 'root', label: '설치 간격', min: 0.03, max: 120, step: 0.01, default: 2 }),
+          Object.freeze({ key: 'startDelay', target: 'root', label: '첫 설치 지연', min: 0, max: 120, step: 0.05, default: 0.6 }),
+        ]),
+      }),
     ]),
     terrainObjects: Object.freeze(Object.values(TerrainApi.OBJECTS)),
     terrainProfiles: Object.freeze([
@@ -92,14 +122,14 @@
   const categories = Object.freeze({
     enemyKinds: new Set(definitions.enemyKinds.map(item => item.id)),
     entryPresets: new Set(definitions.entryPresets.map(item => item.id)),
-    formationPresets: new Set(['single', 'column', 'v', 'wall-gap']),
+    formationPresets: new Set(['single', 'column', 'v', 'wall-gap', 'surround-ring']),
     movementPresets: new Set(definitions.movementPresets.map(item => item.id)),
     weaponPresets: new Set(definitions.weaponPresets.map(item => item.id)),
     barragePatterns: new Set(),
     itemPlugins: new Set(Object.keys(PluginApi.definitions)),
     terrainObjects: new Set(definitions.terrainObjects.map(item => item.id)),
     terrainProfiles: new Set(definitions.terrainProfiles.map(item => item.id)),
-    bosses: new Set(['pangpang', 'ssing', 'buu', 'ureu']),
+    bosses: new Set(['pangpang', 'mongsil', 'ssing', 'chorong', 'buu', 'ureu', 'hwii']),
   });
 
   const itemPriority = Object.freeze({

@@ -3,12 +3,16 @@
 
   const query = new URLSearchParams(location.search);
   const STAGE_FIXTURES = Object.freeze({
-    stage1: 'docs/stage-editor/coverage-stage1-terrain.v1.draft.json',
+    stage1: 'docs/stage-editor/stage1.v1.draft.json',
+    stage2: 'docs/stage-editor/stage2.v1.draft.json',
     stage3: 'docs/stage-editor/stage3.v1.draft.json',
-    stage5: 'docs/stage-editor/coverage-stage5-wreck.v1.draft.json',
-    stage6: 'docs/stage-editor/coverage-stage6-storm.v1.draft.json',
+    stage4: 'docs/stage-editor/stage4.v1.draft.json',
+    stage5: 'docs/stage-editor/stage5.v1.draft.json',
+    stage6: 'docs/stage-editor/stage6.v1.draft.json',
+    stage7: 'docs/stage-editor/stage7.v1.draft.json',
   });
   const STAGE_URL = STAGE_FIXTURES[query.get('stage')] || STAGE_FIXTURES.stage3;
+  const selectedStageId = Object.hasOwn(STAGE_FIXTURES, query.get('stage')) ? query.get('stage') : 'stage3';
   const PIXELS_PER_SECOND = 8;
   const TRACKS = [
     { id: 'environment', label: '환경', types: ['environment'], color: '#55d9e8' },
@@ -62,6 +66,14 @@
   let selectedPathPoint = 0;
   let selectedCurvePoint = 0;
   let editScope = 'base';
+
+  $('#stagePicker').value = selectedStageId;
+  $('#stagePicker').addEventListener('change', event => {
+    const next = String(event.target.value || 'stage3');
+    const params = new URLSearchParams();
+    params.set('stage', Object.hasOwn(STAGE_FIXTURES, next) ? next : 'stage3');
+    location.href = `${location.pathname}?${params.toString()}`;
+  });
 
   function isEditableItem(item) {
     if (item?.type === 'wave' || item?.type === 'cue' || item?.type === 'terrain-object') return true;
@@ -290,12 +302,12 @@
   function updateGameTestLink() {
     const link = $('#gameTestLink');
     if (!link || !rawStage) return;
-    const supported = rawStage.id === 'stage3';
+    const supported = Object.hasOwn(STAGE_FIXTURES, rawStage.id);
     link.classList.toggle('disabled', !supported);
     link.setAttribute('aria-disabled', String(!supported));
     if (!supported) {
       link.removeAttribute('href');
-      link.title = '현재 게임 런타임 브리지는 완전 변환된 Stage 3만 지원합니다.';
+      link.title = '이 문서는 실제 게임 스테이지가 아닌 검증용 부분 fixture입니다.';
       return;
     }
     link.title = '현재 편집 초안으로 이 스테이지만 시험합니다.';
@@ -307,9 +319,9 @@
   }
 
   function prepareGameTest(event) {
-    if (!rawStage || rawStage.id !== 'stage3') {
+    if (!rawStage || !Object.hasOwn(STAGE_FIXTURES, rawStage.id)) {
       event.preventDefault();
-      toast('게임 시험은 완전 변환된 Stage 3에서만 사용할 수 있습니다');
+      toast('완전 변환된 Stage JSON에서만 게임 시험을 사용할 수 있습니다');
       return;
     }
     try {
@@ -434,7 +446,7 @@
     } catch (error) {
       console.error(error);
       setStatus('불러오기 실패', 'error');
-      $('#loadingOverlay').textContent = `Stage 3을 불러오지 못했습니다: ${error.message}`;
+      $('#loadingOverlay').textContent = `스테이지를 불러오지 못했습니다: ${error.message}`;
     }
   }
 
@@ -904,7 +916,7 @@
       const count = Math.max(1, Math.round(Number(values.get('count')) || 1));
       let interval = Math.max(0, Number(values.get('interval')) || 0);
       const formationId = String(values.get('formation'));
-      if (formationId === 'v' || formationId === 'wall-gap') interval = 0;
+      if (formationId === 'v' || formationId === 'wall-gap' || formationId === 'surround-ring') interval = 0;
       next.payload.enemy.kind = String(values.get('enemyKind'));
       next.payload.enemy.hp = Math.max(0.1, Number(values.get('hp')) || 1);
       next.payload.enemy.speed = Math.max(0, Number(values.get('speed')) || 0);
@@ -955,6 +967,15 @@
             bottomPadding: Math.max(0, values.has('wallBottomPadding') ? Number(values.get('wallBottomPadding')) : 20),
           },
         }, count);
+      } else if (formationId === 'surround-ring') {
+        next.payload.formation = StageFormation.normalize({
+          presetId: formationId,
+          params: {
+            ...existingFormationParams,
+            radius: Math.max(20, Number(values.get('surroundRadius')) || 300),
+            angleJitter: Math.max(0, Number(values.get('surroundAngleJitter')) || 0),
+          },
+        }, count);
       } else {
         next.payload.formation = { presetId: formationId };
       }
@@ -991,7 +1012,7 @@
           values, 'weaponPresets', 'weapon', weaponId, next.payload.weapon,
         );
       }
-      next.timing.duration = formationId === 'wall-gap' ? 0 : (count - 1) * interval;
+      next.timing.duration = ['wall-gap', 'surround-ring'].includes(formationId) ? 0 : (count - 1) * interval;
     } else if (next.type === 'terrain-object') {
       const socketId = String(values.get('terrainSocket') || '');
       const socket = terrainProfile?.sockets.find(entry => entry.id === socketId);
@@ -1546,12 +1567,12 @@
             <p class="library-hint" data-enemy-hint>${escapeHtml(StageRegistry.get('enemyKinds', formItem.payload.enemy.kind)?.description || '')}</p>
             <div class="form-row three">
               <label>${formFormation.presetId === 'wall-gap' ? '해석 수' : '마릿수'}<input name="count" type="number" min="1" max="256" step="1" value="${formFormation.presetId === 'wall-gap' ? formationCount : (formItem.payload.spawn.count ?? 1)}" ${formFormation.presetId === 'wall-gap' ? 'disabled' : ''}></label>
-              <label>간격<input name="interval" type="number" min="0" max="30" step="0.01" value="${formItem.payload.spawn.interval ?? 0}" ${formFormation.presetId === 'wall-gap' || formFormation.presetId === 'v' ? 'disabled' : ''}></label>
+              <label>간격<input name="interval" type="number" min="0" max="30" step="0.01" value="${formItem.payload.spawn.interval ?? 0}" ${['wall-gap', 'v', 'surround-ring'].includes(formFormation.presetId) ? 'disabled' : ''}></label>
               <label><span data-entry-coordinate-label>${formEntryDefinition?.coordinate === 'x' ? '진입 X 위치' : '진입 높이'}</span><input name="entryCoordinate" type="number" min="0" max="1" step="0.01" value="${formEntryCoordinate ?? 0.5}"></label>
             </div>
             <div class="form-row two">
               <label>진입 방향<select name="entryPreset">${definitionOptionList('entryPresets', formEntry.presetId)}</select></label>
-              <label>편대<select name="formation">${optionList(rawStage.dependencies.formationPresets, formItem.payload.formation.presetId)}</select></label>
+              <label>편대<select name="formation">${definitionOptionList('formationPresets', formItem.payload.formation.presetId)}</select></label>
             </div>
             <label data-entry-diagonal ${formEntry.presetId === 'diagonal' ? '' : 'hidden'}>대각 진행<select name="entryVertical"><option value="down" ${formEntry.params?.vertical !== 'up' ? 'selected' : ''}>위에서 아래로</option><option value="up" ${formEntry.params?.vertical === 'up' ? 'selected' : ''}>아래에서 위로</option></select></label>
             <p class="library-hint" data-entry-hint>${escapeHtml(formEntryDefinition?.description || '')}</p>
@@ -1577,6 +1598,12 @@
                 <div class="form-row two">
                   <label>위 여백<input name="wallTopPadding" type="number" min="0" max="520" step="1" value="${formFormation.params.topPadding}"></label>
                   <label>아래 여백<input name="wallBottomPadding" type="number" min="0" max="520" step="1" value="${formFormation.params.bottomPadding}"></label>
+                </div>
+              ` : ''}
+              ${formFormation.presetId === 'surround-ring' ? `
+                <div class="form-row two">
+                  <label>포위 반지름<input name="surroundRadius" type="number" min="20" max="1000" step="1" value="${formFormation.params.radius}"></label>
+                  <label>각도 흔들림<input name="surroundAngleJitter" type="number" min="0" max="6.28" step="0.01" value="${formFormation.params.angleJitter}"></label>
                 </div>
               ` : ''}
             </section>
