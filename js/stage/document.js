@@ -174,6 +174,25 @@
       });
     }
 
+    replaceItemsWithDependencies(changes, dependencies, label = '여러 클립 수정') {
+      const records = [];
+      for (const change of changes || []) {
+        const before = this.findItem(change?.id);
+        if (!before) throw new Error(`클립 '${change?.id}'을 찾을 수 없습니다.`);
+        const after = clone(change.item);
+        if (!same(before, after)) records.push({ kind: 'replace-item', before: clone(before), after });
+      }
+      const afterDependencies = clone(dependencies);
+      if (!same(this.stage.dependencies, afterDependencies)) {
+        records.push({
+          kind: 'replace-dependencies',
+          before: clone(this.stage.dependencies),
+          after: afterDependencies,
+        });
+      }
+      return this.commitBatch(records, label);
+    }
+
     setDifficultyOverride(id, difficulty, override, label = '난이도 덮어쓰기') {
       const item = this.findItem(id);
       if (!item) throw new Error(`클립 '${id}'을 찾을 수 없습니다.`);

@@ -1336,10 +1336,26 @@
 
   function bindInspectorForm() {
     const form = $('#clipEditForm');
+    const multiForm = $('#multiClipEditForm');
     if (form) form.addEventListener('submit', event => {
       event.preventDefault();
       commitInspectorForm(form);
     });
+    if (multiForm) {
+      multiForm.addEventListener('submit', event => {
+        event.preventDefault();
+        commitMultiInspectorForm(multiForm);
+      });
+      multiForm.querySelectorAll('[data-batch-field]').forEach(input => {
+        if (input.dataset.batchMixed === 'true') input.indeterminate = true;
+        const markAuthored = () => {
+          input.dataset.authored = 'true';
+          input.indeterminate = false;
+        };
+        input.addEventListener('input', markAuthored);
+        input.addEventListener('change', markAuthored);
+      });
+    }
     if (form?.elements?.enemyKind) {
       form.elements.enemyKind.addEventListener('change', () => updateLibraryHints(form, true));
       form.elements.entryPreset.addEventListener('change', () => updateLibraryHints(form));
@@ -1356,7 +1372,7 @@
     document.querySelectorAll('[data-nudge]').forEach(button => button.addEventListener('click', () => nudgeSelected(Number(button.dataset.nudge))));
     document.querySelectorAll('[data-edit-scope]').forEach(button => button.addEventListener('click', () => {
       editScope = button.dataset.editScope;
-      selectItem(selectedId, false);
+      selectItem(selectedId, false, false, selectedIds.size > 1);
     }));
     document.querySelectorAll('[data-difficulty-action]').forEach(button => button.addEventListener('click', () => {
       const item = stageDocument?.findItem(selectedId);
@@ -1371,6 +1387,9 @@
         stageDocument.setDifficultyOverride(item.id, difficulty.id, { enabled: false }, `${difficulty.name}에서 끄기`);
         afterDocumentChange(`${difficulty.name}에서 클립을 껐습니다`, item.id, simulation?.time || 0);
       }
+    }));
+    document.querySelectorAll('[data-batch-difficulty-action]').forEach(button => button.addEventListener('click', () => {
+      applyBatchDifficultyAction(button.dataset.batchDifficultyAction);
     }));
     document.querySelectorAll('[data-path-action]').forEach(button => button.addEventListener('click', () => {
       editSelectedPath(button.dataset.pathAction);
@@ -1464,6 +1483,341 @@
     }
   }
 
+  const BATCH_MIXED = Symbol('batch-mixed');
+
+  function batchCommon(items, read) {
+    if (!items.length) return BATCH_MIXED;
+    const first = read(items[0], 0);
+    const signature = JSON.stringify(first);
+    return items.every((item, index) => JSON.stringify(read(item, index)) === signature) ? first : BATCH_MIXED;
+  }
+
+  function batchNumberField(name, label, value, options = {}) {
+    const mixed = value === BATCH_MIXED;
+    return `<label>${escapeHtml(label)}<input data-batch-field="${escapeHtml(name)}" name="${escapeHtml(name)}" type="number" min="${options.min ?? 0}" max="${options.max ?? 1000000}" step="${options.step ?? 1}" ${mixed ? 'value="" placeholder="혼합 · 변경 안 함"' : `value="${escapeHtml(value)}"`}></label>`;
+  }
+
+  function batchTextField(name, label, value, options = {}) {
+    const mixed = value === BATCH_MIXED;
+    return `<label>${escapeHtml(label)}<input data-batch-field="${escapeHtml(name)}" name="${escapeHtml(name)}" type="${options.type || 'text'}" ${options.maxlength ? `maxlength="${options.maxlength}"` : ''} ${mixed ? 'value="" placeholder="혼합 · 변경 안 함"' : `value="${escapeHtml(value)}"`}></label>`;
+  }
+
+  function batchSelectField(name, label, value, options) {
+    const mixed = value === BATCH_MIXED;
+    return `<label>${escapeHtml(label)}<select data-batch-field="${escapeHtml(name)}" name="${escapeHtml(name)}">
+      ${mixed ? '<option value="" selected disabled>혼합 · 변경 안 함</option>' : ''}
+      ${options.map(option => `<option value="${escapeHtml(option.value)}" ${!mixed && option.value === value ? 'selected' : ''}>${escapeHtml(option.label)}</option>`).join('')}
+    </select></label>`;
+  }
+
+  function batchCheckboxField(name, label, value) {
+    const mixed = value === BATCH_MIXED;
+    return `<label class="check-label"><input data-batch-field="${escapeHtml(name)}" name="${escapeHtml(name)}" type="checkbox" ${value === true ? 'checked' : ''} ${mixed ? 'data-batch-mixed="true"' : ''}> ${escapeHtml(label)}${mixed ? ' · 혼합' : ''}</label>`;
+  }
+
+  function registryBatchOptions(category) {
+    return StageRegistry.entries(category).map(entry => ({ value: entry.id, label: entry.name }));
+  }
+
+  function batchWeaponValue(item) {
+    return item.payload.weapon?.patternId
+      ? `pattern:${item.payload.weapon.patternId}`
+      : `preset:${item.payload.weapon?.presetId || 'none'}`;
+  }
+
+  function batchWeaponOptions() {
+    return [
+      ...StageRegistry.entries('weaponPresets').map(entry => ({ value: `preset:${entry.id}`, label: `기본 · ${entry.name}` })),
+      ...StageBarrage.entries().map(entry => ({ value: `pattern:${entry.id}`, label: `탄막 · ${entry.name}` })),
+    ];
+  }
+
+  function renderBatchPluginFields(items) {
+    const pluginId = batchCommon(items, item => item.payload?.pluginId);
+    if (pluginId === BATCH_MIXED) return '';
+    const definition = StagePlugin.definition(pluginId);
+    if (definition?.editor !== 'generic') return '';
+    const fields = definition.fields.map(field => {
+      const name = `batch_plugin_${pluginFieldName(field.path)}`;
+      const value = batchCommon(items, item => StagePlugin.getPath(item.payload.params, field.path));
+      if (field.type === 'boolean') return batchCheckboxField(name, field.label, value);
+      if (field.type === 'select') return batchSelectField(name, field.label, value, field.options);
+      return batchNumberField(name, field.label, value, field);
+    }).join('');
+    return fields ? `<div class="form-section-title">${escapeHtml(definition.name)} 공통 속성</div>${fields}` : '';
+  }
+
+  function renderMultiInspector(authoredItems, openInspector) {
+    const editableAuthored = authoredItems.filter(isEditableItem);
+    const items = editableAuthored.map(item => scopedEditableItem(item)).filter(Boolean);
+    const difficulty = activeDifficulty();
+    const allWaves = items.length > 0 && items.every(item => item.type === 'wave');
+    const allTerrain = items.length > 0 && items.every(item => item.type === 'terrain-object');
+    const allCue = items.length > 0 && items.every(item => item.type === 'cue' && item.payload?.params);
+    const types = [...new Set(authoredItems.map(item => item.type))];
+    const pluginIds = [...new Set(items.map(item => item.payload?.pluginId).filter(Boolean))];
+    $('#selectedName').textContent = `${authoredItems.length}개 클립 선택`;
+    $('#selectedTiming').textContent = `${editableAuthored.length}개 편집 가능 · ${types.join(', ')}`;
+
+    let typeFields = '';
+    if (allWaves) {
+      const formations = items.map(item => StageFormation.normalize(item.payload.formation, item.payload.spawn?.count));
+      const entries = items.map(item => StageEntry.normalize(item.payload.entry));
+      typeFields = `
+        <div class="form-section-title">웨이브 공통 속성</div>
+        <div class="form-row three">
+          ${batchSelectField('enemyKind', '적', batchCommon(items, item => item.payload.enemy.kind), registryBatchOptions('enemyKinds'))}
+          ${batchNumberField('hp', '체력', batchCommon(items, item => item.payload.enemy.hp), { min: 0.1, max: 1000000, step: 0.1 })}
+          ${batchNumberField('speed', '속도', batchCommon(items, item => item.payload.enemy.speed), { min: 0, max: 2000, step: 1 })}
+        </div>
+        <div class="form-row three">
+          ${batchNumberField('count', '마릿수', batchCommon(items, (item, index) => StageFormation.resolvedCount(formations[index], item.payload.spawn?.count)), { min: 1, max: 256, step: 1 })}
+          ${batchNumberField('interval', '생성 간격', batchCommon(items, item => item.payload.spawn.interval ?? 0), { min: 0, max: 30, step: 0.01 })}
+          ${batchNumberField('entryCoordinate', '진입 위치', batchCommon(items, (item, index) => {
+            const definition = StageRegistry.get('entryPresets', entries[index].presetId);
+            return definition?.coordinate === 'x' ? entries[index].x : entries[index].y;
+          }), { min: 0, max: 1, step: 0.01 })}
+        </div>
+        <div class="form-row two">
+          ${batchSelectField('entryPreset', '진입 방향', batchCommon(entries, entry => entry.presetId), registryBatchOptions('entryPresets'))}
+          ${batchSelectField('formation', '편대', batchCommon(formations, formation => formation.presetId), registryBatchOptions('formationPresets'))}
+        </div>
+        ${batchSelectField('movement', '이동', batchCommon(items, item => item.payload.movement.presetId), registryBatchOptions('movementPresets'))}
+        ${batchSelectField('weapon', '사격', batchCommon(items, batchWeaponValue), batchWeaponOptions())}`;
+    } else if (allTerrain) {
+      typeFields = `
+        <div class="form-section-title">지형 오브젝트 공통 속성</div>
+        <div class="form-row three">
+          ${batchNumberField('terrainHp', '체력', batchCommon(items, item => item.payload.hp), { min: 0.1, max: 1000000, step: 0.1 })}
+          ${batchNumberField('terrainWeaponInterval', '발사 간격', batchCommon(items, item => item.payload.weapon.interval), { min: 0.03, max: 30, step: 0.01 })}
+          ${batchNumberField('terrainOffsetY', '높이 보정', batchCommon(items, item => item.payload.anchor.offsetY ?? 0), { min: -1000, max: 1000, step: 1 })}
+        </div>`;
+    } else if (allCue) {
+      typeFields = `
+        <div class="form-section-title">연출 공통 속성</div>
+        ${batchTextField('message', '표시 문구', batchCommon(items, item => item.payload.params.message || ''), { maxlength: 160 })}
+        ${batchTextField('color', '표시 색상', batchCommon(items, item => item.payload.params.color || '#ff8f8f'), { type: 'color' })}`;
+    } else {
+      typeFields = renderBatchPluginFields(items);
+    }
+
+    const durationField = items.length > 0 && items.every(item => !['wave', 'terrain-object'].includes(item.type))
+      ? batchNumberField('duration', '길이(초)', batchCommon(items, item => item.timing.duration), { min: 0, max: rawStage.timeline.duration, step: 0.001 })
+      : '';
+    const canEdit = editableAuthored.length > 0;
+    $('#inspectorBody').innerHTML = `
+      <div class="inspector-grid">
+        <div class="info-card"><small>선택</small><strong>${authoredItems.length}개</strong></div>
+        <div class="info-card"><small>편집 가능</small><strong>${editableAuthored.length}개</strong></div>
+        <div class="info-card"><small>종류</small><strong>${escapeHtml(types.join(', '))}</strong></div>
+        <div class="info-card"><small>플러그인</small><strong>${escapeHtml(pluginIds.join(', ') || '-')}</strong></div>
+      </div>
+      <section class="difficulty-editor difficulty-inherited batch-editor-scope">
+        <div class="difficulty-editor-heading"><strong>일괄 편집 범위</strong><span>${escapeHtml(difficulty.name)}</span></div>
+        <div class="scope-switch" role="group" aria-label="편집 범위">
+          <button type="button" data-edit-scope="base" class="${editScope === 'base' ? 'active' : ''}">기본값</button>
+          <button type="button" data-edit-scope="difficulty" class="${editScope === 'difficulty' ? 'active' : ''}">${escapeHtml(difficulty.name)}</button>
+        </div>
+        <p>혼합값은 그대로 유지됩니다. 직접 만진 항목만 각 클립에 적용됩니다.</p>
+        <div class="difficulty-actions">
+          <button type="button" data-batch-difficulty-action="disable">모두 끄기</button>
+          <button type="button" data-batch-difficulty-action="inherit">모두 상속</button>
+        </div>
+      </section>
+      ${canEdit ? `<form id="multiClipEditForm" class="inspector-form batch-editor-form">
+        <div class="batch-edit-notice"><strong>${editableAuthored.length}개 동시 편집</strong><span>파란 표시가 생긴 항목만 변경됩니다.</span></div>
+        ${batchNumberField('timeDelta', '시작 시간 함께 이동(초)', BATCH_MIXED, { min: -10000000, max: 10000000, step: 0.001 })}
+        ${durationField}
+        ${typeFields || '<div class="readonly-notice">서로 다른 종류를 함께 선택했습니다. 공통 시간 이동만 적용할 수 있습니다.</div>'}
+        <div class="inspector-actions"><button class="accent" type="submit">만진 항목을 ${editableAuthored.length}개에 적용</button></div>
+      </form>` : '<div class="readonly-notice">선택한 클립은 현재 편집할 수 없습니다.</div>'}`;
+    bindInspectorForm();
+    updateEditorUi();
+    if (openInspector && matchMedia('(max-width: 980px)').matches) setInspectorOpen(true);
+  }
+
+  function batchFieldSet(form) {
+    return new Set([...form.querySelectorAll('[data-batch-field][data-authored="true"]')].map(input => input.name));
+  }
+
+  function applyWaveBatch(next, touched, values) {
+    if (touched.has('enemyKind')) next.payload.enemy.kind = String(values.get('enemyKind'));
+    if (touched.has('hp')) next.payload.enemy.hp = Math.max(0.1, Number(values.get('hp')) || 0.1);
+    if (touched.has('speed')) next.payload.enemy.speed = Math.max(0, Number(values.get('speed')) || 0);
+
+    let formation = StageFormation.normalize(next.payload.formation, next.payload.spawn?.count);
+    let count = StageFormation.resolvedCount(formation, next.payload.spawn?.count);
+    if (touched.has('count')) count = Math.max(1, Math.round(Number(values.get('count')) || 1));
+    if (touched.has('formation')) {
+      formation = StageFormation.normalize({ presetId: String(values.get('formation')) }, count);
+      next.payload.formation = formation;
+    }
+    if (formation.presetId === 'wall-gap') {
+      if (touched.has('count')) {
+        formation.params.slotCount = count + formation.params.gapSlots;
+        next.payload.formation = formation;
+      }
+      delete next.payload.spawn.count;
+    } else if (touched.has('count') || touched.has('formation')) {
+      next.payload.spawn.count = count;
+    }
+    if (touched.has('interval')) next.payload.spawn.interval = Math.max(0, Number(values.get('interval')) || 0);
+    if (['v', 'wall-gap', 'surround-ring'].includes(formation.presetId)) next.payload.spawn.interval = 0;
+
+    if (touched.has('entryPreset')) {
+      const entry = StageEntry.normalize(next.payload.entry);
+      const presetId = String(values.get('entryPreset'));
+      next.payload.entry = StageEntry.normalize({
+        ...entry,
+        presetId,
+        params: presetId === 'diagonal' ? { vertical: 'down' } : {},
+      });
+    }
+    if (touched.has('entryCoordinate')) {
+      const entry = StageEntry.normalize(next.payload.entry);
+      const definition = StageRegistry.get('entryPresets', entry.presetId);
+      const coordinate = Math.max(0, Math.min(1, Number(values.get('entryCoordinate')) || 0));
+      if (definition?.coordinate === 'x') entry.x = coordinate;
+      else entry.y = coordinate;
+      next.payload.entry = entry;
+    }
+    if (touched.has('movement')) {
+      const presetId = String(values.get('movement'));
+      next.payload.movement = StageBehavior.normalizeMovement({ presetId });
+      if (presetId === 'custom-path') next.payload.movement.path = StagePath.defaultForWave(next, rawStage.viewport);
+    }
+    if (touched.has('weapon')) {
+      const selection = String(values.get('weapon'));
+      if (selection.startsWith('pattern:')) {
+        next.payload.weapon = StageBarrage.normalizeReference({
+          patternId: selection.slice('pattern:'.length),
+          startDelay: next.payload.weapon?.startDelay ?? 0.6,
+          stopWhenLeaving: next.payload.weapon?.stopWhenLeaving ?? true,
+        });
+      } else {
+        next.payload.weapon = StageBehavior.normalizeWeapon({ presetId: selection.replace(/^preset:/, '') || 'none' });
+      }
+    }
+    if (touched.has('count') || touched.has('interval') || touched.has('formation')) {
+      formation = StageFormation.normalize(next.payload.formation, next.payload.spawn?.count);
+      count = StageFormation.resolvedCount(formation, next.payload.spawn?.count);
+      next.timing.duration = Math.max(0, (count - 1) * (next.payload.spawn.interval || 0));
+    }
+  }
+
+  function applyBatchFields(next, touched, values) {
+    if (touched.has('duration') && !['wave', 'terrain-object'].includes(next.type)) {
+      next.timing.duration = Math.max(0, Number(values.get('duration')) || 0);
+    }
+    if (next.type === 'wave') applyWaveBatch(next, touched, values);
+    else if (next.type === 'terrain-object') {
+      if (touched.has('terrainHp')) next.payload.hp = Math.max(0.1, Number(values.get('terrainHp')) || 0.1);
+      if (touched.has('terrainWeaponInterval')) next.payload.weapon.interval = Math.max(0.03, Number(values.get('terrainWeaponInterval')) || 0.03);
+      if (touched.has('terrainOffsetY')) next.payload.anchor.offsetY = Math.round(Number(values.get('terrainOffsetY')) || 0);
+    } else if (next.type === 'cue' && next.payload?.params) {
+      if (touched.has('message')) next.payload.params.message = String(values.get('message') || '');
+      if (touched.has('color')) next.payload.params.color = String(values.get('color') || '#ff8f8f');
+    }
+    const definition = StagePlugin.definition(next.payload?.pluginId);
+    if (definition?.editor === 'generic') {
+      next.payload.params = StageDocument.clone(next.payload.params || {});
+      for (const field of definition.fields) {
+        const name = `batch_plugin_${pluginFieldName(field.path)}`;
+        if (!touched.has(name)) continue;
+        const value = field.type === 'boolean' ? values.has(name) : values.get(name);
+        StagePlugin.setPath(next.payload.params, field.path, StagePlugin.coerceField(field, value));
+      }
+    }
+  }
+
+  function commitMultiInspectorForm(form) {
+    const touched = batchFieldSet(form);
+    if (!touched.size) { toast('변경할 항목을 먼저 만져주세요'); return; }
+    const authoredItems = [...selectedIds].map(id => stageDocument.findItem(id)).filter(isEditableItem);
+    if (!authoredItems.length) return;
+    const values = new FormData(form);
+    const candidate = stageDocument.snapshot();
+    const difficulty = activeDifficulty();
+    let timeDelta = 0;
+    if (touched.has('timeDelta')) {
+      const scoped = authoredItems.map(item => scopedEditableItem(item)).filter(item => item?.timing?.domain === 'time');
+      if (scoped.length) {
+        const minimum = Math.min(...scoped.map(item => item.timing.start));
+        const maximum = Math.max(...scoped.map(item => item.timing.start + item.timing.duration));
+        timeDelta = Math.max(-minimum, Math.min(Number(values.get('timeDelta')) || 0, rawStage.timeline.duration - maximum));
+      }
+    }
+    const changes = [];
+    try {
+      for (const authored of authoredItems) {
+        const index = candidate.items.findIndex(item => item.id === authored.id);
+        const candidateAuthored = candidate.items[index];
+        const resolved = editScope === 'difficulty'
+          ? (StageCompiler.resolveDifficulty(candidateAuthored, difficulty) || candidateAuthored)
+          : candidateAuthored;
+        const next = StageDocument.clone(resolved);
+        applyBatchFields(next, touched, values);
+        if (touched.has('timeDelta') && next.timing.domain === 'time') next.timing.start = +(next.timing.start + timeDelta).toFixed(3);
+        if (next.timing.domain === 'time') {
+          next.timing.start = Math.max(0, Math.min(next.timing.start, rawStage.timeline.duration - next.timing.duration));
+        }
+        if (editScope === 'difficulty') {
+          const nextAuthored = StageDocument.clone(candidateAuthored);
+          nextAuthored.difficulty = StageDocument.clone(nextAuthored.difficulty || {});
+          nextAuthored.difficulty[difficulty.id] = {
+            enabled: true,
+            mode: 'patch',
+            patch: difficultyPatch(candidateAuthored, next),
+          };
+          candidate.items[index] = nextAuthored;
+        } else candidate.items[index] = next;
+        ensureWaveDependencies(candidate, next);
+        changes.push({ id: authored.id, item: candidate.items[index] });
+      }
+      validateStageCandidate(candidate);
+      const label = `${authoredItems.length}개 클립 일괄 수정`;
+      if (stageDocument.replaceItemsWithDependencies(changes, candidate.dependencies, label)) {
+        afterDocumentChange(label, selectedId, simulation?.time || 0);
+      } else toast('실제로 바뀐 값이 없습니다');
+    } catch (error) {
+      console.error(error);
+      toast(`일괄 수정할 수 없습니다: ${error.message}`);
+    }
+  }
+
+  function applyBatchDifficultyAction(action) {
+    const items = [...selectedIds].map(id => stageDocument.findItem(id)).filter(isEditableItem);
+    if (!items.length) return;
+    const difficulty = activeDifficulty();
+    const candidate = stageDocument.snapshot();
+    const changes = [];
+    for (const item of items) {
+      const index = candidate.items.findIndex(entry => entry.id === item.id);
+      const next = StageDocument.clone(candidate.items[index]);
+      if (action === 'disable') {
+        next.difficulty = StageDocument.clone(next.difficulty || {});
+        next.difficulty[difficulty.id] = { enabled: false };
+      } else if (next.difficulty?.[difficulty.id]) {
+        delete next.difficulty[difficulty.id];
+        if (!Object.keys(next.difficulty).length) delete next.difficulty;
+      }
+      candidate.items[index] = next;
+      changes.push({ id: item.id, item: next });
+    }
+    try {
+      validateStageCandidate(candidate);
+      const label = action === 'disable'
+        ? `${difficulty.name}에서 ${items.length}개 클립 끄기`
+        : `${items.length}개 클립 ${difficulty.name} 상속 복원`;
+      if (stageDocument.replaceItemsWithDependencies(changes, candidate.dependencies, label)) {
+        afterDocumentChange(label, selectedId, simulation?.time || 0);
+      } else toast('바꿀 난이도 설정이 없습니다');
+    } catch (error) {
+      console.error(error);
+      toast(`난이도 설정을 바꿀 수 없습니다: ${error.message}`);
+    }
+  }
+
   function selectItem(id, openInspector = true, additive = false, preserveGroup = false) {
     if (selectedId !== id) {
       selectedPathPoint = 0;
@@ -1487,6 +1841,11 @@
       clip.classList.toggle('multi-selected', included);
       clip.setAttribute('aria-pressed', String(included));
     });
+    const authoredItems = [...selectedIds].map(itemId => stageDocument?.findItem(itemId)).filter(Boolean);
+    if (authoredItems.length > 1) {
+      renderMultiInspector(authoredItems, openInspector);
+      return;
+    }
     const authored = stageDocument?.findItem(selectedId);
     if (!authored) {
       $('#selectedName').textContent = '클립을 선택하세요';

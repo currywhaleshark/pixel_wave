@@ -179,6 +179,30 @@ const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/sta
   assert.equal(hardRide.payload.params.pearlRing.count, 18);
 }
 
+{
+  const document = new DocumentSession(source);
+  const first = StageCompiler.clone(document.findItem('s3-w001'));
+  const second = StageCompiler.clone(document.findItem('s3-w002'));
+  first.payload.enemy.hp = 9;
+  second.payload.enemy.hp = 9;
+  const dependencies = StageCompiler.clone(document.stage.dependencies);
+  dependencies.enemyKinds = [...new Set([...dependencies.enemyKinds, 'ghost'])];
+  assert.equal(document.replaceItemsWithDependencies([
+    { id: first.id, item: first },
+    { id: second.id, item: second },
+  ], dependencies, '선택 웨이브 체력 변경'), true);
+  assert.equal(document.findItem(first.id).payload.enemy.hp, 9);
+  assert.equal(document.findItem(second.id).payload.enemy.hp, 9);
+  assert.ok(document.stage.dependencies.enemyKinds.includes('ghost'));
+  assert.equal(document.undo(), '선택 웨이브 체력 변경');
+  assert.notEqual(document.findItem(first.id).payload.enemy.hp, 9);
+  assert.notEqual(document.findItem(second.id).payload.enemy.hp, 9);
+  assert.ok(!document.stage.dependencies.enemyKinds.includes('ghost'));
+  assert.equal(document.redo(), '선택 웨이브 체력 변경');
+  assert.equal(document.findItem(first.id).payload.enemy.hp, 9);
+  assert.equal(document.findItem(second.id).payload.enemy.hp, 9);
+}
+
 async function testPersistenceFallback() {
   const values = new Map();
   global.localStorage = {

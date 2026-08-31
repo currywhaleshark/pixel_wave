@@ -73,8 +73,11 @@ URLs can run the matching data-driven stage through the shared game bridge.
     still use the checked-in generated Stage JSON. Removing `stageRuntime=data`
     always restores the legacy runtime. Partial coverage fixtures remain
     preview-only and are not used by the normal stage selector.
-16. M7 adds `여러 선택`, one-step bulk movement/deletion, portable clip
-    fragments, and reusable section templates. `Ctrl/Cmd+C`, `Ctrl/Cmd+V`,
+16. M7 adds `여러 선택`, one-step bulk movement/deletion, mixed-value batch
+    editing, portable clip fragments, and reusable section templates. The batch
+    inspector preserves relative timing and each clip's existing settings;
+    only fields explicitly touched by the author are applied to the selection.
+    The whole batch is one undo command. `Ctrl/Cmd+C`, `Ctrl/Cmd+V`,
     `Ctrl/Cmd+Z`, `Shift+Ctrl/Cmd+Z`, `Delete`, and touch controls share the
     same command history. Every dirty edit writes an immediate recovery copy
     before the delayed draft save; the storage badge reports quota use and JSON
