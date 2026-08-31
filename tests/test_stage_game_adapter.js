@@ -8,6 +8,7 @@ const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
 require('../js/stages.generated.js');
 const Adapter = require('../js/stage/gameAdapter.js');
+const { Simulation } = require('../js/stage/simulation.js');
 
 const wavesSource = fs.readFileSync(path.join(root, 'js/waves.js'), 'utf8');
 const context = vm.createContext({ console, Math });
@@ -21,15 +22,19 @@ const legacy = timelines[2];
 
 const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 assert.ok(indexHtml.includes('js/stages.generated.js?v=2'));
-assert.ok(indexHtml.includes('js/entities.js?v=6'));
+assert.ok(indexHtml.includes('js/entities.js?v=7'));
 assert.ok(indexHtml.includes('js/stage/layerTransform.js?v=2'));
-assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=4'));
+assert.ok(indexHtml.includes('js/stage/plugin.js?v=4'));
+assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=5'));
 assert.ok(indexHtml.indexOf('js/stage/compiler.js') < indexHtml.indexOf('js/stage/gameAdapter.js'));
 const mainSource = fs.readFileSync(path.join(root, 'js/main.js'), 'utf8');
 assert.ok(mainSource.includes("stageTestParams.get('stageRuntime') === 'data'"));
 assert.ok(mainSource.includes('STAGES.findIndex(stage => stage.id === testStageId)'));
 assert.ok(mainSource.includes("this.stageRuntimeMode = dataSpawner ? 'data' : 'legacy'"));
 assert.ok(mainSource.includes("finishStageTest(reason = 'complete')"));
+assert.ok(mainSource.includes('applyStageRuntimeState(state)'));
+assert.ok(mainSource.includes("sampleStageCurrent(targetId = 'player')"));
+assert.ok(mainSource.includes('spawnBolt(xFrac, options = {})'));
 
 assert.equal(Adapter.CONFIG.defaultMode, 'legacy');
 assert.equal(Adapter.requestedMode('?debug&stageRuntime=data'), 'data');
@@ -117,7 +122,8 @@ const hazardGame = {
   enemies: [], groups: {}, bolts: [],
   player: { x: 180, y: 270 },
   startRide() {}, startBossWarning() {}, startBoss() {}, message() {},
-  spawnBolt(value) { this.bolts.push(value); },
+  applyStageRuntimeState(state) { this.stageRuntimeState = state; },
+  spawnBolt(value, options) { this.bolts.push({ value, options }); },
 };
 const wreckSpawner = Adapter.createSpawner('stage5', 0, hazardGame, timelines[4], '?debug&stageRuntime=data');
 wreckSpawner.seekRange(7.9);
@@ -127,7 +133,28 @@ assert.equal(hazardGame.enemies[0].wreckH, 0.38 * 540);
 const stormSpawner = Adapter.createSpawner('stage6', 0, hazardGame, timelines[5], '?debug&stageRuntime=data');
 stormSpawner.seekRange(19.4);
 stormSpawner.update(19.5);
-assert.deepEqual(hazardGame.bolts, [0.42]);
+assert.deepEqual(hazardGame.bolts, [{
+  value: 0.42,
+  options: { width: 46, telegraphDuration: 0.9, strikeDuration: 0.4 },
+}]);
+
+for (const [stageId, timeline, at] of [
+  ['stage4', timelines[3], 20],
+  ['stage6', timelines[5], 19.75],
+]) {
+  const game = {
+    enemies: [], groups: {}, player: { x: 180, y: 270 },
+    startRide() {}, startBossWarning() {}, startBoss() {}, spawnBolt() {}, message() {},
+    applyStageRuntimeState(state) { this.stageRuntimeState = state; },
+  };
+  const dataSpawner = Adapter.createSpawner(stageId, 0, game, timeline, '?debug&stageRuntime=data');
+  dataSpawner.seekRange(at);
+  const preview = new Simulation(Adapter.compile(stageId, 0)).seek(at).pluginState;
+  assert.ok(Math.abs(game.stageRuntimeState.darkness - preview.darkness) < 1e-9, `${stageId} 어둠 상태가 미리보기와 같아야 한다`);
+  assert.ok(Math.abs(game.stageRuntimeState.current.x - preview.current.x) < 1e-9, `${stageId} X 해류가 미리보기와 같아야 한다`);
+  assert.ok(Math.abs(game.stageRuntimeState.current.y - preview.current.y) < 1e-9, `${stageId} Y 해류가 미리보기와 같아야 한다`);
+  assert.deepEqual(game.stageRuntimeState.influence, preview.influence, `${stageId} 대상별 해류 영향이 미리보기와 같아야 한다`);
+}
 
 function spawnAt(stageId, timeline, at) {
   const game = {

@@ -313,6 +313,18 @@
     }
   }
 
+  function sampleCurrent(state, targetId = 'player') {
+    const current = state?.current || {};
+    if (targetId === 'raw') {
+      return { x: finite(current.x), y: finite(current.y) };
+    }
+    const influence = state?.influence?.[targetId] || {};
+    return {
+      x: finite(current.x) * finite(influence.x) || 0,
+      y: finite(current.y) * finite(influence.y) || 0,
+    };
+  }
+
   function evaluateRuntimeState(previous, activeItems, at, dt, viewport = { width: 960, height: 540 }) {
     const state = initialRuntimeState();
     const before = previous || state;
@@ -387,6 +399,7 @@
     findChannelConflicts,
     initialRuntimeState,
     evaluateRuntimeState,
+    sampleCurrent,
     sampleCurve,
     normalizeCurve,
     validateCurve,

@@ -1,6 +1,6 @@
 # Pixel Wave Stage Gameplay Rework Plan v1
 
-Status: planning baseline; not yet implemented
+Status: implementation in progress; G0 and G1 complete
 
 Date: 2026-08-31
 
@@ -757,3 +757,29 @@ Open tuning questions, intentionally deferred to playtesting:
 - whether Stage 5 receives destructible weak boards in the first pass;
 - whether Stage 7 needs a dedicated section-transition cue after the base
   placement proves the recall rhythm.
+
+### 2026-08-31 — G1 live environment bridge
+
+Implemented decisions:
+
+- The data `GameSpawner` now evaluates the same active plugin runtime state as
+  the Stage Sequencer preview on every game frame.
+- Darkness, current, scroll multiplier, surface boundary, and presentation
+  flags are applied to live gameplay while the ordinary stage is active.
+- A shared current sampler applies authored influence independently to the
+  player, pointer target, enemy projectiles, and current-surf enemies.
+- Lightning width, telegraph duration, and strike duration now reach the live
+  bolt instead of falling back to global constants.
+- Selected-range tests reconstruct environment state from stage start at a
+  fixed 60 Hz step so a direct game test matches a full preview seek.
+- Stage environment authority is released at boss start. Existing code-driven
+  boss darkness and current choreography therefore remains intact until the
+  dedicated Boss 3–7 slices.
+- Runtime/preview parity tests cover Stage 4 darkness and Stage 6 current plus
+  target-specific influence.
+
+Deferred intentionally:
+
+- position-aware linear, radial, and tangential fields remain part of the Boss
+  6 and Boss 7 work;
+- the production default remains the legacy runtime until G7 integration QA.

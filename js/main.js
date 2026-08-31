@@ -122,6 +122,7 @@ const Game = {
   perf: { fps: 60, worst: 60, samples: 0, acc: 0 }, // 디버그 통계
   runLog: null,          // 런 기록 (잡몹 구간·보스전·페이즈별 시간)
   storm: false, stormScale: 1, curX: 0, curY: 0, surfaceY: 20, // 폭풍 해류 (폭풍 수면)
+  stageRuntimeState: null,
   bolts: [], flashT: 0,   // 물속 번개
   stats: { pearls: 0, deaths: 0, bombs: 0, time: 0 },
   shake: 0,
@@ -163,6 +164,7 @@ const Game = {
     this.storm = !!stage.storm;
     this.stormScale = stage.stormLevel ?? 1;
     this.curX = 0; this.curY = 0;
+    this.stageRuntimeState = null;
     this.surfaceY = this.storm ? 58 : 20; // 수면 파도만큼 위 경계 하향
     this.bolts = [];
     this.flashT = 0;
@@ -395,8 +397,44 @@ const Game = {
   },
 
   // 물속 번개: 예고 기둥 → 낙뢰
-  spawnBolt(xFrac) {
-    this.bolts.push({ x: xFrac * CFG.W, w: CFG.boltW, telT: CFG.boltTelT, strikeT: CFG.boltStrikeT, hitDone: false });
+  spawnBolt(xFrac, options = {}) {
+    const finiteOr = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+    this.bolts.push({
+      x: xFrac * CFG.W,
+      w: Math.max(1, finiteOr(options.width, CFG.boltW)),
+      telT: Math.max(0, finiteOr(options.telegraphDuration, CFG.boltTelT)),
+      strikeT: Math.max(0, finiteOr(options.strikeDuration, CFG.boltStrikeT)),
+      hitDone: false,
+    });
+  },
+
+  applyStageRuntimeState(state) {
+    this.stageRuntimeState = state;
+    this.dark = state.darkness;
+    this.targetDark = state.darknessTarget;
+    this.storm = state.stormScale > 0 || state.drawSurfaceWaves || state.drawCurrentIndicator;
+    this.stormScale = state.stormScale;
+    this.curX = state.current.x;
+    this.curY = state.current.y;
+    this.surfaceY = state.surfaceBoundaryY || 20;
+  },
+
+  clearStageRuntimeState() {
+    this.stageRuntimeState = null;
+  },
+
+  sampleStageCurrent(targetId = 'player') {
+    if (this.stageRuntimeState && typeof StagePlugin !== 'undefined') {
+      return StagePlugin.sampleCurrent(this.stageRuntimeState, targetId);
+    }
+    const influence = {
+      player: { x: 1, y: 1 },
+      pointerTarget: { x: 0.6, y: 0.6 },
+      enemyProjectile: { x: 0.75, y: 0.6 },
+      currentSurfEnemy: { x: 1.4, y: 0.6 },
+      raw: { x: 1, y: 1 },
+    }[targetId] || { x: 0, y: 0 };
+    return { x: this.curX * influence.x, y: this.curY * influence.y };
   },
 
   // 거북 택시 탑승 구간: 무적 + 고속 스크롤 + 진주 트레일 (보너스 타임)
@@ -753,18 +791,22 @@ const Game = {
     if (this.slowT > 0) { this.slowT -= dt; dt *= 0.45; }
 
     this.stageT += dt;
-    this.scroll += CFG.scrollSpeed * (this.ride ? 5 : 1) * dt; // 탑승 중 고속 스크롤
+    this.spawner.update(this.stageT, dt);
+    const stageScrollMultiplier = this.stageRuntimeState?.scrollMultiplier ?? (this.ride ? 5 : 1);
+    this.scroll += CFG.scrollSpeed * stageScrollMultiplier * dt; // 데이터 런타임은 활성 환경 클립의 곡선을 따른다
     if (this.shake > 0) this.shake -= dt;
     if (this.ride) this.updateRide(dt);
-    this.dark += (this.targetDark - this.dark) * Math.min(1, dt * 1.2);
+    if (!this.stageRuntimeState) this.dark += (this.targetDark - this.dark) * Math.min(1, dt * 1.2);
     if (this.flashT > 0) this.flashT -= dt;
 
     // 폭풍 해류: 진동하는 흐름 (플레이어·적탄·M7이 밀린다)
-    if (this.storm) {
-      this.curX = Math.sin(this.stageT * 0.45) * 70 * this.stormScale;
-      this.curY = Math.sin(this.stageT * 0.85) * 26 * this.stormScale;
-    } else {
-      this.curX = 0; this.curY = 0;
+    if (!this.stageRuntimeState) {
+      if (this.storm) {
+        this.curX = Math.sin(this.stageT * 0.45) * 70 * this.stormScale;
+        this.curY = Math.sin(this.stageT * 0.85) * 26 * this.stormScale;
+      } else {
+        this.curX = 0; this.curY = 0;
+      }
     }
 
     // 물속 번개
@@ -793,7 +835,6 @@ const Game = {
     this.updateBombs(dt);
     this.player.update(dt, this);
     if (this.dolphin) this.dolphin.update(dt, this);
-    this.spawner.update(this.stageT, dt);
     if (this.boss) this.boss.update(dt);
     if (this.boss && this.boss.dead && !this.bossScored) {
       this.bossScored = true;
@@ -851,6 +892,7 @@ const Game = {
     // 적탄 (JSON 탄막은 에디터와 같은 공통 런타임으로 이동·행동을 처리한다)
     const barrageSpawned = [];
     const barrageSpawnBudget = { remaining: 1200 };
+    const projectileCurrent = this.sampleStageCurrent('enemyProjectile');
     for (const b of this.ebullets) {
       if (b.kind === 'storm' && this.boss && !this.boss.dead) {
         // 폭풍탄 (라스보스): 바깥에서 계속 생성되어 감겨들고, 안쪽 벽(반경 175)에서
@@ -871,7 +913,7 @@ const Game = {
         const mineWasArmed = b.kind === 'mine' && Number.isFinite(b.timer) && b.timer > 0;
         BarrageRuntime.updateProjectile(b, dt, {
           speedMul: sm,
-          current: { x: this.curX * 0.75, y: this.curY * 0.6 },
+          current: projectileCurrent,
           target: this.player,
           difficulty: this.diff,
           mineRingCount: CFG.mineRingN + this.diff,
@@ -887,7 +929,7 @@ const Game = {
         b.vx += (b.fallTo.vx - b.vx) * Math.min(1, dt * 2.2);
         b.vy += (b.fallTo.vy - b.vy) * Math.min(1, dt * 2.2);
       }
-      b.x += (b.vx * sm + this.curX * 0.75) * dt; b.y += (b.vy * sm + this.curY * 0.6) * dt;
+      b.x += (b.vx * sm + projectileCurrent.x) * dt; b.y += (b.vy * sm + projectileCurrent.y) * dt;
       if (b.kind === 'mine') {
         b.vy *= (1 - 1.5 * dt); // 설치 후 서서히 정지
         b.timer -= dt;

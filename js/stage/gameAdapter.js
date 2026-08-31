@@ -3,6 +3,7 @@
   'use strict';
 
   const Compiler = root.StageCompiler || (typeof require === 'function' ? require('./compiler.js') : null);
+  const Plugin = root.StagePlugin || (typeof require === 'function' ? require('./plugin.js') : null);
   const DATA = root.STAGE_DATA_REGISTRY || (typeof STAGE_DATA_REGISTRY !== 'undefined' ? STAGE_DATA_REGISTRY : {});
   const TEST_STORAGE_KEY = 'pixel-wave-stage-test-payload';
   const CONFIG = Object.freeze({
@@ -123,11 +124,73 @@
       this.returnUrl = options.returnUrl || null;
       this.sourceHash = options.sourceHash || null;
       this.rangeStopped = false;
+      this.runtimeState = Plugin.initialRuntimeState();
+      this.runtimeTime = 0;
+      this.runtimeEnabled = true;
+      this.runtimeItems = compiled.items.filter(item => item.payload?.pluginId);
       this.timeline = compiled.items.map(item => ({
         t: item.timing.domain === 'time' ? item.timing.start : item.projectedTime || compiled.timeline.duration,
         warning: item.payload?.pluginId === 'boss-warning' || undefined,
         boss: item.type === 'boss' || undefined,
       })).sort((left, right) => left.t - right.t);
+    }
+
+    _itemStart(item) {
+      if (item.timing?.domain === 'time') return Number(item.timing.start) || 0;
+      return Number(item.projectedTime ?? item.timing?.start) || 0;
+    }
+
+    _activeRuntimeItems(at) {
+      const active = new Map();
+      for (const item of this.runtimeItems) {
+        const start = this._itemStart(item);
+        const duration = Math.max(0, Number(item.timing?.duration) || 0);
+        if (duration > 0 && start <= at && at < start + duration) {
+          active.set(item.id, { start, type: item.type, payload: item.payload });
+        }
+      }
+      return active;
+    }
+
+    _applyRuntimeState(at, dt) {
+      if (!this.runtimeEnabled) return null;
+      this.runtimeState = Plugin.evaluateRuntimeState(
+        this.runtimeState,
+        this._activeRuntimeItems(at),
+        at,
+        Math.max(0, Number(dt) || 0),
+        this.compiled.viewport,
+      );
+      this.runtimeTime = at;
+      if (typeof this.game.applyStageRuntimeState === 'function') {
+        this.game.applyStageRuntimeState(this.runtimeState);
+      } else {
+        this.game.stageRuntimeState = this.runtimeState;
+      }
+      return this.runtimeState;
+    }
+
+    _seekRuntime(at) {
+      this.runtimeState = Plugin.initialRuntimeState();
+      this.runtimeTime = 0;
+      const step = 1 / 60;
+      while (this.runtimeTime < at - 1e-9) {
+        const next = Math.min(at, this.runtimeTime + step);
+        this.runtimeState = Plugin.evaluateRuntimeState(
+          this.runtimeState,
+          this._activeRuntimeItems(next),
+          next,
+          next - this.runtimeTime,
+          this.compiled.viewport,
+        );
+        this.runtimeTime = next;
+      }
+      if (typeof this.game.applyStageRuntimeState === 'function') {
+        this.game.applyStageRuntimeState(this.runtimeState);
+      } else {
+        this.game.stageRuntimeState = this.runtimeState;
+      }
+      return this.runtimeState;
     }
 
     _group(itemId) {
@@ -194,26 +257,44 @@
     _apply(event) {
       if (event.type === 'spawn-enemy') this._spawn(event);
       else if (event.type === 'cue' && event.payload?.pluginId === 'boss-warning') this.game.startBossWarning();
-      else if (event.type === 'boss') this.game.startBoss();
+      else if (event.type === 'boss') {
+        this.runtimeEnabled = false;
+        if (typeof this.game.clearStageRuntimeState === 'function') this.game.clearStageRuntimeState();
+        else this.game.stageRuntimeState = null;
+        this.game.startBoss();
+      }
       else if (event.type === 'item-start' && event.payload?.pluginId === 'turtle-ride') {
         const item = this.compiled.items.find(candidate => candidate.id === event.itemId);
         this.game.startRide(item?.timing?.duration || 0);
       }
       else if (event.type === 'item-start' && event.payload?.pluginId === 'wreck-corridor') this._spawnWreck(event);
-      else if (event.type === 'item-start' && event.payload?.pluginId === 'lightning-strike') this.game.spawnBolt(event.payload.params?.xRatio ?? 0.5);
+      else if (event.type === 'item-start' && event.payload?.pluginId === 'lightning-strike') {
+        const params = event.payload.params || {};
+        this.game.spawnBolt(params.xRatio ?? 0.5, {
+          width: params.width,
+          telegraphDuration: params.telegraphDuration,
+          strikeDuration: params.strikeDuration,
+        });
+      }
     }
 
     seekRange(start) {
       const at = Math.max(0, Number(start) || 0);
       this.idx = this.events.findIndex(event => event.at >= at);
       if (this.idx < 0) this.idx = this.events.length;
+      this.runtimeEnabled = true;
+      this._seekRuntime(at);
       const ride = this.compiled.items.find(item => item.payload?.pluginId === 'turtle-ride'
         && item.timing.start < at && item.timing.start + item.timing.duration > at);
       if (ride) this.game.startRide(ride.timing.start + ride.timing.duration - at);
     }
 
-    update(time) {
+    update(time, dt) {
       while (this.idx < this.events.length && this.events[this.idx].at <= time) this._apply(this.events[this.idx++]);
+      if (this.runtimeEnabled) {
+        const delta = Number.isFinite(dt) ? dt : Math.max(0, time - this.runtimeTime);
+        this._applyRuntimeState(time, delta);
+      }
       if (this.range && time >= this.range.end && !this.rangeStopped) {
         this.rangeStopped = true;
         if (this.testMode && typeof this.game.finishStageTest === 'function') this.game.finishStageTest('range');

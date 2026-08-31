@@ -112,6 +112,17 @@ const coverage6 = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/
 }
 
 {
+  const state = StagePlugin.initialRuntimeState();
+  state.current = { x: 80, y: -30 };
+  state.influence.player = { x: 1, y: 0.5 };
+  state.influence.enemyProjectile = { x: 0.75, y: 0.6 };
+  assert.deepEqual(StagePlugin.sampleCurrent(state, 'raw'), { x: 80, y: -30 });
+  assert.deepEqual(StagePlugin.sampleCurrent(state, 'player'), { x: 80, y: -15 });
+  assert.deepEqual(StagePlugin.sampleCurrent(state, 'enemyProjectile'), { x: 60, y: -18 });
+  assert.deepEqual(StagePlugin.sampleCurrent(state, 'missing-target'), { x: 0, y: 0 });
+}
+
+{
   const curved = StageCompiler.clone(source);
   curved.items.find(item => item.id === 's3-scroll-base').payload.params.curve = [
     { at: 0, value: 1 },

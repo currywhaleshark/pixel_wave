@@ -56,8 +56,11 @@ class Player {
     } else if (Input.pointer.active) {
       // 해류가 추종 목표를 민다 — 위치추종 조작은 힘이 자동 보정되므로
       // 목표 오프셋으로 줘야 "몸이 쓸리는" 체감이 생긴다 (커서보다 흐름 쪽으로 밀림)
-      const tx = Input.pointer.x + (game.curX || 0) * 0.6;
-      const ty = Input.pointer.y + (game.curY || 0) * 0.6;
+      const pointerCurrent = typeof game.sampleStageCurrent === 'function'
+        ? game.sampleStageCurrent('pointerTarget')
+        : { x: (game.curX || 0) * 0.6, y: (game.curY || 0) * 0.6 };
+      const tx = Input.pointer.x + pointerCurrent.x;
+      const ty = Input.pointer.y + pointerCurrent.y;
       const dx = tx - this.x;
       const dy = ty - this.y;
       const dist = Math.hypot(dx, dy);
@@ -71,8 +74,11 @@ class Player {
     // 부력: 아주 미세하게 떠오름 (맛보기)
     vy -= 6;
     // 해류 (폭풍 수면): 흐름이 몸을 민다
-    vx += game.curX || 0;
-    vy += game.curY || 0;
+    const playerCurrent = typeof game.sampleStageCurrent === 'function'
+      ? game.sampleStageCurrent('player')
+      : { x: game.curX || 0, y: game.curY || 0 };
+    vx += playerCurrent.x;
+    vy += playerCurrent.y;
 
     this.x = Math.max(20, Math.min(CFG.W - 20, this.x + vx * dt));
     this.y = Math.max(game.surfaceY ?? 20, Math.min(CFG.H - 20, this.y + vy * dt));
@@ -390,8 +396,11 @@ class Enemy {
         this.terrainScrollNative = scrollNative;
       } else this.x -= CFG.scrollSpeed * dt;
     } else if (M === 7) {       // 해류 편승: 흐름을 타고 가감속 (서핑)
-      this.x += ((this.dirX || -1) * spd + (game.curX || 0) * 1.4) * dt;
-      this.y = this.y0 + this.amp * Math.sin(this.t * this.freq + this.phase) + (game.curY || 0) * 0.6;
+      const current = typeof game.sampleStageCurrent === 'function'
+        ? game.sampleStageCurrent('currentSurfEnemy')
+        : { x: (game.curX || 0) * 1.4, y: (game.curY || 0) * 0.6 };
+      this.x += ((this.dirX || -1) * spd + current.x) * dt;
+      this.y = this.y0 + this.amp * Math.sin(this.t * this.freq + this.phase) + current.y;
     }
 
     // --- 사격 (S축 / 탄막 공방 패턴) ---
