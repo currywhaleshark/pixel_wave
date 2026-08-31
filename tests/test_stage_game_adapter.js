@@ -21,13 +21,13 @@ const timelines = context.__stageTimelines;
 const legacy = timelines[2];
 
 const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-assert.ok(indexHtml.includes('js/stages.generated.js?v=2'));
+assert.ok(indexHtml.includes('js/stages.generated.js?v=3'));
 assert.ok(indexHtml.includes('js/stage/enemyState.js?v=1'));
 assert.ok(indexHtml.includes('js/stage/wreck.js?v=1'));
-assert.ok(indexHtml.includes('js/entities.js?v=11'));
+assert.ok(indexHtml.includes('js/entities.js?v=12'));
 assert.ok(indexHtml.includes('js/stage/layerTransform.js?v=2'));
 assert.ok(indexHtml.includes('js/stage/plugin.js?v=6'));
-assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=9'));
+assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=10'));
 assert.ok(indexHtml.indexOf('js/stage/compiler.js') < indexHtml.indexOf('js/stage/gameAdapter.js'));
 const mainSource = fs.readFileSync(path.join(root, 'js/main.js'), 'utf8');
 assert.ok(mainSource.includes("stageTestParams.get('stageRuntime') === 'data'"));
@@ -50,7 +50,7 @@ assert.equal(Adapter.requestedMode('?debug&stageRuntime=data'), 'data');
 assert.equal(Adapter.requestedMode('?stageRuntime=data'), 'legacy', 'debug 없는 프로덕션 URL은 데이터 런타임을 켜면 안 된다');
 
 const expected = [
-  [38, 189, 0, 0, 110, 114], [38, 193, 0, 0, 110, 114], [37, 207, 0, 0, 116, 120],
+  [34, 185, 0, 0, 110, 114], [38, 193, 0, 0, 110, 114], [37, 207, 0, 0, 116, 120],
   [39, 170, 0, 0, 111, 115], [31, 162, 11, 0, 111, 115],
   [35, 187, 0, 16, 111, 115], [34, 191, 2, 6, 111, 115],
 ];
@@ -58,7 +58,12 @@ assert.deepEqual(Adapter.CONFIG.optInStageIds, ['stage1', 'stage2', 'stage3', 's
 for (let stageIndex = 0; stageIndex < timelines.length; stageIndex++) {
   for (let difficulty = 0; difficulty < 3; difficulty++) {
     const report = Adapter.parityReport(`stage${stageIndex + 1}`, timelines[stageIndex], difficulty);
-    assert.deepEqual(report.errors, [], `stage${stageIndex + 1}/${report.summary.difficulty}: ${report.errors.join(' / ')}`);
+    if (stageIndex === 0) {
+      assert.equal(report.ok, false, '재구성 중인 Stage 1은 legacy와 다른 점을 명시적으로 보고한다');
+      for (const id of ['s1-w015', 's1-w027', 's1-w029', 's1-w030']) {
+        assert.ok(report.errors.some(error => error.includes(id)), `${id}의 의도적 교체가 parity report에 남아야 한다`);
+      }
+    } else assert.deepEqual(report.errors, [], `stage${stageIndex + 1}/${report.summary.difficulty}: ${report.errors.join(' / ')}`);
     const [waves, enemies, wrecks, bolts, warningAt, bossAt] = expected[stageIndex];
     assert.deepEqual(
       [report.summary.waves, report.summary.enemies, report.summary.wrecks, report.summary.bolts, report.summary.warningAt, report.summary.bossAt],
@@ -167,6 +172,23 @@ assert.deepEqual(hazardGame.bolts, [{
   value: 0.42,
   options: { width: 46, telegraphDuration: 0.9, strikeDuration: 0.4 },
 }]);
+
+const terrainGame = {
+  enemies: [], groups: {}, scroll: 0, player: { x: 180, y: 270 },
+  startRide() {}, startBossWarning() {}, startBoss() {}, spawnBolt() {}, message() {},
+  applyStageRuntimeState(state) { this.stageRuntimeState = state; },
+};
+const terrainSpawner = Adapter.createSpawner('stage1', 0, terrainGame, timelines[0], '?debug&stageRuntime=data');
+const firstTerrain = terrainSpawner.compiled.items.find(item => item.type === 'terrain-object');
+terrainSpawner.seekRange(firstTerrain.projectedTime - 0.1);
+terrainSpawner.update(firstTerrain.projectedTime);
+const liveTerrain = terrainGame.enemies.find(enemy => enemy.kind === 'turret');
+assert.ok(liveTerrain, '지형 포대가 실제 데이터 플레이의 Enemy로 생성된다');
+assert.equal(liveTerrain.M, 6);
+assert.equal(liveTerrain.ringN, 6);
+assert.equal(liveTerrain.ringGapCount, 1);
+assert.equal(liveTerrain.ringAuthoredGeometry, 1);
+assert.ok(liveTerrain.x > 900 && liveTerrain.x < 1000);
 
 for (const [stageId, timeline, at] of [
   ['stage4', timelines[3], 20],

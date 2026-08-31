@@ -11,12 +11,22 @@
       "classId": "coral-turret-small",
       "startX": 0,
       "endX": 1439,
-      "reason": "Stage 1 포대는 화면 구성에 맞춰 검토한 세 위치만 사용한다."
+      "reason": "Stage 1 포대는 화면 구성에 맞춰 검토한 여섯 위치만 사용한다."
     }
   ],
   "approvedSocketIds": [],
   "excludedSocketIds": [],
   "forcedSockets": [
+    {
+      "id": "coral-turret-small-floor-x00081",
+      "classId": "coral-turret-small",
+      "surface": "floor",
+      "x": 81,
+      "y": 92,
+      "normal": { "x": 0, "y": -1 },
+      "tags": ["stage1", "turret", "high"],
+      "reason": "중반 두 번째 포대를 크게 솟은 산호 둔덕에 올리는 안정된 받침이다."
+    },
     {
       "id": "coral-turret-small-floor-x01320",
       "classId": "coral-turret-small",
@@ -46,7 +56,27 @@
       "normal": { "x": 0, "y": -1 },
       "tags": ["stage1", "turret"],
       "reason": "세 번째 포대가 앞 포대와 겹치지 않는 넓은 산호 받침이다."
+    },
+    {
+      "id": "coral-turret-small-floor-x00551",
+      "classId": "coral-turret-small",
+      "surface": "floor",
+      "x": 551,
+      "y": 93,
+      "normal": { "x": 0, "y": -1 },
+      "tags": ["stage1", "turret", "high"],
+      "reason": "후반 쌍포대의 두 번째 포대를 첫 포대보다 높은 지형에 배치한다."
+    },
+    {
+      "id": "coral-turret-small-floor-x00694",
+      "classId": "coral-turret-small",
+      "surface": "floor",
+      "x": 694,
+      "y": 92,
+      "normal": { "x": 0, "y": -1 },
+      "tags": ["stage1", "turret", "intro"],
+      "reason": "초반 링 포격을 넓은 회피 공간에서 소개하는 눈에 띄는 고지 받침이다."
     }
   ],
-  "notes": "자동 후보는 검토 참고용으로만 사용하고, Stage 1의 세 포대는 명시적으로 승인한 소켓에 고정한다."
+  "notes": "자동 후보는 검토 참고용으로만 사용하고, Stage 1 포대는 명시적으로 승인한 여섯 소켓 가운데 배치한다."
 }

@@ -650,7 +650,17 @@ Stage Sequencer tool milestones M1–M7.
 
 ### G3 — Stages 1 and 2
 
-- Promote Stage 1 terrain sockets and rebuild ring-artillery placement.
+- [x] Promote Stage 1 terrain sockets and rebuild ring-artillery placement.
+  Five production turrets now arrive at approximately 11.6, 45.5, 56.4,
+  77.0, and 81.9 seconds from six approved terrain sockets. Their native
+  distance anchors keep them attached to the near layer in preview, seek, and
+  live data play.
+- [x] Give Stage 1 rings authored phase rotation, one readable opening, and a
+  charge cue. Easy/Normal/Hard resolve to 6/8/10 directions with progressively
+  shorter intervals and higher turret HP, without the old random aimed/scatter
+  residue.
+- [x] Move generic big enemies away from Stage 1's ring identity: the mid-stage
+  big enemy now uses aimed fire and the late ring-firing big enemy is removed.
 - Add deterministic mine parameters and rebuild Stage 2 placement.
 - Keep Bosses 1 and 2 structurally unchanged.
 - Establish Normal pacing and difficulty conventions.

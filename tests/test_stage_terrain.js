@@ -16,7 +16,7 @@ const stage1 = JSON.parse(fs.readFileSync(path.join(root, 'data/stages/stage1.v1
 
 assert.deepEqual(StageTerrain.validateProfile(profile).errors, []);
 assert.equal(profile.review.status, 'approved');
-assert.equal(profile.sockets.length, 3);
+assert.equal(profile.sockets.length, 6);
 assert.ok(profile.sockets.every(socket => socket.reviewStatus === 'approved'));
 assert.deepEqual(StageCompiler.validate(fixture).errors, []);
 
@@ -73,17 +73,30 @@ assert.equal(simulation.stateHash(), hash, '지형 오브젝트 seek는 동일�
 }
 
 {
-  const stage1Compiled = StageCompiler.compile(stage1, { difficulty: 'easy' });
-  const turretItem = stage1Compiled.items.find(item => item.type === 'wave' && item.payload.enemy.kind === 'turret');
-  assert.ok(turretItem, 'Stage 1에 산호 포대 웨이브가 있어야 한다');
-  const turretSimulation = new Simulation(stage1Compiled, { fixedStep: 1 / 60 });
-  turretSimulation.seek(turretItem.timing.start);
+  const easy = StageCompiler.compile(stage1, { difficulty: 'easy' });
+  const normal = StageCompiler.compile(stage1, { difficulty: 'normal' });
+  const hard = StageCompiler.compile(stage1, { difficulty: 'hard' });
+  const turrets = easy.items.filter(item => item.type === 'terrain-object');
+  assert.equal(turrets.length, 5, 'Stage 1 포대는 승인 소켓을 사용하는 지형 오브젝트여야 한다');
+  assert.deepEqual(turrets.map(item => item.payload.weapon.params.count), [6, 6, 6, 6, 6]);
+  assert.deepEqual(normal.items.filter(item => item.type === 'terrain-object').map(item => item.payload.weapon.params.count), [8, 8, 8, 8, 8]);
+  assert.deepEqual(hard.items.filter(item => item.type === 'terrain-object').map(item => item.payload.weapon.params.count), [10, 10, 10, 10, 10]);
+  assert.deepEqual([
+    turrets[0].payload.hp,
+    normal.items.find(item => item.id === turrets[0].id).payload.hp,
+    hard.items.find(item => item.id === turrets[0].id).payload.hp,
+  ], [6, 7, 9]);
+  assert.ok(easy.events.some(event => event.type === 'spawn-terrain' && event.itemId === turrets[0].id));
+
+  const turretItem = turrets[0];
+  const turretSimulation = new Simulation(easy, { fixedStep: 1 / 60, terrainProfile: profile });
+  turretSimulation.seek(turretItem.projectedTime);
   const atSpawn = turretSimulation.enemies.find(enemy => enemy.itemId === turretItem.id);
   assert.ok(atSpawn);
   const spawnX = atSpawn.x;
   const spawnY = atSpawn.y;
   const spawnScroll = turretSimulation.scroll;
-  turretSimulation.seek(turretItem.timing.start + 1);
+  turretSimulation.seek(turretItem.projectedTime + 1);
   const afterOneSecond = turretSimulation.enemies.find(enemy => enemy.itemId === turretItem.id);
   assert.ok(afterOneSecond);
   const layer = StageLayerTransform.layerConfig('stage1', 'near');
@@ -93,6 +106,9 @@ assert.equal(simulation.stateHash(), hash, '지형 오브젝트 seek는 동일�
   ) * 2;
   assert.equal(spawnX - afterOneSecond.x, expectedTravel, '포대 X 이동은 near 지형 픽셀 이동과 같아야 한다');
   assert.equal(afterOneSecond.y, spawnY, '포대 높이는 배치한 지형 높이에 고정되어야 한다');
+
+  turretSimulation.seek(turretItem.projectedTime + 2);
+  assert.equal(turretSimulation.firedBulletCount, 5, '이지 포대 링은 6방향 중 읽을 수 있는 1칸을 비운다');
 }
 
 console.log('stage terrain: ok');

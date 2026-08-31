@@ -157,6 +157,8 @@
         }
       } else if (item?.type === 'terrain-object') {
         useDependency('terrainObjects', item.payload?.objectId, label);
+        if (item.payload?.weapon?.presetId) useDependency('weaponPresets', item.payload.weapon.presetId, label);
+        for (const error of BehaviorApi.validateWeapon(item.payload?.weapon)) errors.push(`${label}: ${error}`);
         if (item.timing?.domain !== 'distance') errors.push(`${label} 지형 오브젝트 timing.domain은 distance여야 합니다.`);
         const terrainReport = TerrainApi.validateItem(item, null);
         errors.push(...terrainReport.errors.map(error => `${label}: ${error}`));
@@ -320,7 +322,7 @@
   }
 
   function eventPriority(event) {
-    return { 'item-start': 0, 'entry-warning': 1, 'spawn-enemy': 2, cue: 3, boss: 4, 'item-end': 5 }[event.type] ?? 9;
+    return { 'item-start': 0, 'entry-warning': 1, 'spawn-terrain': 2, 'spawn-enemy': 3, cue: 4, boss: 5, 'item-end': 6 }[event.type] ?? 9;
   }
 
   function projectTerrainTime(item, stage) {
@@ -387,7 +389,20 @@
         continue;
       }
       if (item.type === 'terrain-object') {
-        items.push({ ...item, projectedTime: projectTerrainTime(item, stage) });
+        const projectedTime = projectTerrainTime(item, stage);
+        const compiledItem = {
+          ...item,
+          projectedTime,
+          payload: {
+            ...clone(item.payload),
+            weapon: compileWeapon(item.payload?.weapon || { presetId: 'none' }, difficulty),
+          },
+        };
+        items.push(compiledItem);
+        events.push({
+          id: `${item.id}-spawn`, itemId: item.id, type: 'spawn-terrain', at: projectedTime,
+          terrain: clone(compiledItem),
+        });
         continue;
       }
       items.push(item);

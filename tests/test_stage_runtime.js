@@ -71,7 +71,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
 {
   require('../js/stages.generated.js');
   const bossIds = ['pangpang', 'mongsil', 'ssing', 'chorong', 'buu', 'ureu', 'hwii'];
-  const enemyCounts = [189, 193, 207, 170, 162, 187, 191];
+  const enemyCounts = [185, 193, 207, 170, 162, 187, 191];
   for (let index = 0; index < bossIds.length; index++) {
     const stage = global.STAGE_DATA_REGISTRY[`stage${index + 1}`];
     const full = StageCompiler.compile(stage, { difficulty: 'easy' });
@@ -159,7 +159,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(html.includes('id="schemaNotice"'));
   assert.ok(html.includes('tools/stage-sequencer.css?v=2'));
   assert.ok(html.includes('js/stage/document.js?v=4'));
-  assert.ok(html.includes('tools/stage-sequencer.js?v=25'));
+  assert.ok(html.includes('tools/stage-sequencer.js?v=26'));
   assert.ok(html.includes('js/stage/previewPlacement.js?v=1'));
   const sequencer = fs.readFileSync(path.join(root, 'tools/stage-sequencer.js'), 'utf8');
   assert.ok(sequencer.includes('function updateGameTestLink()'));

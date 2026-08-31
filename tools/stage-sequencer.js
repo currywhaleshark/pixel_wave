@@ -2383,7 +2383,11 @@
   }
 
   function drawTerrainObjects() {
+    const activeTerrainIds = new Set((simulation?.enemies || [])
+      .filter(enemy => enemy.movement?.presetId === 'turret-scroll')
+      .map(enemy => enemy.itemId));
     for (const terrain of simulation?.terrainObjects || []) {
+      if (activeTerrainIds.has(terrain.itemId)) continue;
       if (terrain.drawX < -80 || terrain.drawX > canvas.width + 80) continue;
       const selected = terrain.itemId === selectedId;
       if (!Sprites.draw(ctx, terrain.definition.spriteId, terrain.drawX, terrain.drawY, {
@@ -2459,6 +2463,22 @@
       const by = enemy.y + Math.sin(phase * 1.3) * (4 + index) * scale;
       ctx.beginPath(); ctx.arc(bx, by, (1.5 + index * 0.45) * scale, 0, Math.PI * 2); ctx.stroke();
     }
+    ctx.restore();
+  }
+
+  function drawRingChargeCue(enemy) {
+    const duration = Number(enemy.weapon?.params?.chargeDuration) || 0;
+    if (enemy.weapon?.presetId !== 'legacy-ring' || duration <= 0
+        || enemy.fireRemaining <= 0 || enemy.fireRemaining > duration) return;
+    const progress = 1 - enemy.fireRemaining / duration;
+    const radius = 18 - progress * 9;
+    ctx.save();
+    ctx.globalAlpha = 0.35 + progress * 0.55;
+    ctx.strokeStyle = '#ffe58a';
+    ctx.fillStyle = '#fff4ba';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(enemy.x, enemy.y, 2 + progress * 2, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
 
@@ -2625,7 +2645,11 @@
   function previewSpriteHitTargets() {
     if (!simulation) return [];
     const targets = [];
+    const activeTerrainIds = new Set(simulation.enemies
+      .filter(enemy => enemy.movement?.presetId === 'turret-scroll')
+      .map(enemy => enemy.itemId));
     for (const terrain of simulation.terrainObjects || []) {
+      if (activeTerrainIds.has(terrain.itemId)) continue;
       targets.push({
         type: 'terrain',
         itemId: terrain.itemId,
@@ -3230,6 +3254,7 @@
     for (const enemy of simulation.enemies) {
       const selected = enemy.itemId === selectedId;
       drawUTurnCue(enemy);
+      drawRingChargeCue(enemy);
       if (!Sprites.draw(ctx, `enemy.${enemy.kind}`, enemy.x, enemy.y, {
         t: enemy.age,
         alpha: enemy.lifecycle?.alpha ?? 1,

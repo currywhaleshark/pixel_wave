@@ -156,7 +156,10 @@ Stage 6 current, telegraph, and strike states in the preview.
 M5 adds a deterministic Stage 1 structural-mask generator, checked-in approved
 profile and override sidecar, shared layer transform, terrain semantic lint,
 review overlay, explicit coral-turret sockets, distance-to-time projection, and
-snapshot-safe terrain rendering.
+snapshot-safe terrain rendering. The gameplay-rework G3 slice promotes five
+terrain-bound turrets into production Stage 1, adds three reviewed height/tempo
+sockets, and connects terrain spawns plus authored ring geometry to live data
+play and selected-range testing.
 M6 adds the production `data/stages/stage3.v1.json`, generated browser registry,
 opt-in game adapter, three-difficulty legacy/data parity diagnostics, and a
 full/selected-range game test bridge. Production URLs remain on the legacy
@@ -168,8 +171,10 @@ selection state, and a 2,000-item limit regression. Hosted synchronization is
 optional; its conflict resolver returns both immutable versions and never picks
 a winner when histories diverge.
 
-The all-stage bridge adds deterministic conversion for Stages 1, 2, 4, 5, 6,
+The all-stage bridge adds deterministic conversion for Stages 2, 4, 5, 6,
 and 7, extends the shared vocabulary for legacy drop/mine weapons, tracking,
 turret/current movement, and surround formations, and connects wreck and
-lightning hazards to the existing game systems. All seven stages pass ordered
-timing/count/special-event parity in all three difficulties.
+lightning hazards to the existing game systems. Stage 1 and Stage 3 are now
+authored documents and are deliberately excluded from legacy regeneration;
+parity diagnostics report Stage 1's intentional wave replacements instead of
+hiding them behind cascading index mismatches.

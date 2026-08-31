@@ -7,6 +7,7 @@
   const OBJECTS = Object.freeze({
     'coral-turret': Object.freeze({
       id: 'coral-turret', name: '산호 포대', spriteId: 'enemy.turret',
+      enemyKind: 'turret',
       placementClassId: 'coral-turret-small', layer: 'near', allowContinuous: false,
       contact: Object.freeze({ floor: Object.freeze({ x: 8, y: 14 }) }),
       spriteAnchor: Object.freeze({ x: 8, y: 7 }), renderOrder: 'before-near',

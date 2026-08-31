@@ -582,7 +582,8 @@ Scope:
 Acceptance:
 
 - thin coral tips are not approved automatically;
-- the three Stage 1 turrets use explicit reviewed sockets;
+- the six Stage 1 candidate sockets are explicit and reviewed, and five
+  production turrets use them as distance-domain anchors;
 - a turret remains attached during play, seek, scroll-speed changes, and wrap;
 - changing the foreground asset hash blocks stale production export;
 - overrides survive regeneration or fail with explicit orphan reports.

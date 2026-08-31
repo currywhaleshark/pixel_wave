@@ -81,6 +81,41 @@
         this.entryWarnings.push({ id: event.id, itemId: event.itemId, ...clone(event.warning) });
         return;
       }
+      if (event.type === 'spawn-terrain') {
+        const item = clone(event.terrain || this.itemById.get(event.itemId));
+        const terrain = TerrainApi.resolveObjects([item], this.terrainProfile, this.scroll)[0];
+        if (!terrain) return;
+        const weapon = item.payload?.weapon || { presetId: 'none', params: {} };
+        const layer = LayerTransformApi.layerConfig(this.compiled.background.presetId, item.payload?.anchor?.layer || 'near');
+        this.enemies.push({
+          id: event.id,
+          itemId: event.itemId,
+          kind: terrain.definition.enemyKind || 'turret',
+          hp: item.payload?.hp ?? 7,
+          speed: 0,
+          x: terrain.drawX,
+          y: terrain.drawY,
+          x0: terrain.drawX,
+          y0: terrain.drawY,
+          directionX: -1,
+          directionY: 0,
+          movement: { presetId: 'turret-scroll', params: {} },
+          weapon,
+          age: 0,
+          phase: 0,
+          state: 'enter',
+          pauseRemaining: 0,
+          fireRemaining: weapon.startDelay ?? 0.6,
+          ringShotIndex: 0,
+          lifecycle: EnemyStateApi.resolve(terrain.definition.enemyKind || 'turret', 0, {}, {}),
+          solid: true,
+          terrainScrollNative: layer ? LayerTransformApi.layerTravelNative(
+            this.scroll, layer.speed, LayerTransformApi.PIXEL_UNIT, layer.scrollScale,
+          ) : 0,
+        });
+        this.spawnedEnemyCount++;
+        return;
+      }
       if (event.type === 'spawn-enemy') {
         const source = clone(event.enemy);
         if (source.movement?.presetId === 'u-turn') {
@@ -97,6 +132,7 @@
         source.state = 'enter';
         source.pauseRemaining = 0;
         source.fireRemaining = source.weapon?.startDelay ?? 0.6;
+        source.ringShotIndex = 0;
         const horizontalEntry = Math.abs(source.directionX) >= Math.abs(source.directionY || 0);
         const defaultTargetX = horizontalEntry
           ? (source.directionX > 0 ? 0.32 : 0.68)
@@ -229,8 +265,12 @@
       }
     }
 
-    _spawnRing(enemy, count, speed, offset) {
+    _spawnRing(enemy, count, speed, offset, options = {}) {
+      const gapCount = Math.max(0, Math.min(count - 1, Math.round(Number(options.gapCount) || 0)));
+      const gapIndex = ((Math.round(Number(options.gapIndex) || 0) % count) + count) % count;
       for (let index = 0; index < count; index++) {
+        const gapOffset = ((index - gapIndex) % count + count) % count;
+        if (gapOffset < gapCount) continue;
         const angle = offset + index / count * Math.PI * 2;
         this.bullets.push({ x: enemy.x, y: enemy.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, radius: 5, kind: 'bubble', age: 0 });
         this.firedBulletCount++;
@@ -246,9 +286,17 @@
         const count = 1 + difficultyIndex;
         this._spawnAimed(enemy, count, difficultyIndex > 0 ? 0.18 : 0, 145 * speedScale);
       } else if (weapon.presetId === 'legacy-ring') {
-        this._spawnRing(enemy, weapon.params?.count || 8, 110 * 0.9 * speedScale, enemyRandom.range(0, Math.PI * 2));
-        if (difficultyIndex >= 1) this._spawnAimed(enemy, 1, 0, 145 * 0.95 * speedScale);
-        if (difficultyIndex >= 2) {
+        const authored = weapon.params?.authoredGeometry === 1;
+        const offset = authored
+          ? (weapon.params?.phase || 0) + enemy.ringShotIndex * (weapon.params?.phaseStep || 0)
+          : enemyRandom.range(0, Math.PI * 2);
+        this._spawnRing(enemy, weapon.params?.count || 8, 110 * 0.9 * speedScale, offset, {
+          gapIndex: weapon.params?.gapIndex,
+          gapCount: weapon.params?.gapCount,
+        });
+        enemy.ringShotIndex++;
+        if (!authored && difficultyIndex >= 1) this._spawnAimed(enemy, 1, 0, 145 * 0.95 * speedScale);
+        if (!authored && difficultyIndex >= 2) {
           for (let index = 0; index < 3; index++) {
             const angle = enemyRandom.range(0, Math.PI * 2);
             const speed = enemyRandom.range(70, 150) * speedScale;

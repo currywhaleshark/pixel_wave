@@ -17,7 +17,8 @@
   "background": {
     "presetId": "stage1",
     "baseScrollSpeed": 45,
-    "scrollScale": 1
+    "scrollScale": 1,
+    "terrainProfileId": "stage1-near-v1"
   },
   "difficultyProfileId": "legacy-diffs-v1",
   "sections": [
@@ -83,8 +84,12 @@
       "boss-warning",
       "boss-start"
     ],
-    "terrainObjects": [],
-    "terrainProfiles": [],
+    "terrainObjects": [
+      "coral-turret"
+    ],
+    "terrainProfiles": [
+      "stage1-near-v1"
+    ],
     "bosses": [
       "pangpang"
     ]
@@ -620,11 +625,8 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-ring",
-          "interval": 1.9,
-          "params": {
-            "count": 10
-          }
+          "presetId": "legacy-aimed",
+          "interval": 2
         }
       }
     },
@@ -664,45 +666,6 @@
         },
         "weapon": {
           "presetId": "none"
-        }
-      }
-    },
-    {
-      "id": "s1-w015",
-      "type": "wave",
-      "name": "산호 포대 웨이브 15",
-      "timing": {
-        "domain": "time",
-        "start": 45,
-        "duration": 0
-      },
-      "payload": {
-        "enemy": {
-          "kind": "turret",
-          "hp": 7,
-          "speed": 0
-        },
-        "spawn": {
-          "count": 1,
-          "interval": 0
-        },
-        "entry": {
-          "presetId": "right-to-left",
-          "x": 0.5,
-          "y": 0.93
-        },
-        "formation": {
-          "presetId": "single"
-        },
-        "movement": {
-          "presetId": "turret-scroll"
-        },
-        "weapon": {
-          "presetId": "legacy-ring",
-          "interval": 2.8,
-          "params": {
-            "count": 8
-          }
         }
       }
     },
@@ -1136,45 +1099,6 @@
       }
     },
     {
-      "id": "s1-w027",
-      "type": "wave",
-      "name": "산호 포대 웨이브 27",
-      "timing": {
-        "domain": "time",
-        "start": 76.5,
-        "duration": 0
-      },
-      "payload": {
-        "enemy": {
-          "kind": "turret",
-          "hp": 7,
-          "speed": 0
-        },
-        "spawn": {
-          "count": 1,
-          "interval": 0
-        },
-        "entry": {
-          "presetId": "right-to-left",
-          "x": 0.5,
-          "y": 0.93
-        },
-        "formation": {
-          "presetId": "single"
-        },
-        "movement": {
-          "presetId": "turret-scroll"
-        },
-        "weapon": {
-          "presetId": "legacy-ring",
-          "interval": 2.6,
-          "params": {
-            "count": 8
-          }
-        }
-      }
-    },
-    {
       "id": "s1-w028",
       "type": "wave",
       "name": "물고기 웨이브 28",
@@ -1210,88 +1134,6 @@
         },
         "weapon": {
           "presetId": "none"
-        }
-      }
-    },
-    {
-      "id": "s1-w029",
-      "type": "wave",
-      "name": "산호 포대 웨이브 29",
-      "timing": {
-        "domain": "time",
-        "start": 79,
-        "duration": 0
-      },
-      "payload": {
-        "enemy": {
-          "kind": "turret",
-          "hp": 7,
-          "speed": 0
-        },
-        "spawn": {
-          "count": 1,
-          "interval": 0
-        },
-        "entry": {
-          "presetId": "right-to-left",
-          "x": 0.5,
-          "y": 0.93
-        },
-        "formation": {
-          "presetId": "single"
-        },
-        "movement": {
-          "presetId": "turret-scroll"
-        },
-        "weapon": {
-          "presetId": "legacy-ring",
-          "interval": 2.6,
-          "params": {
-            "count": 8
-          }
-        }
-      }
-    },
-    {
-      "id": "s1-w030",
-      "type": "wave",
-      "name": "대물 웨이브 30",
-      "timing": {
-        "domain": "time",
-        "start": 82,
-        "duration": 0
-      },
-      "payload": {
-        "enemy": {
-          "kind": "big",
-          "hp": 32,
-          "speed": 85
-        },
-        "spawn": {
-          "count": 1,
-          "interval": 0
-        },
-        "entry": {
-          "presetId": "right-to-left",
-          "x": 0.5,
-          "y": 0.5
-        },
-        "formation": {
-          "presetId": "single"
-        },
-        "movement": {
-          "presetId": "sine",
-          "params": {
-            "amplitude": 40,
-            "frequency": 0.8
-          }
-        },
-        "weapon": {
-          "presetId": "legacy-ring",
-          "interval": 2,
-          "params": {
-            "count": 12
-          }
         }
       }
     },
@@ -1637,6 +1479,276 @@
         "pluginId": "boss-start",
         "bossId": "pangpang"
       }
+    },
+    {
+      "id": "s1-turret-01",
+      "type": "terrain-object",
+      "name": "첫 고지 산호 포대",
+      "timing": {
+        "domain": "distance",
+        "start": 1388,
+        "duration": 0
+      },
+      "payload": {
+        "objectId": "coral-turret",
+        "anchor": {
+          "layer": "near",
+          "surface": "socket",
+          "socketId": "coral-turret-small-floor-x00694",
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "weapon": {
+          "presetId": "legacy-ring",
+          "interval": 3.2,
+          "startDelay": 1,
+          "params": {
+            "count": 6,
+            "phase": 0,
+            "phaseStep": 0.18,
+            "gapIndex": 0,
+            "gapCount": 1,
+            "chargeDuration": 0.75,
+            "authoredGeometry": 1
+          }
+        },
+        "hp": 6
+      },
+      "difficulty": {
+        "normal": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "hp": 7
+            }
+          }
+        },
+        "hard": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "hp": 9
+            }
+          }
+        }
+      },
+      "notes": "초반 비사격 군집 뒤 처음 만나는 링 포격. 높은 산호 둔덕과 넓은 회피 공간으로 문법을 소개한다."
+    },
+    {
+      "id": "s1-turret-02",
+      "type": "terrain-object",
+      "name": "중반 저지 산호 포대",
+      "timing": {
+        "domain": "distance",
+        "start": 2640,
+        "duration": 0
+      },
+      "payload": {
+        "objectId": "coral-turret",
+        "anchor": {
+          "layer": "near",
+          "surface": "socket",
+          "socketId": "coral-turret-small-floor-x01320",
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "weapon": {
+          "presetId": "legacy-ring",
+          "interval": 3,
+          "startDelay": 0.95,
+          "params": {
+            "count": 6,
+            "phase": 0.75,
+            "phaseStep": -0.16,
+            "gapIndex": 2,
+            "gapCount": 1,
+            "chargeDuration": 0.7,
+            "authoredGeometry": 1
+          }
+        },
+        "hp": 6
+      },
+      "difficulty": {
+        "normal": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "hp": 7
+            }
+          }
+        },
+        "hard": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "hp": 9
+            }
+          }
+        }
+      },
+      "notes": "낮은 지형 포대 위로 물고기 교통이 지나가는 첫 혼합 장면."
+    },
+    {
+      "id": "s1-turret-03",
+      "type": "terrain-object",
+      "name": "중반 고지 산호 포대",
+      "timing": {
+        "domain": "distance",
+        "start": 3042,
+        "duration": 0
+      },
+      "payload": {
+        "objectId": "coral-turret",
+        "anchor": {
+          "layer": "near",
+          "surface": "socket",
+          "socketId": "coral-turret-small-floor-x00081",
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "weapon": {
+          "presetId": "legacy-ring",
+          "interval": 3,
+          "startDelay": 0.95,
+          "params": {
+            "count": 6,
+            "phase": 1.55,
+            "phaseStep": 0.2,
+            "gapIndex": 3,
+            "gapCount": 1,
+            "chargeDuration": 0.7,
+            "authoredGeometry": 1
+          }
+        },
+        "hp": 6
+      },
+      "difficulty": {
+        "normal": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "hp": 7
+            }
+          }
+        },
+        "hard": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "hp": 9
+            }
+          }
+        }
+      },
+      "notes": "앞 포대와 반대 높이에서 등장해 상하 경로를 바꾸게 한다."
+    },
+    {
+      "id": "s1-turret-04",
+      "type": "terrain-object",
+      "name": "후반 저지 산호 포대",
+      "timing": {
+        "domain": "distance",
+        "start": 3802,
+        "duration": 0
+      },
+      "payload": {
+        "objectId": "coral-turret",
+        "anchor": {
+          "layer": "near",
+          "surface": "socket",
+          "socketId": "coral-turret-small-floor-x00461",
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "weapon": {
+          "presetId": "legacy-ring",
+          "interval": 2.8,
+          "startDelay": 0.9,
+          "params": {
+            "count": 6,
+            "phase": 0.3,
+            "phaseStep": 0.16,
+            "gapIndex": 1,
+            "gapCount": 1,
+            "chargeDuration": 0.65,
+            "authoredGeometry": 1
+          }
+        },
+        "hp": 7
+      },
+      "difficulty": {
+        "normal": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "hp": 8
+            }
+          }
+        },
+        "hard": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "hp": 10
+            }
+          }
+        }
+      },
+      "notes": "최종 포대 세트피스의 첫 포대. 격파하면 하단 탈출로가 먼저 열린다."
+    },
+    {
+      "id": "s1-turret-05",
+      "type": "terrain-object",
+      "name": "후반 고지 산호 포대",
+      "timing": {
+        "domain": "distance",
+        "start": 3982,
+        "duration": 0
+      },
+      "payload": {
+        "objectId": "coral-turret",
+        "anchor": {
+          "layer": "near",
+          "surface": "socket",
+          "socketId": "coral-turret-small-floor-x00551",
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "weapon": {
+          "presetId": "legacy-ring",
+          "interval": 2.8,
+          "startDelay": 0.9,
+          "params": {
+            "count": 6,
+            "phase": 1.1,
+            "phaseStep": -0.18,
+            "gapIndex": 4,
+            "gapCount": 1,
+            "chargeDuration": 0.65,
+            "authoredGeometry": 1
+          }
+        },
+        "hp": 7
+      },
+      "difficulty": {
+        "normal": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "hp": 8
+            }
+          }
+        },
+        "hard": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "hp": 10
+            }
+          }
+        }
+      },
+      "notes": "첫 포대보다 약 5초 뒤 높은 둔덕에서 합류한다. 두 링의 틈이 서로 다른 위상으로 돈다."
     }
   ]
 }

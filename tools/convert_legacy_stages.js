@@ -2,7 +2,7 @@
 'use strict';
 
 // waves.js의 검증된 레거시 타임라인을 Stage JSON v1 초안으로 옮긴다.
-// Stage 3은 수작업으로 완전 변환되어 있으므로 이 도구가 덮어쓰지 않는다.
+// Stage 1과 3은 수작업 스테이지 재구성이 시작되어 이 도구가 덮어쓰지 않는다.
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
@@ -199,7 +199,7 @@ function convert(stageNumber, timeline) {
   };
 }
 
-for (const stageNumber of [1, 2, 4, 5, 6, 7]) {
+for (const stageNumber of [2, 4, 5, 6, 7]) {
   const output = path.join(root, 'docs/stage-editor', `stage${stageNumber}.v1.draft.json`);
   fs.writeFileSync(output, `${JSON.stringify(convert(stageNumber, context.__legacyStages[stageNumber - 1]), null, 2)}\n`, 'utf8');
   console.log(path.relative(root, output));

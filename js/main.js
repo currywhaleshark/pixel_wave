@@ -137,6 +137,7 @@ const Game = {
     this.ride = null;
     this.groups = {};
     this.stageT = 0;
+    this.scroll = 0;
     this.slowT = 0;
     this.battery = Meta.batteryStart();
     this.batteryMax = Meta.batteryMax();
@@ -338,8 +339,12 @@ const Game = {
       this.ebullets.push({ x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, r: CFG.ebR, kind: 'spike' });
     }
   },
-  spawnRing(x, y, n, speed, offset) {
+  spawnRing(x, y, n, speed, offset, options = {}) {
+    const gapCount = Math.max(0, Math.min(n - 1, Math.round(Number(options.gapCount) || 0)));
+    const gapIndex = ((Math.round(Number(options.gapIndex) || 0) % n) + n) % n;
     for (let i = 0; i < n; i++) {
+      const gapOffset = ((i - gapIndex) % n + n) % n;
+      if (gapOffset < gapCount) continue;
       const a = offset + (i / n) * 6.28;
       this.ebullets.push({ x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, r: CFG.ebR, kind: 'bubble' });
     }

@@ -340,6 +340,7 @@ class Enemy {
     this.maxHp = this.hp;
     this.flash = 0;
     this.barrageRunner = null;
+    this.ringShotIndex = 0;
     this.params = spec.params && typeof spec.params === 'object' ? spec.params : {};
     this.movementParams = spec.movementParams && typeof spec.movementParams === 'object' ? spec.movementParams : {};
     this.lifecycle = EnemyLifecycleApi.resolve(this.kind, 0, this.params, this.movementParams);
@@ -522,12 +523,20 @@ class Enemy {
       // 조준: 이지 1발 → 노멀 2발 부채꼴 → 하드 3발 부채꼴
       game.spawnAimed(this.x, this.y, CFG.ebSpeedAimed, 1 + di, di > 0 ? 0.18 : 0);
     } else if (S === 2) {
-      // 전방위 링 (ringN — 난이도로 탄수 상향 적용됨)
-      game.spawnRing(this.x, this.y, this.ringN ?? 8, CFG.ebSpeedRing * 0.9, Math.random() * 6.28);
+      // 전방위 링. 제작된 포대 패턴은 회전 위상과 안전 틈이 결정론적으로 유지된다.
+      const authored = this.ringAuthoredGeometry === 1;
+      const offset = authored
+        ? (this.ringPhase ?? 0) + this.ringShotIndex * (this.ringPhaseStep ?? 0)
+        : Math.random() * 6.28;
+      game.spawnRing(this.x, this.y, this.ringN ?? 8, CFG.ebSpeedRing * 0.9, offset, {
+        gapIndex: this.ringGapIndex,
+        gapCount: this.ringGapCount,
+      });
+      this.ringShotIndex++;
       // 노멀+: 링과 함께 노리고 쏘는 조준탄
-      if (di >= 1) game.spawnAimed(this.x, this.y, CFG.ebSpeedAimed * 0.95, 1, 0);
+      if (!authored && di >= 1) game.spawnAimed(this.x, this.y, CFG.ebSpeedAimed * 0.95, 1, 0);
       // 하드: 무작위 흩뿌리기 3발 추가 (읽기 어려운 잔탄)
-      if (di >= 2) {
+      if (!authored && di >= 2) {
         for (let i = 0; i < 3; i++) {
           const a = Math.random() * 6.28;
           const sp = 70 + Math.random() * 80;
@@ -626,6 +635,18 @@ class Enemy {
       ctx.moveTo(this.x - direction * 8, this.y - 7);
       ctx.quadraticCurveTo(this.x - direction * 20, this.y - 13, this.x - direction * 30, this.y - 5);
       ctx.stroke();
+      ctx.restore();
+    }
+    if (this.S === 2 && this.ringChargeDuration > 0 && this.fireT > 0 && this.fireT <= this.ringChargeDuration) {
+      const progress = 1 - this.fireT / this.ringChargeDuration;
+      const radius = 18 - progress * 9;
+      ctx.save();
+      ctx.globalAlpha = (0.35 + progress * 0.55) * alpha;
+      ctx.strokeStyle = '#ffe58a';
+      ctx.fillStyle = '#fff4ba';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(this.x, this.y, radius, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(this.x, this.y, 2 + progress * 2, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
     }
     if (Sprites.draw(ctx, `enemy.${this.kind}`, this.x, this.y, {

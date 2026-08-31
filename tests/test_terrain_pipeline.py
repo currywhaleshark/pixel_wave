@@ -27,7 +27,7 @@ class TerrainPipelineTest(unittest.TestCase):
         self.assertEqual(profile['binding']['structuralMaskSha256'], hashlib.sha256(mask.read_bytes()).hexdigest())
         self.assertEqual(profile['review']['status'], 'approved')
         self.assertEqual(profile['review']['pendingSocketCount'], 0)
-        self.assertEqual([socket['x'] for socket in profile['sockets']], [461, 507, 1320])
+        self.assertEqual([socket['x'] for socket in profile['sockets']], [81, 461, 507, 551, 694, 1320])
 
         with tempfile.TemporaryDirectory() as directory:
             generated_mask = Path(directory) / 'mask.png'

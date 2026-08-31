@@ -4,8 +4,12 @@
 
   const Compiler = root.StageCompiler || (typeof require === 'function' ? require('./compiler.js') : null);
   const Plugin = root.StagePlugin || (typeof require === 'function' ? require('./plugin.js') : null);
+  const TerrainApi = root.StageTerrain || (typeof require === 'function' ? require('./terrain.js') : null);
+  const LayerTransformApi = root.StageLayerTransform || (typeof require === 'function' ? require('./layerTransform.js') : null);
   const WreckApi = root.StageWreck || (typeof require === 'function' ? require('./wreck.js') : null);
   const DATA = root.STAGE_DATA_REGISTRY || (typeof STAGE_DATA_REGISTRY !== 'undefined' ? STAGE_DATA_REGISTRY : {});
+  const TERRAIN_PROFILES = root.STAGE_TERRAIN_PROFILE_REGISTRY
+    || (typeof STAGE_TERRAIN_PROFILE_REGISTRY !== 'undefined' ? STAGE_TERRAIN_PROFILE_REGISTRY : {});
   const TEST_STORAGE_KEY = 'pixel-wave-stage-test-payload';
   const CONFIG = Object.freeze({
     defaultMode: 'legacy',
@@ -57,10 +61,15 @@
     const dataWaves = compiled.items.filter(item => item.type === 'wave');
     const errors = [];
     if (legacyWaves.length !== dataWaves.length) errors.push(`웨이브 수 ${legacyWaves.length}/${dataWaves.length}`);
-    const count = Math.min(legacyWaves.length, dataWaves.length);
-    for (let index = 0; index < count; index++) {
+    const dataById = new Map(dataWaves.map(item => [item.id, item]));
+    for (let index = 0; index < legacyWaves.length; index++) {
       const legacy = legacyWaves[index];
-      const data = dataWaves[index];
+      const expectedId = `s${stageId.replace('stage', '')}-w${String(index + 1).padStart(3, '0')}`;
+      const data = dataById.get(expectedId);
+      if (!data) {
+        errors.push(`${expectedId} 데이터 웨이브가 없습니다.`);
+        continue;
+      }
       if (Math.abs(Number(legacy.t) - data.timing.start) > 0.011) errors.push(`${data.id} 시작 ${legacy.t}/${data.timing.start}`);
       if (legacyResolvedCount(legacy) !== data.resolvedCount) errors.push(`${data.id} 마릿수 ${legacyResolvedCount(legacy)}/${data.resolvedCount}`);
     }
@@ -129,6 +138,8 @@
       this.runtimeTime = 0;
       this.runtimeEnabled = true;
       this.runtimeItems = compiled.items.filter(item => item.payload?.pluginId);
+      this.terrainProfile = TERRAIN_PROFILES[compiled.background?.terrainProfileId] || null;
+      this.spawnedTerrainIds = new Set();
       this.timeline = compiled.items.map(item => ({
         t: item.timing.domain === 'time' ? item.timing.start : item.projectedTime || compiled.timeline.duration,
         warning: item.payload?.pluginId === 'boss-warning' || undefined,
@@ -174,9 +185,20 @@
     _seekRuntime(at) {
       this.runtimeState = Plugin.initialRuntimeState();
       this.runtimeTime = 0;
+      this.game.scroll = 0;
       const step = 1 / 60;
       while (this.runtimeTime < at - 1e-9) {
         const next = Math.min(at, this.runtimeTime + step);
+        const middle = this.runtimeTime + (next - this.runtimeTime) * 0.5;
+        const midpointState = Plugin.evaluateRuntimeState(
+          this.runtimeState,
+          this._activeRuntimeItems(middle),
+          middle,
+          0,
+          this.compiled.viewport,
+        );
+        this.game.scroll += (this.compiled.background.baseScrollSpeed || 0)
+          * midpointState.scrollMultiplier * (next - this.runtimeTime);
         this.runtimeState = Plugin.evaluateRuntimeState(
           this.runtimeState,
           this._activeRuntimeItems(next),
@@ -197,7 +219,7 @@
     _group(itemId) {
       if (!this.groupIds.has(itemId)) {
         const id = this.nextGroupId++;
-        const total = this.events.filter(event => event.type === 'spawn-enemy' && event.itemId === itemId).length;
+        const total = this.events.filter(event => ['spawn-enemy', 'spawn-terrain'].includes(event.type) && event.itemId === itemId).length;
         this.groupIds.set(itemId, id);
         this.game.groups[id] = { total, killed: 0, escaped: 0, isFormation: total > 1 };
       }
@@ -233,6 +255,12 @@
         pauseDur: movement.params?.pauseDuration,
         fireInt: weapon.interval,
         ringN: weapon.params?.count,
+        ringPhase: weapon.params?.phase,
+        ringPhaseStep: weapon.params?.phaseStep,
+        ringGapIndex: weapon.params?.gapIndex,
+        ringGapCount: weapon.params?.gapCount,
+        ringChargeDuration: weapon.params?.chargeDuration,
+        ringAuthoredGeometry: weapon.params?.authoredGeometry,
         fireDelay: weapon.startDelay,
         barragePatternId: weapon.patternId || null,
         barragePattern: weapon.pattern || null,
@@ -240,6 +268,45 @@
         groupId: this._group(event.itemId),
       };
       this.game.enemies.push(new Enemy(spec));
+    }
+
+    _spawnTerrain(event) {
+      const item = event.terrain || this.compiled.items.find(candidate => candidate.id === event.itemId);
+      if (!item || !this.terrainProfile || this.spawnedTerrainIds.has(item.id)) return;
+      const terrain = TerrainApi.resolveObjects([item], this.terrainProfile, this.game.scroll || 0)[0];
+      if (!terrain) return;
+      const weapon = item.payload?.weapon || { presetId: 'none', params: {} };
+      const layer = LayerTransformApi.layerConfig(this.compiled.background.presetId, item.payload?.anchor?.layer || 'near');
+      const groupId = this._group(item.id);
+      this.game.groups[groupId].total = 1;
+      this.game.groups[groupId].isFormation = false;
+      this.game.enemies.push(new Enemy({
+        kind: terrain.definition.enemyKind || 'turret',
+        hp: item.payload?.hp ?? 7,
+        spd: 0,
+        params: {},
+        x: terrain.drawX,
+        y: terrain.drawY,
+        dirX: -1,
+        dirY: 0,
+        M: 6,
+        S: weaponCode(weapon),
+        movementParams: {},
+        fireInt: weapon.interval,
+        fireDelay: weapon.startDelay,
+        ringN: weapon.params?.count,
+        ringPhase: weapon.params?.phase,
+        ringPhaseStep: weapon.params?.phaseStep,
+        ringGapIndex: weapon.params?.gapIndex,
+        ringGapCount: weapon.params?.gapCount,
+        ringChargeDuration: weapon.params?.chargeDuration,
+        ringAuthoredGeometry: weapon.params?.authoredGeometry,
+        terrainScrollNative: layer ? LayerTransformApi.layerTravelNative(
+          this.game.scroll || 0, layer.speed, LayerTransformApi.PIXEL_UNIT, layer.scrollScale,
+        ) : 0,
+        groupId,
+      }));
+      this.spawnedTerrainIds.add(item.id);
     }
 
     _spawnWreck(event) {
@@ -258,6 +325,7 @@
         if (typeof this.game.addStageEntryWarning === 'function') this.game.addStageEntryWarning(event.warning);
         else (this.game.entryWarnings ||= []).push(JSON.parse(JSON.stringify(event.warning)));
       }
+      else if (event.type === 'spawn-terrain') this._spawnTerrain(event);
       else if (event.type === 'spawn-enemy') this._spawn(event);
       else if (event.type === 'cue' && event.payload?.pluginId === 'boss-warning') this.game.startBossWarning();
       else if (event.type === 'boss') {
@@ -292,6 +360,13 @@
       }
       this.runtimeEnabled = true;
       this._seekRuntime(at);
+      for (const item of this.compiled.items) {
+        if (item.type !== 'terrain-object' || item.projectedTime >= at) continue;
+        const terrain = TerrainApi.resolveObjects([item], this.terrainProfile, this.game.scroll || 0)[0];
+        if (terrain && terrain.drawX > -80 && terrain.drawX < this.compiled.viewport.width + 80) {
+          this._spawnTerrain({ itemId: item.id, terrain: item });
+        }
+      }
       const ride = this.compiled.items.find(item => item.payload?.pluginId === 'turtle-ride'
         && item.timing.start < at && item.timing.start + item.timing.duration > at);
       if (ride) this.game.startRide(

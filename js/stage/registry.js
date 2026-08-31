@@ -109,11 +109,17 @@
         ]),
       }),
       Object.freeze({
-        id: 'legacy-ring', name: '원형탄', description: '원형 탄막을 발사하며 난이도 보정 전에 쓸 기본 탄 수를 지정',
+        id: 'legacy-ring', name: '원형탄', description: '원형 탄막의 탄 수·회전 위상·안전 틈과 발사 예고를 지정',
         fields: Object.freeze([
           Object.freeze({ key: 'interval', target: 'root', label: '발사 간격', min: 0.03, max: 120, step: 0.01, default: 2 }),
           Object.freeze({ key: 'startDelay', target: 'root', label: '첫 발 지연', min: 0, max: 120, step: 0.05, default: 0.6 }),
           Object.freeze({ key: 'count', target: 'params', label: '기본 탄 수', min: 1, max: 256, step: 1, default: 8, integer: true }),
+          Object.freeze({ key: 'phase', target: 'params', label: '시작 위상', min: 0, max: 6.283, step: 0.05, default: 0 }),
+          Object.freeze({ key: 'phaseStep', target: 'params', label: '회전량/발', min: -6.283, max: 6.283, step: 0.05, default: 0 }),
+          Object.freeze({ key: 'gapIndex', target: 'params', label: '안전 틈 시작 탄', min: 0, max: 255, step: 1, default: 0, integer: true }),
+          Object.freeze({ key: 'gapCount', target: 'params', label: '생략할 탄 수', min: 0, max: 32, step: 1, default: 0, integer: true }),
+          Object.freeze({ key: 'chargeDuration', target: 'params', label: '발사 예고 시간', min: 0, max: 5, step: 0.05, default: 0 }),
+          Object.freeze({ key: 'authoredGeometry', target: 'params', label: '난이도 자동 잔탄 끄기', min: 0, max: 1, step: 1, default: 0, integer: true }),
         ]),
       }),
       Object.freeze({
