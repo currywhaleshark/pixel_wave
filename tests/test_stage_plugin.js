@@ -11,6 +11,7 @@ const { Simulation } = require('../js/stage/simulation.js');
 
 const root = path.resolve(__dirname, '..');
 const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/stage3.v1.draft.json'), 'utf8'));
+const stage4Source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/stage4.v1.draft.json'), 'utf8'));
 const coverage5 = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/coverage-stage5-wreck.v1.draft.json'), 'utf8'));
 const coverage6 = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/coverage-stage6-storm.v1.draft.json'), 'utf8'));
 
@@ -205,6 +206,19 @@ const coverage6 = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/
   simulation.seek(37);
   simulation.seek(8.5);
   assert.equal(simulation.stateHash(), activeHash, '난파선 내부 seek가 동일한 플러그인 상태를 복원해야 한다');
+}
+
+{
+  const simulation = new Simulation(StageCompiler.compile(stage4Source, { difficulty: 'normal' }));
+  simulation.buildSnapshotCache();
+  simulation.seek(54);
+  const beforeBreak = simulation.pluginState.darkness;
+  simulation.seek(58);
+  const brightBreak = simulation.pluginState.darkness;
+  simulation.seek(87);
+  const deepest = simulation.pluginState.darkness;
+  assert.ok(brightBreak < beforeBreak - 0.2, '58초 밝은 휴지에서 암전 곡선이 확실히 걷혀야 한다');
+  assert.ok(deepest > brightBreak + 0.35, '후반 최심부에서 암전이 다시 깊어져야 한다');
 }
 
 {

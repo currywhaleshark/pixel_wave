@@ -451,8 +451,11 @@
       if (pluginId === 'scroll-speed') {
         state.scrollMultiplier *= sampleCurve(params.curve, localTime);
       } else if (pluginId === 'darkness') {
-        if (finite(params.target) >= state.darknessTarget) {
-          state.darknessTarget = finite(params.target);
+        const target = Array.isArray(params.curve)
+          ? clamp(sampleCurve(params.curve, localTime, finite(params.target)), 0, 1)
+          : clamp(finite(params.target), 0, 1);
+        if (target >= state.darknessTarget) {
+          state.darknessTarget = target;
           darknessRate = Math.max(0, finite(params.responseRate));
         }
       } else if (pluginId === 'storm-current') {

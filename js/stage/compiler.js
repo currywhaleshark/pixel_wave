@@ -230,6 +230,16 @@
 
     const makeEnemy = (index, at, x, y, extra = {}) => {
       const hpScale = payload.enemy.kind === 'big' ? difficulty.bigHp : 1;
+      const enemyParams = EnemyStateApi.normalize(payload.enemy.kind, payload.enemy.params, index);
+      if (payload.enemy.kind === 'viper') {
+        if (difficulty.id === 'easy') {
+          enemyParams.revealDelay *= 0.75;
+          enemyParams.glintDuration *= 1.25;
+        } else if (difficulty.id === 'hard') {
+          enemyParams.revealDelay += index * 0.12;
+          enemyParams.glintDuration *= 0.85;
+        }
+      }
       events.push({
         id: `${item.id}-e${String(index + 1).padStart(3, '0')}`,
         itemId: item.id,
@@ -240,7 +250,7 @@
           hp: Math.round(payload.enemy.hp * hpScale),
           maxHp: Math.round(payload.enemy.hp * hpScale),
           speed: payload.enemy.speed,
-          params: EnemyStateApi.normalize(payload.enemy.kind, payload.enemy.params, index),
+          params: enemyParams,
           x,
           y,
           directionX,

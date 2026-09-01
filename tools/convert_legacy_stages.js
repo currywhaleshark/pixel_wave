@@ -20,7 +20,6 @@ vm.runInContext(`${wavesSource}\nglobalThis.__legacyStages = [
 
 const META = {
   stage1: { name: '산호 초입', seed: 1001, boss: 'pangpang', bossName: '팡팡', sections: ['도입', '압박', '혼합과 파밍'] },
-  stage4: { name: '심해 협곡', seed: 4004, boss: 'chorong', bossName: '초롱', dark: 0.86, sections: ['어둠 적응', '협곡 깊이', '심해 러시'] },
   stage5: { name: '난파선 묘지', seed: 5005, boss: 'buu', bossName: '부우', dark: 0.3, sections: ['잔해 사이로', '유령의 시간', '좁아지는 묘지'] },
   stage6: { name: '폭풍 수면', seed: 6006, boss: 'ureu', bossName: '우르릉', storm: 1, sections: ['바람이 분다', '폭풍 속으로', '뇌우'] },
   stage7: { name: '용궁 앞바다', seed: 7007, boss: 'hwii', bossName: '휘이', storm: 0.55, sections: ['여명', '총력', '문 앞'] },
@@ -198,7 +197,7 @@ function convert(stageNumber, timeline) {
   };
 }
 
-for (const stageNumber of [4, 5, 6, 7]) {
+for (const stageNumber of [5, 6, 7]) {
   const output = path.join(root, 'docs/stage-editor', `stage${stageNumber}.v1.draft.json`);
   fs.writeFileSync(output, `${JSON.stringify(convert(stageNumber, context.__legacyStages[stageNumber - 1]), null, 2)}\n`, 'utf8');
   console.log(path.relative(root, output));

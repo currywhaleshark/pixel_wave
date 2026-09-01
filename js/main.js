@@ -374,6 +374,7 @@ const Game = {
     const drop = PEARL_DROP[e.kind] ?? 1;
     for (let i = 0; i < drop; i++) this.pearls.push(new Pearl(e.x, e.y));
     this.addFx(e.x, e.y, '#ffd6e8', 8);
+    if (this.boss && typeof this.boss.onEnemyKilled === 'function') this.boss.onEnemyKilled(e);
     // S5 유언탄: 이지 조준 1발 → 노멀 2발 → 하드 5방향 흩뿌림
     if (e.S === 5) {
       if (this.diff >= 2) this.spawnRing(e.x, e.y, 5, 125, Math.random() * 6.28);
@@ -853,7 +854,11 @@ const Game = {
         const b = this.boss;
         if (b && !b.dead && b.phase >= 1) {
           if (b.phase === 1) { b.hp = b.maxHp * 0.65; b.enterPhase(2); }
-          else if (b.phase === 2) { b.hp = b.maxHp * 0.32; b.enterPhase(3); }
+          else if (b.phase === 2) {
+            b.hp = b.maxHp * 0.32;
+            if (typeof b.enterSurvival === 'function') b.enterSurvival();
+            else b.enterPhase(3);
+          }
           else if (b.phase === 3 && this.diff >= 2) { b.hp = b.maxHp * 0.17; b.enterPhase(4); }
           else b.takeDamage(b.hp);
           this.message('[DEBUG] 보스 페이즈 스킵', '#ff8fd8');
@@ -1727,7 +1732,8 @@ const Game = {
       else if (b.kind === 'star') hole(b.x, b.y, 28);      // 별탄은 스스로 빛남
     }
     if (this.boss && !this.boss.dead && this.boss.lureX !== undefined) {
-      hole(this.boss.lureX, this.boss.lureY, this.boss.lureR ?? 150); // 초롱불
+      const lurePower = this.boss.lurePower ?? 1;
+      if (lurePower > 0.01) hole(this.boss.lureX, this.boss.lureY, (this.boss.lureR ?? 150) * lurePower); // 초롱불
     }
     ctx.drawImage(this._darkCanvas, 0, 0);
     // 공정성: 어둠 위에 탄과 아군 샷을 희미하게 재드로 — 안 보여서 맞는 건 금지

@@ -690,8 +690,15 @@ Stage Sequencer tool milestones M1–M7.
   and lets the player keep attacking 씽씽. Taxi protection is finite: three
   durability segments on Easy and two on Normal/Hard, with no unconditional
   invulnerability. P3 begins after the taxi exits or its protection breaks.
-- Rebuild darkness/reveal rhythm.
-- Add Boss 4 survival transition.
+- [x] Rebuild Stage 4's darkness/reveal rhythm. A stage-wide authored curve now
+  creates two bright contrast breaks and a final descent; the ordinary route is
+  reduced to 12 vipers and 8 lanterns. Viper timing is now information-based:
+  Easy reveals earlier and telegraphs longer, while Hard staggers consecutive
+  reveals and shortens the eye-glint without adding turn speed.
+- [x] Add Boss 4's one-time P2→P3 blackout survival transition. 초롱 dims its
+  lure in three steps, becomes unhittable for eight seconds, and releases
+  3/4/5 sequential vipers on Easy/Normal/Hard amid sparse slow stars. Each
+  tagged viper kill removes 0.7 seconds before the lure returns and P3 begins.
 
 ### G5 — Stages 5 and 6
 

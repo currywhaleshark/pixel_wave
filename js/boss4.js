@@ -8,6 +8,7 @@
 const BOSS4_PATTERNS = {
   1: { id: 'chorong-dark-fishing', name: '어둠 낚시' },
   2: { id: 'chorong-light-rings',  name: '불 켜기 링' },
+  survival: { id: 'chorong-blackout-survival', name: '초롱 소등 생존전' },
   3: { id: 'chorong-deep-stars',   name: '심해의 별밤' },  // 대파도
   4: { id: 'chorong-falling-stars', name: '진·심해의 별밤' },  // 하드 전용: 별똥별
 };
@@ -34,6 +35,13 @@ class BossChorong {
     this.starT = 0.3;
     this.lungeCycleT = 5.0;
     this.transitionT = 0;
+    this.hittable = true;
+    this.survivalT = 0;
+    this.survivalElapsed = 0;
+    this.survivalSpawnT = 0;
+    this.survivalSpawned = 0;
+    this.survivalCount = 0;
+    this.lurePower = 1;
     this.dead = false;
     this.deathT = 0;
     // 초롱불 (광원이자 예고등)
@@ -48,17 +56,19 @@ class BossChorong {
   }
 
   takeDamage(dmg) {
-    if (this.phase === 0 || this.transitionT > 0 || this.dead) return;
+    if (this.phase === 0 || this.transitionT > 0 || this.hittable === false || this.dead) return;
     this.hp -= dmg;
     const r = this.hpRatio();
     if (this.phase === 1 && r <= 0.66) this.enterPhase(2);
-    else if (this.phase === 2 && r <= 0.33) this.enterPhase(3);
+    else if (this.phase === 2 && r <= 0.33) this.enterSurvival();
     else if (this.phase === 3 && this.game.diff >= 2 && r <= 0.18) this.enterPhase(4); // 하드: 진 대파도
     if (this.hp <= 0 && !this.dead) this.die();
   }
 
   enterPhase(p) {
     this.phase = p;
+    this.hittable = true;
+    this.lurePower = 1;
     this.transitionT = 1.2;
     this.mode = 'drift';
     this.modeT = 2.4;
@@ -78,6 +88,74 @@ class BossChorong {
       this.game.message('"어, 어어?! 별이... 떨어진다?!"', '#d8fff8');
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
+    }
+  }
+
+  enterSurvival() {
+    const g = this.game;
+    this.phase = 2.5;
+    this.hittable = false;
+    this.transitionT = 0.65;
+    this.mode = 'drift';
+    this.survivalT = 8;
+    this.survivalElapsed = 0;
+    this.survivalSpawnT = 0.8;
+    this.survivalSpawned = 0;
+    this.survivalCount = 3 + g.diff;
+    this.starT = 0.1;
+    this.lurePower = 1;
+    g.clearBulletsToPearls(false);
+    g.targetDark = 0.96;
+    g.message('초롱불이 꺼진다 — 8초를 버텨라!', '#aef7ee');
+  }
+
+  onEnemyKilled(enemy) {
+    if (this.phase !== 2.5 || enemy?.chorongSurvival !== true) return;
+    this.survivalT = Math.max(0, this.survivalT - 0.7);
+    this.game.addFx(enemy.x, enemy.y, '#aef7ee', 16);
+    this.game.message('독니고기 격파 — 어둠이 0.7초 짧아졌다!', '#aef7ee');
+  }
+
+  updateSurvival(dt) {
+    const g = this.game;
+    this.survivalT -= dt;
+    this.survivalElapsed += dt;
+    this.lurePower = this.survivalElapsed < 0.7 ? 1
+      : this.survivalElapsed < 1.4 ? 0.66
+        : this.survivalElapsed < 2.1 ? 0.33 : 0;
+    this.x += (CFG.W * 0.86 - this.x) * Math.min(1, dt * 2);
+    this.y += (CFG.H * 0.5 - this.y) * Math.min(1, dt * 1.5);
+
+    this.starT -= dt;
+    if (this.starT <= 0) {
+      this.starT = 0.55;
+      const sx = 50 + Math.random() * (CFG.W - 100);
+      const sy = 35 + Math.random() * (CFG.H - 70);
+      g.ebullets.push({
+        x: sx, y: sy,
+        vx: (Math.random() - 0.5) * 24, vy: (Math.random() - 0.5) * 24,
+        r: 4, kind: 'star', armT: 0.8,
+      });
+    }
+
+    this.survivalSpawnT -= dt;
+    if (this.survivalSpawned < this.survivalCount && this.survivalSpawnT <= 0) {
+      const index = this.survivalSpawned++;
+      this.survivalSpawnT += 5.8 / Math.max(1, this.survivalCount - 1);
+      const lanes = [0.2, 0.8, 0.38, 0.64, 0.5];
+      g.spawner.pending.push({ at: g.stageT, spec: {
+        kind: 'viper', M: 5, S: 0, hp: 3, spd: 112,
+        params: { revealDelay: 0.75, glintDuration: 0.55 },
+        movementParams: { trackingDuration: 3.4, turnRate: 0.7 },
+        x: CFG.W + 35, y: lanes[index % lanes.length] * CFG.H,
+        dirX: -1, dirY: 0, groupId: -1, phase: 0,
+        chorongSurvival: true,
+      }});
+    }
+
+    if (this.survivalT <= 0) {
+      for (const enemy of g.enemies) if (enemy.chorongSurvival) enemy.escaped = true;
+      this.enterPhase(3);
     }
   }
 
@@ -130,6 +208,11 @@ class BossChorong {
 
     const m = this.mercy();
     if (this.telegraph > 0) this.telegraph -= dt;
+
+    if (this.phase === 2.5) {
+      this.updateSurvival(dt);
+      return;
+    }
 
     // ---- 돌진 사이클 (P1·P3 공용): 초롱불 깜빡임이 곧 예고 ----
     const doLungeCycle = (interval) => {
@@ -249,6 +332,7 @@ class BossChorong {
 
   draw(ctx) {
     ctx.save();
+    if (this.phase === 2.5) ctx.globalAlpha = 0.04 + this.lurePower * 0.26;
     ctx.translate(this.x, this.y);
     const s = this.scale;
     const R = 46 * s;
@@ -334,12 +418,14 @@ class BossChorong {
       ctx.quadraticCurveTo(this.x - 50 * s, this.y - 62 * s, this.lureX, this.lureY + 8);
       ctx.stroke();
     }
-    const lure = ctx.createRadialGradient(this.lureX, this.lureY, 0, this.lureX, this.lureY, 22);
+    const lureRadius = 4 + 18 * this.lurePower;
+    const lure = ctx.createRadialGradient(this.lureX, this.lureY, 0, this.lureX, this.lureY, lureRadius);
     lure.addColorStop(0, blinkFast ? '#ffffff' : '#d8fff8');
     lure.addColorStop(0.5, blinkFast ? '#ffd0d0' : '#8ef0e2');
     lure.addColorStop(1, 'rgba(126,232,224,0)');
+    ctx.globalAlpha *= this.lurePower;
     ctx.fillStyle = lure;
-    ctx.beginPath(); ctx.arc(this.lureX, this.lureY, 22, 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(this.lureX, this.lureY, lureRadius, 0, 6.28); ctx.fill();
     ctx.restore();
   }
 

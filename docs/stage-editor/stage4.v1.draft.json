@@ -128,7 +128,22 @@
         "pluginId": "darkness",
         "params": {
           "target": 0.86,
-          "responseRate": 1.2
+          "responseRate": 2.4,
+          "curve": [
+            { "at": 0, "value": 0.55 },
+            { "at": 10, "value": 0.7 },
+            { "at": 28, "value": 0.74 },
+            { "at": 45, "value": 0.78 },
+            { "at": 54, "value": 0.76 },
+            { "at": 58, "value": 0.48 },
+            { "at": 63, "value": 0.5 },
+            { "at": 76, "value": 0.88 },
+            { "at": 87, "value": 0.9 },
+            { "at": 88, "value": 0.65 },
+            { "at": 98, "value": 0.68 },
+            { "at": 108, "value": 0.9 },
+            { "at": 115, "value": 0.94 }
+          ]
         }
       }
     },
@@ -366,21 +381,25 @@
     {
       "id": "s4-w007",
       "type": "wave",
-      "name": "독니고기 웨이브 07",
+      "name": "첫 잠복 독니고기",
       "timing": {
         "domain": "time",
-        "start": 15.5,
-        "duration": 1
+        "start": 13,
+        "duration": 0
       },
       "payload": {
         "enemy": {
           "kind": "viper",
           "hp": 3,
-          "speed": 115
+          "speed": 115,
+          "params": {
+            "revealDelay": 1,
+            "glintDuration": 0.65
+          }
         },
         "spawn": {
-          "count": 2,
-          "interval": 1
+          "count": 1,
+          "interval": 0
         },
         "entry": {
           "presetId": "right-to-left",
@@ -514,21 +533,25 @@
     {
       "id": "s4-w011",
       "type": "wave",
-      "name": "독니고기 웨이브 11",
+      "name": "상하 순차 독니고기",
       "timing": {
         "domain": "time",
-        "start": 24,
-        "duration": 1.8
+        "start": 21,
+        "duration": 1.4
       },
       "payload": {
         "enemy": {
           "kind": "viper",
           "hp": 3,
-          "speed": 118
+          "speed": 118,
+          "params": {
+            "revealDelay": 0.85,
+            "glintDuration": 0.6
+          }
         },
         "spawn": {
-          "count": 3,
-          "interval": 0.9
+          "count": 2,
+          "interval": 1.4
         },
         "entry": {
           "presetId": "right-to-left",
@@ -633,11 +656,11 @@
     {
       "id": "s4-w014",
       "type": "wave",
-      "name": "등불해파리 웨이브 14",
+      "name": "두 갈래 등불",
       "timing": {
         "domain": "time",
         "start": 35,
-        "duration": 2.2
+        "duration": 1.4
       },
       "payload": {
         "enemy": {
@@ -646,8 +669,8 @@
           "speed": 55
         },
         "spawn": {
-          "count": 3,
-          "interval": 1.1
+          "count": 2,
+          "interval": 1.4
         },
         "entry": {
           "presetId": "right-to-left",
@@ -708,21 +731,25 @@
     {
       "id": "s4-w016",
       "type": "wave",
-      "name": "독니고기 웨이브 16",
+      "name": "밝은 길 매복",
       "timing": {
         "domain": "time",
         "start": 40.5,
-        "duration": 1.8
+        "duration": 0
       },
       "payload": {
         "enemy": {
           "kind": "viper",
           "hp": 3,
-          "speed": 120
+          "speed": 120,
+          "params": {
+            "revealDelay": 1.2,
+            "glintDuration": 0.55
+          }
         },
         "spawn": {
-          "count": 3,
-          "interval": 0.9
+          "count": 1,
+          "interval": 0
         },
         "entry": {
           "presetId": "right-to-left",
@@ -783,7 +810,7 @@
     {
       "id": "s4-w018",
       "type": "wave",
-      "name": "대물 웨이브 18",
+      "name": "밝은 공간 대물",
       "timing": {
         "domain": "time",
         "start": 45.5,
@@ -815,11 +842,8 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-ring",
-          "interval": 1.7,
-          "params": {
-            "count": 12
-          }
+          "presetId": "legacy-aimed",
+          "interval": 2.1
         }
       }
     },
@@ -901,7 +925,8 @@
     {
       "id": "s4-w021",
       "type": "wave",
-      "name": "독니고기 웨이브 21",
+      "enabled": false,
+      "name": "(제거) 중복 독니고기",
       "timing": {
         "domain": "time",
         "start": 53,
@@ -1095,21 +1120,25 @@
     {
       "id": "s4-w026",
       "type": "wave",
-      "name": "독니고기 웨이브 26",
+      "name": "상중하 순차 점등",
       "timing": {
         "domain": "time",
         "start": 68,
-        "duration": 2.4000000000000004
+        "duration": 2
       },
       "payload": {
         "enemy": {
           "kind": "viper",
           "hp": 3,
-          "speed": 125
+          "speed": 125,
+          "params": {
+            "revealDelay": 0.8,
+            "glintDuration": 0.55
+          }
         },
         "spawn": {
-          "count": 4,
-          "interval": 0.8
+          "count": 3,
+          "interval": 1
         },
         "entry": {
           "presetId": "right-to-left",
@@ -1206,21 +1235,25 @@
     {
       "id": "s4-w029",
       "type": "wave",
-      "name": "독니고기 웨이브 29",
+      "name": "최심부 단독 매복",
       "timing": {
         "domain": "time",
         "start": 77,
-        "duration": 1.8
+        "duration": 0
       },
       "payload": {
         "enemy": {
           "kind": "viper",
           "hp": 3,
-          "speed": 122
+          "speed": 122,
+          "params": {
+            "revealDelay": 1.1,
+            "glintDuration": 0.5
+          }
         },
         "spawn": {
-          "count": 3,
-          "interval": 0.9
+          "count": 1,
+          "interval": 0
         },
         "entry": {
           "presetId": "right-to-left",
@@ -1241,10 +1274,10 @@
     {
       "id": "s4-w030",
       "type": "wave",
-      "name": "대물 웨이브 30",
+      "name": "밝은 대비 대물",
       "timing": {
         "domain": "time",
-        "start": 81.5,
+        "start": 89,
         "duration": 0
       },
       "payload": {
@@ -1273,11 +1306,8 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-ring",
-          "interval": 1.8,
-          "params": {
-            "count": 14
-          }
+          "presetId": "legacy-aimed",
+          "interval": 2
         }
       }
     },
@@ -1408,20 +1438,24 @@
     {
       "id": "s4-w034",
       "type": "wave",
-      "name": "독니고기 웨이브 34",
+      "name": "최종 4연속 점등",
       "timing": {
         "domain": "time",
-        "start": 93.5,
-        "duration": 2.8
+        "start": 99,
+        "duration": 2.1
       },
       "payload": {
         "enemy": {
           "kind": "viper",
           "hp": 3,
-          "speed": 128
+          "speed": 128,
+          "params": {
+            "revealDelay": 0.7,
+            "glintDuration": 0.5
+          }
         },
         "spawn": {
-          "count": 5,
+          "count": 4,
           "interval": 0.7
         },
         "entry": {
@@ -1443,7 +1477,8 @@
     {
       "id": "s4-w035",
       "type": "wave",
-      "name": "등불해파리 웨이브 35",
+      "enabled": false,
+      "name": "(제거) 후반 등불 과밀",
       "timing": {
         "domain": "time",
         "start": 95,
@@ -1482,7 +1517,8 @@
     {
       "id": "s4-w036",
       "type": "wave",
-      "name": "해파리 웨이브 36",
+      "enabled": false,
+      "name": "(제거) 최종 러시 중복 A",
       "timing": {
         "domain": "time",
         "start": 99.5,
@@ -1518,7 +1554,8 @@
     {
       "id": "s4-w037",
       "type": "wave",
-      "name": "해파리 웨이브 37",
+      "enabled": false,
+      "name": "(제거) 최종 러시 중복 B",
       "timing": {
         "domain": "time",
         "start": 100.5,

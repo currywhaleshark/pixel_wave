@@ -49,12 +49,27 @@ const StageCompiler = require('../js/stage/compiler.js');
   const wave = source.items.find(item => item.type === 'wave' && item.payload.enemy.kind === 'viper');
   wave.payload.enemy.params = { revealDelay: 1.2, glintDuration: 0.4, extensionValue: 7 };
   wave.payload.movement.params = { trackingDuration: 4.5, turnRate: 0.65 };
-  const event = StageCompiler.compile(source, { difficulty: 'easy' }).events.find(item => item.itemId === wave.id);
+  const event = StageCompiler.compile(source, { difficulty: 'normal' }).events.find(item => item.itemId === wave.id);
   assert.equal(event.enemy.params.revealDelay, 1.2);
   assert.equal(event.enemy.params.glintDuration, 0.4);
   assert.equal(event.enemy.params.extensionValue, 7);
   assert.equal(event.enemy.movement.params.trackingDuration, 4.5);
   assert.equal(event.enemy.movement.params.turnRate, 0.65);
+}
+
+{
+  const source = JSON.parse(read('docs/stage-editor/stage4.v1.draft.json'));
+  const wave = source.items.find(item => item.id === 's4-w026');
+  const eventsFor = difficulty => StageCompiler.compile(source, { difficulty }).events.filter(item => item.itemId === wave.id);
+  const easy = eventsFor('easy');
+  const normal = eventsFor('normal');
+  const hard = eventsFor('hard');
+  assert.ok(easy[0].enemy.params.revealDelay < normal[0].enemy.params.revealDelay);
+  assert.ok(easy[0].enemy.params.glintDuration > normal[0].enemy.params.glintDuration);
+  assert.equal(hard[0].enemy.params.revealDelay, normal[0].enemy.params.revealDelay);
+  assert.ok(hard[1].enemy.params.revealDelay > hard[0].enemy.params.revealDelay,
+    '하드는 연속 독니고기의 점등 시점을 어긋나게 한다');
+  assert.ok(hard[0].enemy.params.glintDuration < normal[0].enemy.params.glintDuration);
 }
 
 {
