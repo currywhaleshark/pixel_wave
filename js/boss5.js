@@ -36,6 +36,9 @@ class BossBuu {
     this.holeIdx = 1;
     this.fireStep = 0;
     this.minionT = 8;
+    this.routeCycleT = 6;
+    this.routeModeT = 0;
+    this.routeSerial = 0;
     this.trail = [];           // P3 몸통 궤적
     this.baseY = CFG.H * 0.5;
     this.flameT = 0;
@@ -115,6 +118,8 @@ class BossBuu {
       this.x = CFG.W + 80;
       this.baseY = CFG.H * 0.5;
       this.trail = [];
+      this.routeCycleT = 6;
+      this.routeModeT = 0;
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
     } else if (p === 4) {
@@ -122,6 +127,36 @@ class BossBuu {
       this.game.message('"유령은 원래... 둘이서 놀아! 부우부우!!"', '#e8fff0');
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
+    }
+  }
+
+  spawnWreckGhostRoute() {
+    const g = this.game;
+    const side = this.holes[this.holeIdx] < CFG.H * 0.5 ? 'top' : 'bottom';
+    const serial = this.routeSerial++;
+    const params = {
+      side,
+      heightFraction: 0.32,
+      speed: 105,
+      width: 92,
+      indestructible: true,
+      variant: side === 'top' ? 'bow' : 'stern',
+      entryCueDuration: 0.6,
+    };
+    g.enemies.push(new Enemy(StageWreck.createSpawnSpec(
+      params,
+      { width: CFG.W, height: CFG.H },
+      { itemId: `boss5-route-${serial}`, groupId: -1 },
+    )));
+    const count = g.diff >= 2 ? 3 : 2;
+    const wreckY = side === 'top' ? CFG.H * 0.2 : CFG.H * 0.8;
+    for (let i = 0; i < count; i++) {
+      g.spawner.pending.push({ at: g.stageT + 0.8 + i * 0.45, spec: {
+        kind: 'ghost', M: 1, S: 0, hp: 2, spd: 112,
+        params: { warningDuration: 0.8, outlineDuration: 0.2, solidDuration: 1.6, phaseOffset: i * 0.28 },
+        x: CFG.W + 30, y: wreckY + (i - (count - 1) * 0.5) * 36,
+        dirX: -1, dirY: 0, groupId: -1, phase: 0,
+      }});
     }
   }
 
@@ -237,19 +272,30 @@ class BossBuu {
         this.minionT -= dt;
         if (this.minionT <= 0) {
           this.minionT = 9 * m;
-          const y = (0.2 + Math.random() * 0.6) * CFG.H;
-          for (let i = 0; i < 2; i++) {
-            g.spawner.pending.push({ at: g.stageT + i * 0.4, spec: {
-              kind: 'ghost', M: 2, S: 0, hp: 2, spd: 115, amp: 25, freq: 2.5,
-              x: CFG.W + 30, y: y + i * 50, dirX: -1, dirY: 0, groupId: -1, phase: 0,
-            }});
-          }
+          this.spawnWreckGhostRoute();
         }
       }
     } else if (this.phase >= 3) {
       // P3 대파도: 유령 대행진 — 장신 몸통이 화면을 뱀처럼 휘젓는다
       // 진 대파도(P4): 거울 분신이 상하 반전 위상으로 함께 휘젓는다 (두 뱀 사이를 누벼라)
       this.hittable = true;
+      this.routeCycleT -= dt;
+      if (this.routeModeT > 0) {
+        this.routeModeT -= dt;
+        const safeY = this.holes[this.holeIdx] < CFG.H * 0.5 ? CFG.H * 0.72 : CFG.H * 0.28;
+        this.x += (CFG.W * 0.82 - this.x) * Math.min(1, dt * 2.5);
+        this.y += (safeY - this.y) * Math.min(1, dt * 2.5);
+        this.trail = [];
+        return;
+      }
+      if (this.routeCycleT <= 0) {
+        this.holeIdx = (this.holeIdx + 1 + Math.floor(Math.random() * (this.holes.length - 1))) % this.holes.length;
+        this.spawnWreckGhostRoute();
+        this.routeModeT = this.phase === 4 ? 5.2 : 6;
+        this.routeCycleT = 11 * m;
+        this.trail = [];
+        return;
+      }
       this.x -= 235 * dt;
       this.y = this.baseY + Math.sin(this.t * 2.4) * 130;
       if (this.x < -120) {

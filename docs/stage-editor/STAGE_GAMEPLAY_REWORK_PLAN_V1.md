@@ -702,8 +702,16 @@ Stage Sequencer tool milestones M1–M7.
 
 ### G5 — Stages 5 and 6
 
-- Rebuild wreck/ghost route set pieces.
-- Add Boss 5 wreck/ghost combinations.
+- [x] Rebuild Stage 5 wreck/ghost route set pieces. Six authored ghost waves now
+  carry 40 ghosts instead of 61; early hull crossings, a diagonal timing lesson,
+  staggered central-corridor materialization, two route-aligned surrounds, and a
+  final six-ghost corridor replace repeated isolated pressure. The two coral
+  turrets are removed so Stage 1 retains artillery ownership.
+- [x] Add Boss 5 wreck/ghost combinations. P2 now keys an upper or lower shared
+  wreck to the selected exit hole and sends 2/2/3 staggered ghosts through it.
+  P3 alternates the long-body sweep with a six-second wreck route, moving 부우
+  into the opposite safe lane so body, narrow wreck, and surround pressure do
+  not stack at once.
 - Rebuild current/lightning rise and calm-eye contrast.
 - Add Boss 6 linear undertow cycle.
 

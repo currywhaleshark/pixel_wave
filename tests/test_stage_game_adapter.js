@@ -21,8 +21,9 @@ const timelines = context.__stageTimelines;
 const legacy = timelines[2];
 
 const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-assert.ok(indexHtml.includes('js/stages.generated.js?v=6'));
+assert.ok(indexHtml.includes('js/stages.generated.js?v=7'));
 assert.ok(indexHtml.includes('js/boss3.js?v=4'));
+assert.ok(indexHtml.includes('js/boss5.js?v=6'));
 assert.ok(indexHtml.includes('js/stage/enemyState.js?v=1'));
 assert.ok(indexHtml.includes('js/stage/wreck.js?v=1'));
 assert.ok(indexHtml.includes('js/entities.js?v=13'));
@@ -54,7 +55,7 @@ assert.equal(Adapter.requestedMode('?stageRuntime=data'), 'legacy', 'debug 없�
 
 const expected = [
   [34, 185, 0, 0, 110, 114], [38, 193, 0, 0, 110, 114], [37, 207, 0, 0, 116, 120],
-  [35, 145, 0, 0, 111, 115], [31, 162, 11, 0, 111, 115],
+  [35, 145, 0, 0, 111, 115], [25, 139, 10, 0, 111, 115],
   [35, 187, 0, 16, 111, 115], [34, 191, 2, 6, 111, 115],
 ];
 assert.deepEqual(Adapter.CONFIG.optInStageIds, ['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7']);
@@ -72,6 +73,11 @@ for (let stageIndex = 0; stageIndex < timelines.length; stageIndex++) {
     } else if (stageIndex === 3) {
       assert.equal(report.ok, false, '재구성 중인 Stage 4는 legacy와 다른 점을 명시적으로 보고한다');
       for (const id of ['s4-w007', 's4-w026', 's4-w034']) {
+        assert.ok(report.errors.some(error => error.includes(id)), `${id}의 의도적 교체가 parity report에 남아야 한다`);
+      }
+    } else if (stageIndex === 4) {
+      assert.equal(report.ok, false, '재구성 중인 Stage 5는 legacy와 다른 점을 명시적으로 보고한다');
+      for (const id of ['s5-w004', 's5-w015', 's5-w018']) {
         assert.ok(report.errors.some(error => error.includes(id)), `${id}의 의도적 교체가 parity report에 남아야 한다`);
       }
     } else assert.deepEqual(report.errors, [], `stage${stageIndex + 1}/${report.summary.difficulty}: ${report.errors.join(' / ')}`);
@@ -239,7 +245,7 @@ const firstViper = spawnAt('stage4', timelines[3], 13);
 assert.equal(firstViper.M, 5, '심해 추적 이동을 실제 M5로 연결한다');
 assert.equal(firstViper.params.revealDelay, 0.75, '이지 독니고기는 일찍 드러나야 한다');
 assert.equal(spawnAt('stage6', timelines[5], 2).M, 7, '폭풍 해류 이동을 실제 M7로 연결한다');
-const surround = spawnAt('stage5', timelines[4], 41);
+const surround = spawnAt('stage5', timelines[4], 66.5);
 assert.equal(surround.M, 1);
 assert.ok(Math.hypot(surround.x - 180, surround.y - 270) > 250, '포위 편대가 현재 플레이어 둘레에 생성된다');
 
