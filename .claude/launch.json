@@ -4,8 +4,11 @@
     {
       "name": "shooting-dev",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["server.py"],
-      "port": 8321
+      "runtimeArgs": [
+        "server.py"
+      ],
+      "port": 8321,
+      "autoPort": true
     }
   ]
 }

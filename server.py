@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import functools
 import http.server
+import os
 import json
 import re
 from pathlib import Path
@@ -12,7 +13,9 @@ from urllib.parse import unquote, urlparse
 from tools.build_barrage_patterns import build as build_barrage_patterns
 
 
-PORT = 8321
+# 기본 8321. 프리뷰 하네스 등이 PORT 환경변수로 다른 포트를 지정할 수 있다
+# (사용자가 직접 띄운 서버와 포트가 겹쳐도 공존 가능).
+PORT = int(os.environ.get("PORT", 8321))
 ROOT = Path(__file__).resolve().parent
 PATTERN_DIR = ROOT / "data" / "barrage-patterns"
 PATTERN_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
