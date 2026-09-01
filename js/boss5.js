@@ -269,7 +269,8 @@ class BossBuu {
               x: this.x - 24, y: this.y,
               vx: Math.cos(a) * 118, vy: Math.sin(a) * 118,
               r: CFG.ebR, kind: 'ghostflame',
-              homing: { turnRate: 0.85, duration: 1.4 },
+              homing: { turnRate: 1.35, duration: 2.1 },
+              wispPhase: Math.random() * 6.28,
             });
           }
         }

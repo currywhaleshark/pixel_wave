@@ -1674,20 +1674,41 @@ const Game = {
           ctx.beginPath(); ctx.arc(0, 0, b.r * 0.7, 0, 6.28); ctx.fill();
         }
       } else if (b.kind === 'ghostflame') {
-        // 유령불: 창백한 초록 도깨비불
-        const fl = 0.75 + Math.sin((b.x + b.y) * 0.08 + performance.now() / 200) * 0.25;
-        const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 11);
-        glow.addColorStop(0, `rgba(200,255,216,${0.85 * fl})`);
-        glow.addColorStop(0.5, `rgba(159,232,184,${0.45 * fl})`);
-        glow.addColorStop(1, 'rgba(159,232,184,0)');
+        // 도깨비불: 진행 반대쪽으로 흘러가는 잔상 꼬리 + 일렁이는 불꽃
+        const now = performance.now();
+        const ph = b.wispPhase ?? (b.x * 0.13);
+        const fl = 0.7 + Math.sin(ph + now / 130) * 0.2 + Math.sin(ph * 2.7 + now / 47) * 0.1;
+        const spd = Math.hypot(b.vx || 0, b.vy || 0) || 1;
+        const bx = -(b.vx || 0) / spd, by = -(b.vy || 0) / spd;   // 꼬리 방향
+        // 잔상 꼬리 3개 (뒤로 갈수록 작고 흐리게, 좌우로 하늘하늘)
+        for (let k = 1; k <= 3; k++) {
+          const sway = Math.sin(ph + now / 150 + k * 1.9) * 3.2 * k;
+          const tx = bx * k * 8 + (-by) * sway * 0.4;
+          const ty = by * k * 8 + bx * sway * 0.4;
+          const g2 = ctx.createRadialGradient(tx, ty, 0, tx, ty, 8 - k * 1.6);
+          g2.addColorStop(0, `rgba(170,255,220,${(0.4 - k * 0.1) * fl})`);
+          g2.addColorStop(1, 'rgba(140,240,200,0)');
+          ctx.fillStyle = g2;
+          ctx.beginPath(); ctx.arc(tx, ty, 8 - k * 1.6, 0, 6.28); ctx.fill();
+        }
+        // 본체 광구 (청록→초록, 깜빡임)
+        const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 13);
+        glow.addColorStop(0, `rgba(220,255,240,${0.95 * fl})`);
+        glow.addColorStop(0.45, `rgba(140,240,200,${0.5 * fl})`);
+        glow.addColorStop(1, 'rgba(120,230,190,0)');
         ctx.fillStyle = glow;
-        ctx.beginPath(); ctx.arc(0, 0, 11, 0, 6.28); ctx.fill();
-        ctx.fillStyle = '#eafff2';
+        ctx.beginPath(); ctx.arc(0, 0, 13, 0, 6.28); ctx.fill();
+        // 일렁이는 불꽃 실루엣 (혀끝이 흔들린다)
+        const lick = Math.sin(ph + now / 90) * 2.2;
+        ctx.fillStyle = `rgba(234,255,242,${0.85 + fl * 0.15})`;
         ctx.beginPath();
-        ctx.moveTo(0, -b.r - 2);
-        ctx.quadraticCurveTo(b.r, -b.r * 0.3, 0, b.r);
-        ctx.quadraticCurveTo(-b.r, -b.r * 0.3, 0, -b.r - 2);
+        ctx.moveTo(lick * 0.6, -b.r - 3 - Math.abs(lick));
+        ctx.quadraticCurveTo(b.r + lick * 0.3, -b.r * 0.2, 0, b.r);
+        ctx.quadraticCurveTo(-b.r + lick * 0.3, -b.r * 0.2, lick * 0.6, -b.r - 3 - Math.abs(lick));
         ctx.fill();
+        // 푸른 심지
+        ctx.fillStyle = `rgba(120,200,255,${0.5 + fl * 0.3})`;
+        ctx.beginPath(); ctx.arc(0, 1, 2.2, 0, 6.28); ctx.fill();
       } else if (b.kind === 'mine') {
         // 등불 기뢰: 따뜻한 광채, 터지기 직전 빠르게 깜빡
         const urgent = b.timer < (b.mineWarningLead ?? 0.6);

@@ -254,7 +254,7 @@ globalThis.BARRAGE_PATTERN_DATA = Object.freeze({
         "y": 0,
         "bulletKind": "ghostflame",
         "radius": 5,
-        "speed": 112,
+        "speed": 102,
         "mineTimer": 2.2,
         "difficultyCount": 1,
         "difficultySpeed": 0,
@@ -275,8 +275,10 @@ globalThis.BARRAGE_PATTERN_DATA = Object.freeze({
         "gapStep": 1,
         "jitter": 0,
         "motion": {
-          "homingTurnRate": 42,
-          "homingDuration": 1.5
+          "homingTurnRate": 80,
+          "homingDuration": 2.3,
+          "waveFrequency": 2.1,
+          "waveAmplitude": 16
         },
         "actions": []
       }
