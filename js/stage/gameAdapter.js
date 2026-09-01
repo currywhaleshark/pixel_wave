@@ -362,6 +362,15 @@
       }
     }
 
+    _spawnPending(time) {
+      for (let index = this.pending.length - 1; index >= 0; index--) {
+        const entry = this.pending[index];
+        if (entry.at > time) continue;
+        this.game.enemies.push(new Enemy(entry.spec));
+        this.pending.splice(index, 1);
+      }
+    }
+
     seekRange(start) {
       const at = Math.max(0, Number(start) || 0);
       this.idx = this.events.findIndex(event => event.at >= at);
@@ -389,6 +398,9 @@
     }
 
     update(time, dt) {
+      // Boss patterns and other runtime systems use the legacy spawner queue for
+      // delayed summons. Keep that contract in data-runtime stages as well.
+      this._spawnPending(time);
       while (this.idx < this.events.length && this.events[this.idx].at <= time) this._apply(this.events[this.idx++]);
       if (this.runtimeEnabled) {
         const delta = Number.isFinite(dt) ? dt : Math.max(0, time - this.runtimeTime);
@@ -404,7 +416,7 @@
       }
     }
 
-    done() { return this.idx >= this.events.length; }
+    done() { return this.idx >= this.events.length && this.pending.length === 0; }
   }
 
   function rangeFromSearch(search) {

@@ -31,7 +31,7 @@ assert.ok(indexHtml.includes('js/entities.js?v=14'));
 assert.ok(indexHtml.includes('js/stage/currentField.js?v=1'));
 assert.ok(indexHtml.includes('js/stage/layerTransform.js?v=2'));
 assert.ok(indexHtml.includes('js/stage/plugin.js?v=8'));
-assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=12'));
+assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=13'));
 assert.ok(indexHtml.includes('js/main.js?v=28'));
 assert.ok(indexHtml.indexOf('js/stage/compiler.js') < indexHtml.indexOf('js/stage/gameAdapter.js'));
 const mainSource = fs.readFileSync(path.join(root, 'js/main.js'), 'utf8');
@@ -135,6 +135,17 @@ assert.equal(fakeGame.rideStarts[0].options.scrollMultiplier, 5);
 assert.equal(fakeGame.rideStarts[0].options.bulletClearOnStart.convertToPearls, true);
 spawner.update(37);
 assert.ok(fakeGame.enemies.length > 0);
+spawner.pending.push({
+  at: 37.5,
+  spec: { kind: 'boss-chase-traffic-test', x: -45, y: 120, dirX: 1, dirY: 0 },
+});
+spawner.update(37.49);
+assert.equal(fakeGame.enemies.some(enemy => enemy.kind === 'boss-chase-traffic-test'), false);
+spawner.update(37.5);
+const bossTraffic = fakeGame.enemies.find(enemy => enemy.kind === 'boss-chase-traffic-test');
+assert.ok(bossTraffic, '데이터 런타임도 보스가 예약한 실제 추격 잡몹을 생성한다');
+assert.equal(bossTraffic.dirX, 1);
+assert.equal(spawner.pending.length, 0);
 spawner.update(57);
 assert.equal(fakeGame.paused, true);
 
