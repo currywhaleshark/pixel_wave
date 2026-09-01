@@ -261,6 +261,17 @@ class BossBuu {
         if (this.fireStep === 1 && elapsed > 1.15) {
           this.fireStep = 2;
           g.bossAimed(this.x - 30, this.y, 160, 3, 0.22);
+          // 유령 추적탄: 잠시 따라붙다 직진 (이지 1 / 노멀 2 / 하드 3발)
+          const n = 1 + g.diff;
+          for (let i = 0; i < n; i++) {
+            const a = Math.PI + (i - (n - 1) / 2) * 0.55;
+            g.ebullets.push({
+              x: this.x - 24, y: this.y,
+              vx: Math.cos(a) * 118, vy: Math.sin(a) * 118,
+              r: CFG.ebR, kind: 'ghostflame',
+              homing: { turnRate: 0.85, duration: 1.4 },
+            });
+          }
         }
         if (this.modeT <= 0) {
           this.mode = 'hide';

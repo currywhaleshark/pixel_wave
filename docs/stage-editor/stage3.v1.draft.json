@@ -80,7 +80,9 @@
       "legacy-ring",
       "legacy-death-shot"
     ],
-    "barragePatterns": [],
+    "barragePatterns": [
+      "highway-dart"
+    ],
     "itemPlugins": [
       "scroll-speed",
       "turtle-ride",
@@ -1023,11 +1025,7 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-ring",
-          "interval": 1.7,
-          "params": {
-            "count": 12
-          }
+          "patternId": "highway-dart"
         }
       }
     },
@@ -1412,11 +1410,7 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-ring",
-          "interval": 1.8,
-          "params": {
-            "count": 14
-          }
+          "patternId": "highway-dart"
         }
       }
     },

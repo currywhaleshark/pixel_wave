@@ -625,8 +625,7 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-aimed",
-          "interval": 2
+          "presetId": "legacy-ring"
         }
       }
     },

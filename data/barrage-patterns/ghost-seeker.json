@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "id": "ghost-seeker",
+  "name": "유령 추적탄",
+  "description": "유령불이 잠시 플레이어를 따라오다 미련 없이 직진한다. 약한 유도 — 흘리면 피해진다.",
+  "duration": 12,
+  "loop": true,
+  "seed": 905,
+  "emitters": [
+    {
+      "id": "seeker",
+      "name": "약추적 유령불",
+      "enabled": true,
+      "type": "fan",
+      "start": 1.0,
+      "end": 11.5,
+      "interval": 2.6,
+      "burstCount": 1,
+      "burstGap": 0.1,
+      "source": "boss",
+      "x": -22,
+      "y": 0,
+      "bulletKind": "ghostflame",
+      "radius": 5,
+      "speed": 112,
+      "mineTimer": 2.2,
+      "difficultyCount": 1,
+      "difficultySpeed": 0,
+      "count": 2,
+      "angle": 180,
+      "angleStep": 0,
+      "spread": 46,
+      "aim": true,
+      "arms": 4,
+      "rotationSpeed": 60,
+      "xMin": 40,
+      "xMax": 920,
+      "yMin": -10,
+      "yMax": -10,
+      "axis": "vertical",
+      "gapCount": 2,
+      "gapIndex": 2,
+      "gapStep": 1,
+      "jitter": 0,
+      "motion": {
+        "homingTurnRate": 42,
+        "homingDuration": 1.5
+      },
+      "actions": []
+    }
+  ]
+}

@@ -89,7 +89,7 @@
       "legacy-death-shot"
     ],
     "barragePatterns": [
-      "curve-seeder"
+      "ring-dart-mix"
     ],
     "itemPlugins": [
       "scroll-speed",
@@ -1110,8 +1110,7 @@
     {
       "id": "s7-w015",
       "type": "wave",
-      "enabled": false,
-      "name": "대물 웨이브 15",
+      "name": "여정의 대물 (링+다트)",
       "timing": {
         "domain": "time",
         "start": 47.5,
@@ -1143,7 +1142,7 @@
           }
         },
         "weapon": {
-          "patternId": "curve-seeder"
+          "patternId": "ring-dart-mix"
         }
       }
     },

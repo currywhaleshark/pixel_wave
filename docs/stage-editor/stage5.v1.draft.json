@@ -76,7 +76,9 @@
       "legacy-drop",
       "legacy-ring"
     ],
-    "barragePatterns": [],
+    "barragePatterns": [
+      "ghost-seeker"
+    ],
     "itemPlugins": [
       "scroll-speed",
       "darkness",
@@ -949,11 +951,7 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-ring",
-          "interval": 1.7,
-          "params": {
-            "count": 12
-          }
+          "patternId": "ghost-seeker"
         }
       }
     },
@@ -1337,11 +1335,7 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-ring",
-          "interval": 1.8,
-          "params": {
-            "count": 14
-          }
+          "patternId": "ghost-seeker"
         }
       }
     },

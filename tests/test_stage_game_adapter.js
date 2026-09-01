@@ -73,7 +73,7 @@ assert.equal(Adapter.requestedMode('?stageRuntime=legacy'), 'legacy', '명시적
 const expected = [
   [34, 185, 0, 0, 110, 114], [38, 200, 0, 0, 110, 114], [37, 207, 0, 0, 116, 120],
   [36, 154, 0, 0, 111, 115], [30, 165, 10, 0, 111, 115],
-  [37, 204, 0, 13, 111, 115], [28, 140, 2, 3, 111, 115],
+  [37, 204, 0, 13, 111, 115], [29, 141, 2, 3, 111, 115],
 ];
 assert.deepEqual(Adapter.CONFIG.optInStageIds, ['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7']);
 for (let stageIndex = 0; stageIndex < timelines.length; stageIndex++) {

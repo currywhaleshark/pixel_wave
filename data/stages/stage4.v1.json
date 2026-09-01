@@ -76,7 +76,9 @@
       "legacy-drop",
       "legacy-ring"
     ],
-    "barragePatterns": [],
+    "barragePatterns": [
+      "star-scatter"
+    ],
     "itemPlugins": [
       "scroll-speed",
       "darkness",
@@ -909,8 +911,7 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-aimed",
-          "interval": 2.1
+          "patternId": "star-scatter"
         }
       }
     },
@@ -1500,8 +1501,7 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-aimed",
-          "interval": 2
+          "patternId": "star-scatter"
         }
       }
     },

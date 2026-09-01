@@ -1009,6 +1009,22 @@ const Game = {
       }
       // 난이도: 적탄 속도 배율 (탄 자체 속도에만 — 해류는 그대로)
       const sm = this.D.ebSpd;
+      // 약추적: homing {turnRate(rad/s), duration} — 잠시 따라오다 직진
+      if (b.homing) {
+        const hp = this.player;
+        b.homing.t = (b.homing.t || 0) + dt;
+        if (b.homing.t < b.homing.duration && hp && hp.bubble <= 0) {
+          const cur = Math.atan2(b.vy, b.vx);
+          const want = Math.atan2(hp.y - b.y, hp.x - b.x);
+          let diff = want - cur;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          const turn = Math.max(-b.homing.turnRate * dt, Math.min(b.homing.turnRate * dt, diff));
+          const spd = Math.hypot(b.vx, b.vy);
+          const a = cur + turn;
+          b.vx = Math.cos(a) * spd; b.vy = Math.sin(a) * spd;
+        }
+      }
       if (b.barrage && typeof BarrageRuntime !== 'undefined') {
         const mineWasArmed = b.kind === 'mine' && Number.isFinite(b.timer) && b.timer > 0;
         BarrageRuntime.updateProjectile(b, dt, {
