@@ -293,11 +293,21 @@ class BossBuu {
       this.hittable = true;
       this.routeCycleT -= dt;
       if (this.routeModeT > 0) {
+        // 난파선 세트피스: 반대 차선으로 "헤엄쳐" 물러난다.
+        // 궤적을 계속 기록해야 몸통이 머리를 따라온다 — 지우면 머리만 순간이동한 것처럼 보인다.
         this.routeModeT -= dt;
+        if (this.routeModeT <= 0) {
+          // 스윕 재개가 현재 위치에서 이어지게 위상 재배치 —
+          // 안 하면 y = baseY + sin(...) 공식으로 수직 스냅이 생긴다
+          this.baseY = this.y - Math.sin(this.t * 2.4) * 130;
+        }
         const safeY = this.holes[this.holeIdx] < CFG.H * 0.5 ? CFG.H * 0.72 : CFG.H * 0.28;
-        this.x += (CFG.W * 0.82 - this.x) * Math.min(1, dt * 2.5);
-        this.y += (safeY - this.y) * Math.min(1, dt * 2.5);
-        this.trail = [];
+        const tx = CFG.W * 0.82 + Math.sin(this.t * 1.3) * 18;   // 자리에서도 유영
+        const ty = safeY + Math.sin(this.t * 2.2) * 26;
+        this.x += (tx - this.x) * Math.min(1, dt * 1.8);
+        this.y += (ty - this.y) * Math.min(1, dt * 1.8);
+        this.trail.unshift({ x: this.x, y: this.y });
+        if (this.trail.length > 80) this.trail.pop();
         return;
       }
       if (this.routeCycleT <= 0) {
@@ -305,7 +315,6 @@ class BossBuu {
         this.spawnWreckGhostRoute();
         this.routeModeT = this.phase === 4 ? 5.2 : 6;
         this.routeCycleT = 11 * m;
-        this.trail = [];
         return;
       }
       this.x -= 235 * dt;

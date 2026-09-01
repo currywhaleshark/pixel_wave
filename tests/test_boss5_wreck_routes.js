@@ -63,7 +63,9 @@ for (const [difficulty, ghostCount] of [[0, 2], [2, 3]]) {
   const x = boss.x;
   boss.update(0.1);
   assert.ok(boss.x !== x, '통로 패턴 중 부우는 반대쪽 안전 경로로 이동해야 한다');
-  assert.equal(boss.trail.length, 0, '통로 패턴과 장신 몸통 횡단은 동시에 활성화되지 않아야 한다');
+  // 몸통 '충돌' 스윕은 통로 중 비활성이지만(early return), 궤적은 계속 기록해
+  // 몸통이 머리를 따라 헤엄친다 — 지우면 머리만 순간이동한 것처럼 보인다.
+  assert.ok(boss.trail.length > 0, '통로 중에도 몸통이 머리를 따라와야 한다');
 }
 
 console.log('boss5 wreck routes: ok');
