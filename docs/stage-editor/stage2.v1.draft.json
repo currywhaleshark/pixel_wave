@@ -277,7 +277,7 @@
           "speed": 62
         },
         "spawn": {
-          "count": 5,
+          "count": 6,
           "interval": 0.55
         },
         "entry": {
@@ -386,8 +386,32 @@
       "type": "wave",
       "name": "등불 기뢰 입문",
       "difficulty": {
-        "easy": { "mode": "patch", "patch": { "payload": { "weapon": { "params": { "fuseDuration": 3.8, "warningLead": 1 } } } } },
-        "hard": { "mode": "patch", "patch": { "payload": { "weapon": { "params": { "fuseDuration": 3.2, "warningLead": 0.65 } } } } }
+        "easy": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "weapon": {
+                "params": {
+                  "fuseDuration": 3.8,
+                  "warningLead": 1
+                }
+              }
+            }
+          }
+        },
+        "hard": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "weapon": {
+                "params": {
+                  "fuseDuration": 3.2,
+                  "warningLead": 0.65
+                }
+              }
+            }
+          }
+        }
       },
       "timing": {
         "domain": "time",
@@ -397,7 +421,7 @@
       "payload": {
         "enemy": {
           "kind": "lantern",
-          "hp": 4,
+          "hp": 6,
           "speed": 55
         },
         "spawn": {
@@ -489,7 +513,7 @@
           "speed": 64
         },
         "spawn": {
-          "count": 5,
+          "count": 6,
           "interval": 0.55
         },
         "entry": {
@@ -540,7 +564,7 @@
           "presetId": "straight"
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-drop"
         }
       }
     },
@@ -595,7 +619,7 @@
       "payload": {
         "enemy": {
           "kind": "lantern",
-          "hp": 4,
+          "hp": 6,
           "speed": 58
         },
         "spawn": {
@@ -771,7 +795,7 @@
           "speed": 64
         },
         "spawn": {
-          "count": 6,
+          "count": 7,
           "interval": 0.5
         },
         "entry": {
@@ -902,7 +926,7 @@
           "presetId": "straight"
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-drop"
         }
       }
     },
@@ -918,7 +942,7 @@
       "payload": {
         "enemy": {
           "kind": "lantern",
-          "hp": 5,
+          "hp": 7,
           "speed": 95
         },
         "spawn": {
@@ -975,7 +999,7 @@
           "speed": 66
         },
         "spawn": {
-          "count": 5,
+          "count": 6,
           "interval": 0.5
         },
         "entry": {
@@ -1075,7 +1099,7 @@
           }
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-aimed"
         }
       }
     },
@@ -1091,7 +1115,7 @@
       "payload": {
         "enemy": {
           "kind": "lantern",
-          "hp": 4,
+          "hp": 6,
           "speed": 60
         },
         "spawn": {
@@ -1169,7 +1193,7 @@
           "speed": 66
         },
         "spawn": {
-          "count": 7,
+          "count": 8,
           "interval": 0.45
         },
         "entry": {
@@ -1220,7 +1244,7 @@
           "presetId": "straight"
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-drop"
         }
       }
     },
@@ -1321,7 +1345,7 @@
       "payload": {
         "enemy": {
           "kind": "lantern",
-          "hp": 5,
+          "hp": 7,
           "speed": 95
         },
         "spawn": {
@@ -1374,7 +1398,7 @@
       "payload": {
         "enemy": {
           "kind": "lantern",
-          "hp": 5,
+          "hp": 7,
           "speed": 95
         },
         "spawn": {
@@ -1431,7 +1455,7 @@
           "speed": 66
         },
         "spawn": {
-          "count": 5,
+          "count": 6,
           "interval": 0.5
         },
         "entry": {
@@ -1467,7 +1491,7 @@
           "speed": 68
         },
         "spawn": {
-          "count": 7,
+          "count": 8,
           "interval": 0.45
         },
         "entry": {

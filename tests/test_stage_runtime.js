@@ -71,7 +71,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
 {
   require('../js/stages.generated.js');
   const bossIds = ['pangpang', 'mongsil', 'ssing', 'chorong', 'buu', 'ureu', 'hwii'];
-  const enemyCounts = [185, 193, 207, 145, 138, 177, 58];
+  const enemyCounts = [185, 200, 207, 154, 164, 203, 140];
   for (let index = 0; index < bossIds.length; index++) {
     const stage = global.STAGE_DATA_REGISTRY[`stage${index + 1}`];
     const full = StageCompiler.compile(stage, { difficulty: 'easy' });

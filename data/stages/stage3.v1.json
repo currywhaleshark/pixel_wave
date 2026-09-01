@@ -207,7 +207,7 @@
       "payload": {
         "enemy": {
           "kind": "ray",
-          "hp": 4,
+          "hp": 6,
           "speed": 150
         },
         "spawn": {
@@ -216,7 +216,7 @@
         },
         "entry": {
           "presetId": "right-to-left",
-          "y": 0.5
+          "y": 0.3
         },
         "formation": {
           "presetId": "v"
@@ -423,7 +423,7 @@
       "payload": {
         "enemy": {
           "kind": "ray",
-          "hp": 4,
+          "hp": 6,
           "speed": 150
         },
         "spawn": {
@@ -432,7 +432,7 @@
         },
         "entry": {
           "presetId": "right-to-left",
-          "y": 0.45
+          "y": 0.68
         },
         "formation": {
           "presetId": "v"
@@ -923,7 +923,7 @@
       "payload": {
         "enemy": {
           "kind": "ray",
-          "hp": 4,
+          "hp": 6,
           "speed": 155
         },
         "spawn": {
@@ -962,7 +962,7 @@
       "payload": {
         "enemy": {
           "kind": "ray",
-          "hp": 4,
+          "hp": 6,
           "speed": 155
         },
         "spawn": {
@@ -1231,7 +1231,7 @@
       "payload": {
         "enemy": {
           "kind": "ray",
-          "hp": 4,
+          "hp": 6,
           "speed": 155
         },
         "spawn": {
@@ -1240,7 +1240,7 @@
         },
         "entry": {
           "presetId": "right-to-left",
-          "y": 0.5
+          "y": 0.32
         },
         "formation": {
           "presetId": "v"
@@ -1510,7 +1510,7 @@
       "payload": {
         "enemy": {
           "kind": "ray",
-          "hp": 4,
+          "hp": 6,
           "speed": 160
         },
         "spawn": {
@@ -1549,7 +1549,7 @@
       "payload": {
         "enemy": {
           "kind": "ray",
-          "hp": 4,
+          "hp": 6,
           "speed": 160
         },
         "spawn": {

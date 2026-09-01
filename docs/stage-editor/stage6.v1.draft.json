@@ -130,30 +130,96 @@
         "params": {
           "scale": 1,
           "scaleCurve": [
-            { "at": 0, "value": 0.35 },
-            { "at": 13, "value": 0.65 },
-            { "at": 30, "value": 0.85 },
-            { "at": 48, "value": 0.85 },
-            { "at": 50, "value": 0.18 },
-            { "at": 57, "value": 0.2 },
-            { "at": 61, "value": 1 },
-            { "at": 77, "value": 0.9 },
-            { "at": 96, "value": 1 },
-            { "at": 108, "value": 0.2 },
-            { "at": 115, "value": 0.15 }
+            {
+              "at": 0,
+              "value": 0.35
+            },
+            {
+              "at": 13,
+              "value": 0.65
+            },
+            {
+              "at": 30,
+              "value": 0.85
+            },
+            {
+              "at": 48,
+              "value": 0.85
+            },
+            {
+              "at": 50,
+              "value": 0.18
+            },
+            {
+              "at": 57,
+              "value": 0.2
+            },
+            {
+              "at": 61,
+              "value": 1
+            },
+            {
+              "at": 77,
+              "value": 0.9
+            },
+            {
+              "at": 96,
+              "value": 1
+            },
+            {
+              "at": 108,
+              "value": 0.2
+            },
+            {
+              "at": 115,
+              "value": 0.15
+            }
           ],
           "xBiasCurve": [
-            { "at": 0, "value": 20 },
-            { "at": 13, "value": 35 },
-            { "at": 30, "value": 45 },
-            { "at": 48, "value": 45 },
-            { "at": 50, "value": 5 },
-            { "at": 57, "value": -20 },
-            { "at": 61, "value": -75 },
-            { "at": 77, "value": -50 },
-            { "at": 96, "value": 65 },
-            { "at": 108, "value": 5 },
-            { "at": 115, "value": 0 }
+            {
+              "at": 0,
+              "value": 20
+            },
+            {
+              "at": 13,
+              "value": 35
+            },
+            {
+              "at": 30,
+              "value": 45
+            },
+            {
+              "at": 48,
+              "value": 45
+            },
+            {
+              "at": 50,
+              "value": 5
+            },
+            {
+              "at": 57,
+              "value": -20
+            },
+            {
+              "at": 61,
+              "value": -75
+            },
+            {
+              "at": 77,
+              "value": -50
+            },
+            {
+              "at": 96,
+              "value": 65
+            },
+            {
+              "at": 108,
+              "value": 5
+            },
+            {
+              "at": 115,
+              "value": 0
+            }
           ],
           "surfaceBoundaryY": 58,
           "drawSurfaceWaves": true,
@@ -349,7 +415,7 @@
       "payload": {
         "enemy": {
           "kind": "ray",
-          "hp": 4,
+          "hp": 6,
           "speed": 145
         },
         "spawn": {
@@ -372,7 +438,7 @@
           }
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-aimed"
         }
       }
     },
@@ -411,7 +477,7 @@
           }
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-aimed"
         }
       }
     },
@@ -420,8 +486,28 @@
       "type": "hazard",
       "name": "물속 번개 01",
       "difficulty": {
-        "easy": { "mode": "patch", "patch": { "payload": { "params": { "width": 42, "telegraphDuration": 1.1 } } } },
-        "hard": { "mode": "patch", "patch": { "payload": { "params": { "width": 50, "telegraphDuration": 0.75 } } } }
+        "easy": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "params": {
+                "width": 42,
+                "telegraphDuration": 1.1
+              }
+            }
+          }
+        },
+        "hard": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "params": {
+                "width": 50,
+                "telegraphDuration": 0.75
+              }
+            }
+          }
+        }
       },
       "timing": {
         "domain": "time",
@@ -514,7 +600,7 @@
           "speed": 68
         },
         "spawn": {
-          "count": 4,
+          "count": 5,
           "interval": 0.55
         },
         "entry": {
@@ -663,7 +749,7 @@
       "payload": {
         "enemy": {
           "kind": "ray",
-          "hp": 4,
+          "hp": 6,
           "speed": 148
         },
         "spawn": {
@@ -726,7 +812,7 @@
           }
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-aimed"
         }
       }
     },
@@ -786,7 +872,7 @@
           "speed": 70
         },
         "spawn": {
-          "count": 5,
+          "count": 6,
           "interval": 0.5
         },
         "entry": {
@@ -885,7 +971,7 @@
           }
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-aimed"
         }
       }
     },
@@ -1050,7 +1136,7 @@
           "presetId": "straight"
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-drop"
         }
       }
     },
@@ -1089,7 +1175,7 @@
           }
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-aimed"
         }
       }
     },
@@ -1105,7 +1191,7 @@
       "payload": {
         "enemy": {
           "kind": "ray",
-          "hp": 4,
+          "hp": 6,
           "speed": 148
         },
         "spawn": {
@@ -1267,7 +1353,7 @@
           }
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-aimed"
         }
       }
     },
@@ -1450,7 +1536,7 @@
           "speed": 70
         },
         "spawn": {
-          "count": 6,
+          "count": 7,
           "interval": 0.5
         },
         "entry": {
@@ -1482,7 +1568,7 @@
       "payload": {
         "enemy": {
           "kind": "ray",
-          "hp": 4,
+          "hp": 6,
           "speed": 150
         },
         "spawn": {
@@ -1522,7 +1608,7 @@
       "payload": {
         "enemy": {
           "kind": "ray",
-          "hp": 4,
+          "hp": 6,
           "speed": 150
         },
         "spawn": {
@@ -1645,7 +1731,7 @@
           }
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-aimed"
         }
       }
     },
@@ -1684,7 +1770,7 @@
           }
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-aimed"
         }
       }
     },
@@ -1729,7 +1815,7 @@
           "presetId": "straight"
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-drop"
         }
       }
     },
@@ -1923,6 +2009,163 @@
       "payload": {
         "pluginId": "boss-start",
         "bossId": "ureu"
+      }
+    },
+    {
+      "id": "s6-w101",
+      "type": "wave",
+      "name": "동행 웨이브",
+      "timing": {
+        "domain": "time",
+        "start": 22.5,
+        "duration": 1.5
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 120
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.3
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "current-surf",
+          "params": {
+            "amplitude": 25,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-w102",
+      "type": "wave",
+      "name": "동행 웨이브",
+      "timing": {
+        "domain": "time",
+        "start": 62,
+        "duration": 1.5
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 120
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.3
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.4
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "current-surf",
+          "params": {
+            "amplitude": 25,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-w103",
+      "type": "wave",
+      "name": "동행 웨이브",
+      "timing": {
+        "domain": "time",
+        "start": 90.5,
+        "duration": 1.5
+      },
+      "payload": {
+        "enemy": {
+          "kind": "ray",
+          "hp": 6,
+          "speed": 148
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "v"
+        },
+        "movement": {
+          "presetId": "enter-pause-exit",
+          "params": {
+            "targetX": 0.66,
+            "pauseDuration": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 1.3
+        }
+      }
+    },
+    {
+      "id": "s6-w104",
+      "type": "wave",
+      "name": "동행 웨이브",
+      "timing": {
+        "domain": "time",
+        "start": 80,
+        "duration": 1.4
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 120
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.3
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.65
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "current-surf",
+          "params": {
+            "amplitude": 25,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
       }
     }
   ]

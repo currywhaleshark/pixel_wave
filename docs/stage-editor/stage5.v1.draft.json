@@ -284,7 +284,9 @@
           "kind": "ghost",
           "hp": 2,
           "speed": 110,
-          "params": { "phaseStep": 0.1 }
+          "params": {
+            "phaseStep": 0.1
+          }
         },
         "spawn": {
           "count": 4,
@@ -384,7 +386,9 @@
           "kind": "ghost",
           "hp": 2,
           "speed": 120,
-          "params": { "phaseStep": 0.25 }
+          "params": {
+            "phaseStep": 0.25
+          }
         },
         "spawn": {
           "count": 4,
@@ -444,7 +448,7 @@
           }
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-aimed"
         }
       }
     },
@@ -787,8 +791,26 @@
       "type": "wave",
       "name": "유령 물고기 웨이브 15",
       "difficulty": {
-        "easy": { "mode": "patch", "patch": { "payload": { "spawn": { "count": 3 } } } },
-        "hard": { "mode": "patch", "patch": { "payload": { "spawn": { "count": 5 } } } }
+        "easy": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "spawn": {
+                "count": 3
+              }
+            }
+          }
+        },
+        "hard": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "spawn": {
+                "count": 5
+              }
+            }
+          }
+        }
       },
       "timing": {
         "domain": "time",
@@ -800,7 +822,9 @@
           "kind": "ghost",
           "hp": 2,
           "speed": 112,
-          "params": { "phaseStep": 0.28 }
+          "params": {
+            "phaseStep": 0.28
+          }
         },
         "spawn": {
           "count": 4,
@@ -1018,7 +1042,9 @@
           "kind": "ghost",
           "hp": 2,
           "speed": 62,
-          "params": { "phaseStep": 0.16 }
+          "params": {
+            "phaseStep": 0.16
+          }
         },
         "spawn": {
           "count": 10,
@@ -1316,7 +1342,9 @@
           "kind": "ghost",
           "hp": 2,
           "speed": 64,
-          "params": { "phaseStep": 0.2 }
+          "params": {
+            "phaseStep": 0.2
+          }
         },
         "spawn": {
           "count": 12,
@@ -1476,7 +1504,9 @@
           "kind": "ghost",
           "hp": 2,
           "speed": 130,
-          "params": { "phaseStep": 0.24 }
+          "params": {
+            "phaseStep": 0.24
+          }
         },
         "spawn": {
           "count": 6,
@@ -1611,6 +1641,204 @@
       "payload": {
         "pluginId": "boss-start",
         "bossId": "buu"
+      }
+    },
+    {
+      "id": "s5-w101",
+      "type": "wave",
+      "name": "공백 필러",
+      "timing": {
+        "domain": "time",
+        "start": 12.5,
+        "duration": 1.4
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 115
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.45
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.4
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 22,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2.3
+        }
+      }
+    },
+    {
+      "id": "s5-w102",
+      "type": "wave",
+      "name": "공백 필러",
+      "timing": {
+        "domain": "time",
+        "start": 73,
+        "duration": 1.4
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 120
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.42
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.5
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 18,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2.2
+        }
+      }
+    },
+    {
+      "id": "s5-w103",
+      "type": "wave",
+      "name": "동행 웨이브",
+      "timing": {
+        "domain": "time",
+        "start": 48,
+        "duration": 1.5
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 115
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0.45
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.35
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 22,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2.3
+        }
+      }
+    },
+    {
+      "id": "s5-w104",
+      "type": "wave",
+      "name": "동행 웨이브",
+      "timing": {
+        "domain": "time",
+        "start": 85,
+        "duration": 1.5
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 125
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.32
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.3
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 30,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s5-w105",
+      "type": "wave",
+      "name": "동행 웨이브",
+      "timing": {
+        "domain": "time",
+        "start": 78.5,
+        "duration": 1.4
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 125
+        },
+        "spawn": {
+          "count": 6,
+          "interval": 0.32
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.3
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 30,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "none"
+        }
       }
     }
   ]

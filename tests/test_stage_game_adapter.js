@@ -71,9 +71,9 @@ assert.equal(Adapter.requestedMode(''), 'data', '프로덕션 기본값은 체�
 assert.equal(Adapter.requestedMode('?stageRuntime=legacy'), 'legacy', '명시적 레거시 롤백 경로를 유지한다');
 
 const expected = [
-  [34, 185, 0, 0, 110, 114], [38, 193, 0, 0, 110, 114], [37, 207, 0, 0, 116, 120],
-  [35, 145, 0, 0, 111, 115], [25, 139, 10, 0, 111, 115],
-  [32, 177, 0, 13, 111, 115], [14, 58, 2, 3, 111, 115],
+  [34, 185, 0, 0, 110, 114], [38, 200, 0, 0, 110, 114], [37, 207, 0, 0, 116, 120],
+  [36, 154, 0, 0, 111, 115], [30, 165, 10, 0, 111, 115],
+  [36, 203, 0, 13, 111, 115], [28, 140, 2, 3, 111, 115],
 ];
 assert.deepEqual(Adapter.CONFIG.optInStageIds, ['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7']);
 for (let stageIndex = 0; stageIndex < timelines.length; stageIndex++) {
@@ -109,7 +109,7 @@ for (let stageIndex = 0; stageIndex < timelines.length; stageIndex++) {
       assert.ok(report.errors.some(error => error.includes('번개 수 6/3')), '합성 구간 낙뢰 축소가 parity report에 남아야 한다');
     } else assert.deepEqual(report.errors, [], `stage${stageIndex + 1}/${report.summary.difficulty}: ${report.errors.join(' / ')}`);
     const [waves, enemies, wrecks, bolts, warningAt, bossAt] = expected[stageIndex];
-    const expectedEnemies = stageIndex === 4 ? [138, 139, 140][difficulty] : enemies;
+    const expectedEnemies = stageIndex === 4 ? [164, 165, 166][difficulty] : enemies;
     assert.deepEqual(
       [report.summary.waves, report.summary.enemies, report.summary.wrecks, report.summary.bolts, report.summary.warningAt, report.summary.bossAt],
       [waves, expectedEnemies, wrecks, bolts, warningAt, bossAt],

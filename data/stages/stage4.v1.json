@@ -198,7 +198,7 @@
       "payload": {
         "enemy": {
           "kind": "lantern",
-          "hp": 5,
+          "hp": 7,
           "speed": 50
         },
         "spawn": {
@@ -350,7 +350,7 @@
       "payload": {
         "enemy": {
           "kind": "lantern",
-          "hp": 5,
+          "hp": 7,
           "speed": 52
         },
         "spawn": {
@@ -457,7 +457,7 @@
       "payload": {
         "enemy": {
           "kind": "viper",
-          "hp": 3,
+          "hp": 4,
           "speed": 115,
           "params": {
             "revealDelay": 1,
@@ -519,7 +519,7 @@
           }
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-aimed"
         }
       }
     },
@@ -570,7 +570,7 @@
       "payload": {
         "enemy": {
           "kind": "viper",
-          "hp": 3,
+          "hp": 4,
           "speed": 118,
           "params": {
             "revealDelay": 0.85,
@@ -578,7 +578,7 @@
           }
         },
         "spawn": {
-          "count": 2,
+          "count": 3,
           "interval": 1.4
         },
         "entry": {
@@ -609,7 +609,7 @@
       "payload": {
         "enemy": {
           "kind": "lantern",
-          "hp": 5,
+          "hp": 7,
           "speed": 52
         },
         "spawn": {
@@ -716,7 +716,7 @@
           }
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-aimed"
         }
       }
     },
@@ -732,7 +732,7 @@
       "payload": {
         "enemy": {
           "kind": "lantern",
-          "hp": 5,
+          "hp": 7,
           "speed": 55
         },
         "spawn": {
@@ -775,7 +775,7 @@
           "speed": 62
         },
         "spawn": {
-          "count": 5,
+          "count": 6,
           "interval": 0.55
         },
         "entry": {
@@ -807,7 +807,7 @@
       "payload": {
         "enemy": {
           "kind": "viper",
-          "hp": 3,
+          "hp": 4,
           "speed": 120,
           "params": {
             "revealDelay": 1.2,
@@ -926,7 +926,7 @@
       "payload": {
         "enemy": {
           "kind": "lantern",
-          "hp": 5,
+          "hp": 7,
           "speed": 54
         },
         "spawn": {
@@ -969,7 +969,7 @@
           "speed": 64
         },
         "spawn": {
-          "count": 6,
+          "count": 7,
           "interval": 0.5
         },
         "entry": {
@@ -1002,11 +1002,11 @@
       "payload": {
         "enemy": {
           "kind": "viper",
-          "hp": 3,
+          "hp": 4,
           "speed": 122
         },
         "spawn": {
-          "count": 3,
+          "count": 4,
           "interval": 0.9
         },
         "entry": {
@@ -1041,7 +1041,7 @@
           "speed": 90
         },
         "spawn": {
-          "count": 10,
+          "count": 11,
           "interval": 0
         },
         "entry": {
@@ -1105,7 +1105,7 @@
           }
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-aimed"
         }
       }
     },
@@ -1121,7 +1121,7 @@
       "payload": {
         "enemy": {
           "kind": "lantern",
-          "hp": 6,
+          "hp": 8,
           "speed": 90
         },
         "spawn": {
@@ -1164,7 +1164,7 @@
           "speed": 64
         },
         "spawn": {
-          "count": 5,
+          "count": 6,
           "interval": 0.5
         },
         "entry": {
@@ -1196,7 +1196,7 @@
       "payload": {
         "enemy": {
           "kind": "viper",
-          "hp": 3,
+          "hp": 4,
           "speed": 125,
           "params": {
             "revealDelay": 0.8,
@@ -1264,6 +1264,46 @@
       }
     },
     {
+      "id": "s4-w101",
+      "type": "wave",
+      "name": "공백 필러 (조준 물고기)",
+      "timing": {
+        "domain": "time",
+        "start": 72.5,
+        "duration": 1.4
+      },
+      "payload": {
+        "enemy": {
+          "kind": "fish",
+          "hp": 2,
+          "speed": 118
+        },
+        "spawn": {
+          "count": 4,
+          "interval": 0.42
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.65
+        },
+        "formation": {
+          "presetId": "column"
+        },
+        "movement": {
+          "presetId": "sine",
+          "params": {
+            "amplitude": 20,
+            "frequency": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 2.2
+        }
+      }
+    },
+    {
       "id": "s4-w028",
       "type": "wave",
       "name": "해파리 웨이브 28",
@@ -1279,7 +1319,7 @@
           "speed": 64
         },
         "spawn": {
-          "count": 7,
+          "count": 8,
           "interval": 0.45
         },
         "entry": {
@@ -1311,7 +1351,7 @@
       "payload": {
         "enemy": {
           "kind": "viper",
-          "hp": 3,
+          "hp": 4,
           "speed": 122,
           "params": {
             "revealDelay": 1.1,
@@ -1350,7 +1390,7 @@
       "payload": {
         "enemy": {
           "kind": "lantern",
-          "hp": 5,
+          "hp": 7,
           "speed": 54
         },
         "spawn": {
@@ -1515,7 +1555,7 @@
       "payload": {
         "enemy": {
           "kind": "lantern",
-          "hp": 5,
+          "hp": 7,
           "speed": 56
         },
         "spawn": {
@@ -1554,7 +1594,7 @@
       "payload": {
         "enemy": {
           "kind": "viper",
-          "hp": 3,
+          "hp": 4,
           "speed": 128,
           "params": {
             "revealDelay": 0.7,
@@ -1598,7 +1638,7 @@
           "speed": 66
         },
         "spawn": {
-          "count": 6,
+          "count": 7,
           "interval": 0.5
         },
         "entry": {
