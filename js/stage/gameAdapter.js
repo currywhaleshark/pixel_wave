@@ -1,4 +1,4 @@
-// Opt-in adapter from compiled Stage JSON events to the existing game entities.
+// Adapter from compiled Stage JSON events to the existing game entities.
 (function initStageGameAdapter(root) {
   'use strict';
 
@@ -12,7 +12,7 @@
     || (typeof STAGE_TERRAIN_PROFILE_REGISTRY !== 'undefined' ? STAGE_TERRAIN_PROFILE_REGISTRY : {});
   const TEST_STORAGE_KEY = 'pixel-wave-stage-test-payload';
   const CONFIG = Object.freeze({
-    defaultMode: 'legacy',
+    defaultMode: 'data',
     optInStageIds: Object.freeze(['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7']),
   });
 
@@ -22,7 +22,9 @@
 
   function requestedMode(search) {
     const params = query(search);
-    return params.has('debug') && params.get('stageRuntime') === 'data' ? 'data' : CONFIG.defaultMode;
+    if (params.get('stageRuntime') === 'legacy') return 'legacy';
+    if (params.has('debug') && params.get('stageRuntime') === 'data') return 'data';
+    return CONFIG.defaultMode;
   }
 
   function difficultyId(index) {

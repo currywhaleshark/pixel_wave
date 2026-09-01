@@ -340,6 +340,34 @@
       "id": "s2-w008",
       "type": "wave",
       "name": "등불 기뢰 입문",
+      "difficulty": {
+        "easy": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "weapon": {
+                "params": {
+                  "fuseDuration": 3.8,
+                  "warningLead": 1
+                }
+              }
+            }
+          }
+        },
+        "hard": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "weapon": {
+                "params": {
+                  "fuseDuration": 3.2,
+                  "warningLead": 0.65
+                }
+              }
+            }
+          }
+        }
+      },
       "timing": {
         "domain": "time",
         "start": 16,

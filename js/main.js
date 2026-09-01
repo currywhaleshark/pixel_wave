@@ -2233,12 +2233,15 @@ if (Game.debug && Game.barragePatternId) {
   Game.message(`[탄막 시험] ${Game.barragePatternId}`, '#ff8fd8');
 }
 
-// 데이터 기반 Stage 전체/구간 테스트 브리지. 프로덕션 기본은 언제나 legacy다.
+// 데이터 기반 Stage 전체/구간 테스트 브리지. 명시적 legacy URL은 자동 실행하지 않는다.
 if (Game.debug && !Game.barragePatternId) {
   const stageTestParams = new URLSearchParams(location.search);
   const testStageId = stageTestParams.get('stage');
   const testStageIndex = STAGES.findIndex(stage => stage.id === testStageId);
-  if (stageTestParams.get('stageRuntime') === 'data' && testStageIndex >= 0) {
+  const requestedStageRuntime = typeof StageGameAdapter !== 'undefined'
+    ? StageGameAdapter.requestedMode(location.search)
+    : 'legacy';
+  if (requestedStageRuntime === 'data' && testStageIndex >= 0) {
     const testDifficulty = Math.max(0, Math.min(2, Number(stageTestParams.get('diff')) || 0));
     Game.launchStage(testStageIndex, testDifficulty);
     Game.message(`[DATA TEST] Stage ${testStageIndex + 1} · ${Game.spawner.range ? '선택 구간' : '전체'}`, '#7dffd8');

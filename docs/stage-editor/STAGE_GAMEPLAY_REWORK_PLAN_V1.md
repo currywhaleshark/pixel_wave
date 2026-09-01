@@ -742,14 +742,25 @@ Stage Sequencer tool milestones M1–M7.
 
 ### G7 — Difficulty, integration, and release QA
 
-- Add Easy/Normal/Hard item overrides.
-- Review or reduce conflicting global difficulty multipliers.
-- Regenerate the checked-in stage registry.
-- Replace legacy-equality expectations with approved Gameplay v2 deterministic
-  fixtures where gameplay is intentionally different.
-- Run all unit, fixture, browser, and gameplay tests.
-- Approve the data runtime as default only after rollback and save/reward paths
-  are verified.
+- [x] Add Easy/Normal/Hard item overrides. Representative signature items now
+  vary information, timing, route commitment, or count: lantern mine warnings,
+  U-turn location/rate, viper reveal/glint, ghost surrounds, and lightning
+  warning width/time. Unedited fields retain their authored values.
+- [x] Review or reduce conflicting global difficulty multipliers. Existing
+  global speed/fire/reward scaling remains the shared baseline; item overrides
+  avoid duplicating those multipliers and specialize only signature behavior.
+- [x] Regenerate the checked-in stage registry from all seven hand-authored
+  production documents.
+- [x] Replace legacy-equality expectations with approved Gameplay v2
+  deterministic fixtures where gameplay is intentionally different. Counts,
+  hazards, boss transitions, current fields, and representative overrides are
+  asserted for every difficulty.
+- [x] Run all unit, fixture, browser, and gameplay tests. The local browser smoke
+  covers the default and explicit legacy URLs as well as post-input canvas
+  execution without console errors.
+- [x] Approve the data runtime as default after verifying save/reward parity and
+  the explicit `?stageRuntime=legacy` rollback path. The legacy spawner remains
+  loaded but is no longer the production default.
 
 Work remains on the current feature branch. Commit coherent slices, do not merge
 each slice to `main`, and create one PR after the large gameplay milestone is

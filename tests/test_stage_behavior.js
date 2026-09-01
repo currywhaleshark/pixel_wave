@@ -55,9 +55,9 @@ const stage2Source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-edit
 
 {
   const expected = {
-    easy: { fuseDuration: 3.4, ringCount: 5 },
+    easy: { fuseDuration: 3.8, ringCount: 5 },
     normal: { fuseDuration: 2.89, ringCount: 6 },
-    hard: { fuseDuration: 2.38, ringCount: 7 },
+    hard: { fuseDuration: 2.24, ringCount: 7 },
   };
   for (const [difficulty, values] of Object.entries(expected)) {
     const compiled = StageCompiler.compile(stage2Source, { difficulty });
@@ -137,6 +137,7 @@ const stage2Source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-edit
 {
   const positioned = StageCompiler.clone(source);
   const wave = positioned.items.find(item => item.id === 's3-w007');
+  wave.difficulty = {};
   wave.payload.spawn = { count: 1, interval: 0 };
   wave.timing.duration = 0;
   wave.payload.movement.params = { turnX: 0.7 };

@@ -421,6 +421,34 @@
       "id": "s4-w007",
       "type": "wave",
       "name": "첫 잠복 독니고기",
+      "difficulty": {
+        "easy": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "enemy": {
+                "params": {
+                  "revealDelay": 1.2,
+                  "glintDuration": 0.75
+                }
+              }
+            }
+          }
+        },
+        "hard": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "enemy": {
+                "params": {
+                  "revealDelay": 0.8,
+                  "glintDuration": 0.5
+                }
+              }
+            }
+          }
+        }
+      },
       "timing": {
         "domain": "time",
         "start": 13,

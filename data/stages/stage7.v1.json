@@ -1484,6 +1484,34 @@
       "id": "s7-w026",
       "type": "wave",
       "name": "물고기 웨이브 26",
+      "difficulty": {
+        "easy": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "movement": {
+                "params": {
+                  "turnX": 0.78,
+                  "turnRate": 0.9
+                }
+              }
+            }
+          }
+        },
+        "hard": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "movement": {
+                "params": {
+                  "turnX": 0.68,
+                  "turnRate": 1.35
+                }
+              }
+            }
+          }
+        }
+      },
       "timing": {
         "domain": "time",
         "start": 90,

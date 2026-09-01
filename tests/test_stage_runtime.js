@@ -71,7 +71,7 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
 {
   require('../js/stages.generated.js');
   const bossIds = ['pangpang', 'mongsil', 'ssing', 'chorong', 'buu', 'ureu', 'hwii'];
-  const enemyCounts = [185, 193, 207, 145, 139, 177, 58];
+  const enemyCounts = [185, 193, 207, 145, 138, 177, 58];
   for (let index = 0; index < bossIds.length; index++) {
     const stage = global.STAGE_DATA_REGISTRY[`stage${index + 1}`];
     const full = StageCompiler.compile(stage, { difficulty: 'easy' });
@@ -240,6 +240,42 @@ assert.deepEqual(formationByDifficulty[1], formationByDifficulty[2]);
   assert.ok(serviceWorker.includes('../js/stage/previewPlacement.js'));
   assert.ok(serviceWorker.includes('stage5.v1.draft.json'));
   assert.ok(serviceWorker.includes('assets/backgrounds/stage6-near-strip.png'));
+}
+
+{
+  const load = number => JSON.parse(fs.readFileSync(path.join(root, `data/stages/stage${number}.v1.json`), 'utf8'));
+  const eventFor = (compiled, itemId) => compiled.events.find(event => event.type === 'spawn-enemy' && event.itemId === itemId);
+
+  const s2Easy = StageCompiler.compile(load(2), { difficulty: 'easy' });
+  const s2Hard = StageCompiler.compile(load(2), { difficulty: 'hard' });
+  assert.equal(eventFor(s2Easy, 's2-w008').enemy.weapon.params.fuseDuration, 3.8);
+  assert.ok(Math.abs(eventFor(s2Hard, 's2-w008').enemy.weapon.params.fuseDuration - 2.24) < 1e-9);
+  assert.equal(eventFor(s2Easy, 's2-w008').enemy.weapon.params.warningLead, 1);
+  assert.equal(eventFor(s2Hard, 's2-w008').enemy.weapon.params.warningLead, 0.65);
+
+  const s3Easy = StageCompiler.compile(load(3), { difficulty: 'easy' });
+  const s3Hard = StageCompiler.compile(load(3), { difficulty: 'hard' });
+  assert.equal(eventFor(s3Easy, 's3-w007').enemy.movement.params.turnX, 0.78);
+  assert.equal(eventFor(s3Hard, 's3-w007').enemy.movement.params.turnRate, 1.35);
+
+  const s4Easy = StageCompiler.compile(load(4), { difficulty: 'easy' });
+  const s4Hard = StageCompiler.compile(load(4), { difficulty: 'hard' });
+  assert.ok(eventFor(s4Easy, 's4-w007').enemy.params.glintDuration > eventFor(s4Hard, 's4-w007').enemy.params.glintDuration);
+
+  const s5 = load(5);
+  assert.equal(StageCompiler.compile(s5, { difficulty: 'easy' }).items.find(item => item.id === 's5-w015').resolvedCount, 3);
+  assert.equal(StageCompiler.compile(s5, { difficulty: 'normal' }).items.find(item => item.id === 's5-w015').resolvedCount, 4);
+  assert.equal(StageCompiler.compile(s5, { difficulty: 'hard' }).items.find(item => item.id === 's5-w015').resolvedCount, 5);
+
+  const s6Easy = StageCompiler.compile(load(6), { difficulty: 'easy' }).items.find(item => item.id === 's6-bolt-01');
+  const s6Hard = StageCompiler.compile(load(6), { difficulty: 'hard' }).items.find(item => item.id === 's6-bolt-01');
+  assert.deepEqual([s6Easy.payload.params.width, s6Easy.payload.params.telegraphDuration], [42, 1.1]);
+  assert.deepEqual([s6Hard.payload.params.width, s6Hard.payload.params.telegraphDuration], [50, 0.75]);
+
+  const s7Easy = StageCompiler.compile(load(7), { difficulty: 'easy' });
+  const s7Hard = StageCompiler.compile(load(7), { difficulty: 'hard' });
+  assert.equal(eventFor(s7Easy, 's7-w026').enemy.movement.params.turnX, 0.78);
+  assert.equal(eventFor(s7Hard, 's7-w026').enemy.movement.params.turnRate, 1.35);
 }
 
 console.log('stage runtime: ok', results);

@@ -167,6 +167,10 @@
       "id": "s3-w007",
       "type": "wave",
       "name": "첫 유턴 종대",
+      "difficulty": {
+        "easy": { "mode": "patch", "patch": { "payload": { "movement": { "params": { "turnX": 0.78, "turnRate": 0.9 } } } } },
+        "hard": { "mode": "patch", "patch": { "payload": { "movement": { "params": { "turnX": 0.68, "turnRate": 1.35 } } } } }
+      },
       "timing": { "domain": "time", "start": 18, "duration": 1.28 },
       "payload": {
         "enemy": { "kind": "fish", "hp": 2, "speed": 160 },

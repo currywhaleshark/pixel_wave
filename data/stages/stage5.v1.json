@@ -790,6 +790,28 @@
       "id": "s5-w015",
       "type": "wave",
       "name": "유령 물고기 웨이브 15",
+      "difficulty": {
+        "easy": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "spawn": {
+                "count": 3
+              }
+            }
+          }
+        },
+        "hard": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "spawn": {
+                "count": 5
+              }
+            }
+          }
+        }
+      },
       "timing": {
         "domain": "time",
         "start": 45,

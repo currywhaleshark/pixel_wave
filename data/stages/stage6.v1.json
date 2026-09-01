@@ -446,6 +446,30 @@
       "id": "s6-bolt-01",
       "type": "hazard",
       "name": "물속 번개 01",
+      "difficulty": {
+        "easy": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "params": {
+                "width": 42,
+                "telegraphDuration": 1.1
+              }
+            }
+          }
+        },
+        "hard": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "params": {
+                "width": 50,
+                "telegraphDuration": 0.75
+              }
+            }
+          }
+        }
+      },
       "timing": {
         "domain": "time",
         "start": 15,

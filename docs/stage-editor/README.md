@@ -70,13 +70,14 @@ URLs can run the matching data-driven stage through the shared game bridge.
     selects approved sockets and edits offset, HP, and fire interval.
 15. On every complete stage, `게임 시험` copies the current in-device draft into a
     same-tab test session, then opens the current difficulty and selected range
-    in the opt-in production bridge. The HUD says `STAGE DRAFT`, and an edited
+    in the production data bridge. The HUD says `STAGE DRAFT`, and an edited
     draft is expected to report parity differences from the checked-in legacy
     timeline. A selected range returns automatically at OUT; a full run returns
     after boss victory, and the pause menu can return early. Test runs do not
     write clear rewards or scoreboard state. Direct URLs without a test payload
-    still use the checked-in generated Stage JSON. Removing `stageRuntime=data`
-    always restores the legacy runtime. Partial coverage fixtures remain
+    use the checked-in generated Stage JSON by default. Adding
+    `stageRuntime=legacy` restores the frozen legacy runtime for rollback.
+    Partial coverage fixtures remain
     preview-only and are not used by the normal stage selector.
 16. M7 adds `여러 선택`, one-step bulk movement/deletion, mixed-value batch
     editing, portable clip fragments, and reusable section templates. The batch
