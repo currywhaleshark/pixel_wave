@@ -31,7 +31,7 @@ assert.ok(indexHtml.includes('js/stage/currentField.js?v=1'));
 assert.ok(indexHtml.includes('js/stage/layerTransform.js?v=2'));
 assert.ok(indexHtml.includes('js/stage/plugin.js?v=8'));
 assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=12'));
-assert.ok(indexHtml.includes('js/main.js?v=26'));
+assert.ok(indexHtml.includes('js/main.js?v=27'));
 assert.ok(indexHtml.indexOf('js/stage/compiler.js') < indexHtml.indexOf('js/stage/gameAdapter.js'));
 const mainSource = fs.readFileSync(path.join(root, 'js/main.js'), 'utf8');
 assert.ok(mainSource.includes("StageGameAdapter.requestedMode(location.search)"));
@@ -40,6 +40,19 @@ assert.ok(mainSource.includes("this.stageRuntimeMode = dataSpawner ? 'data' : 'l
 assert.ok(mainSource.includes("finishStageTest(reason = 'complete')"));
 assert.ok(mainSource.includes('applyStageRuntimeState(state)'));
 assert.ok(mainSource.includes("sampleStageCurrent(targetId = 'player', position = null)"));
+const enemyBulletUpdateSource = mainSource.slice(
+  mainSource.indexOf('const barrageSpawned = []'),
+  mainSource.indexOf('if (barrageSpawned.length)'),
+);
+assert.ok(
+  enemyBulletUpdateSource.includes("const projectileCurrent = this.sampleStageCurrent('enemyProjectile', b)"),
+  '각 적탄은 자신의 위치에서 해류를 샘플링해야 한다',
+);
+const entryWarningDrawSource = mainSource.slice(
+  mainSource.indexOf('drawEntryWarnings() {'),
+  mainSource.indexOf('drawPause() {'),
+);
+assert.ok(!entryWarningDrawSource.includes('projectileCurrent'), '진입 경고 그리기는 적탄 해류 변수를 참조하면 안 된다');
 assert.ok(mainSource.includes('spawnBolt(xFrac, options = {})'));
 assert.ok(mainSource.includes('addStageEntryWarning(warning)'));
 assert.ok(mainSource.includes('drawEntryWarnings()'));

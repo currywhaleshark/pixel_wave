@@ -993,6 +993,7 @@ const Game = {
     const barrageSpawned = [];
     const barrageSpawnBudget = { remaining: 1200 };
     for (const b of this.ebullets) {
+      const projectileCurrent = this.sampleStageCurrent('enemyProjectile', b);
       if (b.kind === 'storm' && this.boss && !this.boss.dead) {
         // 폭풍탄 (라스보스): 바깥에서 계속 생성되어 감겨들고, 안쪽 벽(반경 175)에서
         // 잠시 돌다 소멸 — 바깥은 항상 유입 탄으로 위험, 눈 안쪽만이 안전
@@ -1374,7 +1375,6 @@ const Game = {
         ctx.fillStyle = index < filled ? '#fff2b8' : 'rgba(255,242,184,0.28)';
         ctx.fillRect(x - direction * (12 + index * 8) - 3, y + 19, 6, 6);
       }
-      const projectileCurrent = this.sampleStageCurrent('enemyProjectile', b);
       if (warning.count > 1) {
         ctx.fillStyle = '#fff2b8';
         ctx.font = "bold 12px 'Galmuri11', monospace";
