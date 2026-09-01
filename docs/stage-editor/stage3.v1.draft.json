@@ -131,7 +131,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 195
         },
         "spawn": {
@@ -169,7 +169,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 195
         },
         "spawn": {
@@ -246,7 +246,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 210
         },
         "spawn": {
@@ -284,7 +284,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 200
         },
         "spawn": {
@@ -322,7 +322,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 150
         },
         "spawn": {
@@ -389,7 +389,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 160
         },
         "spawn": {
@@ -462,7 +462,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 200
         },
         "spawn": {
@@ -500,7 +500,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 200
         },
         "spawn": {
@@ -538,7 +538,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 200
         },
         "spawn": {
@@ -576,7 +576,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 210
         },
         "spawn": {
@@ -674,7 +674,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 230
         },
         "spawn": {
@@ -708,7 +708,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 230
         },
         "spawn": {
@@ -742,7 +742,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 240
         },
         "spawn": {
@@ -786,7 +786,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 230
         },
         "spawn": {
@@ -845,7 +845,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 230
         },
         "spawn": {
@@ -879,7 +879,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 240
         },
         "spawn": {
@@ -1001,7 +1001,7 @@
       "payload": {
         "enemy": {
           "kind": "big",
-          "hp": 48,
+          "hp": 56,
           "speed": 110
         },
         "spawn": {
@@ -1043,7 +1043,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 150
         },
         "spawn": {
@@ -1081,7 +1081,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 165
         },
         "spawn": {
@@ -1120,7 +1120,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 200
         },
         "spawn": {
@@ -1158,7 +1158,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 165
         },
         "spawn": {
@@ -1192,7 +1192,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 158
         },
         "spawn": {
@@ -1270,7 +1270,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 210
         },
         "spawn": {
@@ -1308,7 +1308,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 170
         },
         "spawn": {
@@ -1351,7 +1351,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 160
         },
         "spawn": {
@@ -1390,7 +1390,7 @@
       "payload": {
         "enemy": {
           "kind": "big",
-          "hp": 48,
+          "hp": 56,
           "speed": 105
         },
         "spawn": {
@@ -1432,7 +1432,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 160
         },
         "spawn": {
@@ -1471,7 +1471,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 160
         },
         "spawn": {
@@ -1588,7 +1588,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 220
         },
         "spawn": {
@@ -1626,7 +1626,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 220
         },
         "spawn": {

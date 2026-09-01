@@ -145,7 +145,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 125
         },
         "spawn": {
@@ -184,7 +184,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 125
         },
         "spawn": {
@@ -243,7 +243,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 130
         },
         "spawn": {
@@ -282,7 +282,7 @@
       "payload": {
         "enemy": {
           "kind": "ghost",
-          "hp": 2,
+          "hp": 3,
           "speed": 110,
           "params": {
             "phaseStep": 0.1
@@ -344,7 +344,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 115
         },
         "spawn": {
@@ -384,7 +384,7 @@
       "payload": {
         "enemy": {
           "kind": "ghost",
-          "hp": 2,
+          "hp": 3,
           "speed": 120,
           "params": {
             "phaseStep": 0.25
@@ -425,7 +425,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 130
         },
         "spawn": {
@@ -485,7 +485,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 62
         },
         "spawn": {
@@ -521,7 +521,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 140
         },
         "spawn": {
@@ -561,7 +561,7 @@
       "payload": {
         "enemy": {
           "kind": "turret",
-          "hp": 7,
+          "hp": 9,
           "speed": 0
         },
         "spawn": {
@@ -600,7 +600,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 128
         },
         "spawn": {
@@ -640,7 +640,7 @@
       "payload": {
         "enemy": {
           "kind": "turret",
-          "hp": 7,
+          "hp": 9,
           "speed": 0
         },
         "spawn": {
@@ -680,7 +680,7 @@
       "payload": {
         "enemy": {
           "kind": "ghost",
-          "hp": 2,
+          "hp": 3,
           "speed": 60
         },
         "spawn": {
@@ -704,6 +704,34 @@
         },
         "weapon": {
           "presetId": "none"
+        }
+      },
+      "difficulty": {
+        "normal": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "spawn": {
+                "count": 10
+              }
+            }
+          }
+        },
+        "hard": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "spawn": {
+                "count": 12
+              },
+              "formation": {
+                "params": {
+                  "radius": 270,
+                  "angleJitter": 0.18
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -759,7 +787,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 135
         },
         "spawn": {
@@ -820,7 +848,7 @@
       "payload": {
         "enemy": {
           "kind": "ghost",
-          "hp": 2,
+          "hp": 3,
           "speed": 112,
           "params": {
             "phaseStep": 0.28
@@ -863,7 +891,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 66
         },
         "spawn": {
@@ -898,7 +926,7 @@
       "payload": {
         "enemy": {
           "kind": "big",
-          "hp": 60,
+          "hp": 69,
           "speed": 95
         },
         "spawn": {
@@ -942,7 +970,7 @@
       "payload": {
         "enemy": {
           "kind": "ghost",
-          "hp": 2,
+          "hp": 3,
           "speed": 120
         },
         "spawn": {
@@ -1000,7 +1028,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 120
         },
         "spawn": {
@@ -1040,7 +1068,7 @@
       "payload": {
         "enemy": {
           "kind": "ghost",
-          "hp": 2,
+          "hp": 3,
           "speed": 62,
           "params": {
             "phaseStep": 0.16
@@ -1068,6 +1096,34 @@
         "weapon": {
           "presetId": "none"
         }
+      },
+      "difficulty": {
+        "normal": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "spawn": {
+                "count": 12
+              }
+            }
+          }
+        },
+        "hard": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "spawn": {
+                "count": 14
+              },
+              "formation": {
+                "params": {
+                  "radius": 280,
+                  "angleJitter": 0.18
+                }
+              }
+            }
+          }
+        }
       }
     },
     {
@@ -1082,7 +1138,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 132
         },
         "spawn": {
@@ -1142,7 +1198,7 @@
       "payload": {
         "enemy": {
           "kind": "ghost",
-          "hp": 2,
+          "hp": 3,
           "speed": 115
         },
         "spawn": {
@@ -1202,7 +1258,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 64
         },
         "spawn": {
@@ -1258,7 +1314,7 @@
       "payload": {
         "enemy": {
           "kind": "big",
-          "hp": 60,
+          "hp": 69,
           "speed": 90
         },
         "spawn": {
@@ -1302,7 +1358,7 @@
       "payload": {
         "enemy": {
           "kind": "ghost",
-          "hp": 2,
+          "hp": 3,
           "speed": 125
         },
         "spawn": {
@@ -1340,7 +1396,7 @@
       "payload": {
         "enemy": {
           "kind": "ghost",
-          "hp": 2,
+          "hp": 3,
           "speed": 64,
           "params": {
             "phaseStep": 0.2
@@ -1368,6 +1424,34 @@
         "weapon": {
           "presetId": "none"
         }
+      },
+      "difficulty": {
+        "normal": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "spawn": {
+                "count": 14
+              }
+            }
+          }
+        },
+        "hard": {
+          "mode": "patch",
+          "patch": {
+            "payload": {
+              "spawn": {
+                "count": 16
+              },
+              "formation": {
+                "params": {
+                  "radius": 290,
+                  "angleJitter": 0.18
+                }
+              }
+            }
+          }
+        }
       }
     },
     {
@@ -1382,7 +1466,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 122
         },
         "spawn": {
@@ -1422,7 +1506,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 122
         },
         "spawn": {
@@ -1502,7 +1586,7 @@
       "payload": {
         "enemy": {
           "kind": "ghost",
-          "hp": 2,
+          "hp": 3,
           "speed": 130,
           "params": {
             "phaseStep": 0.24
@@ -1544,7 +1628,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 145
         },
         "spawn": {
@@ -1583,7 +1667,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 145
         },
         "spawn": {
@@ -1655,7 +1739,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 115
         },
         "spawn": {
@@ -1695,7 +1779,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 120
         },
         "spawn": {
@@ -1735,7 +1819,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 115
         },
         "spawn": {
@@ -1775,7 +1859,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 125
         },
         "spawn": {
@@ -1814,7 +1898,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 125
         },
         "spawn": {

@@ -73,7 +73,7 @@ assert.equal(Adapter.requestedMode('?stageRuntime=legacy'), 'legacy', '명시적
 const expected = [
   [34, 185, 0, 0, 110, 114], [38, 200, 0, 0, 110, 114], [37, 207, 0, 0, 116, 120],
   [36, 154, 0, 0, 111, 115], [30, 165, 10, 0, 111, 115],
-  [36, 203, 0, 13, 111, 115], [28, 140, 2, 3, 111, 115],
+  [37, 204, 0, 13, 111, 115], [28, 140, 2, 3, 111, 115],
 ];
 assert.deepEqual(Adapter.CONFIG.optInStageIds, ['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7']);
 for (let stageIndex = 0; stageIndex < timelines.length; stageIndex++) {
@@ -99,7 +99,7 @@ for (let stageIndex = 0; stageIndex < timelines.length; stageIndex++) {
       }
     } else if (stageIndex === 5) {
       assert.equal(report.ok, false, '재구성 중인 Stage 6은 legacy와 다른 점을 명시적으로 보고한다');
-      assert.ok(report.errors.some(error => error.includes('s6-w015')), '제거한 대물 웨이브가 parity report에 남아야 한다');
+      assert.equal(global.STAGE_DATA_REGISTRY.stage6.items.find(item => item.id === 's6-w015')?.payload?.weapon?.patternId, 'laser-sweep', '재활성한 폭풍 대물은 회전 빔 무기를 쓴다');
       assert.ok(report.errors.some(error => error.includes('s6-w021')), '이동한 가오리 웨이브가 parity report에 남아야 한다');
       assert.ok(report.errors.some(error => error.includes('번개 수 16/13')), '재구성한 낙뢰 수가 parity report에 남아야 한다');
     } else if (stageIndex === 6) {
@@ -109,7 +109,7 @@ for (let stageIndex = 0; stageIndex < timelines.length; stageIndex++) {
       assert.ok(report.errors.some(error => error.includes('번개 수 6/3')), '합성 구간 낙뢰 축소가 parity report에 남아야 한다');
     } else assert.deepEqual(report.errors, [], `stage${stageIndex + 1}/${report.summary.difficulty}: ${report.errors.join(' / ')}`);
     const [waves, enemies, wrecks, bolts, warningAt, bossAt] = expected[stageIndex];
-    const expectedEnemies = stageIndex === 4 ? [164, 165, 166][difficulty] : enemies;
+    const expectedEnemies = stageIndex === 4 ? [164, 169, 174][difficulty] : enemies;
     assert.deepEqual(
       [report.summary.waves, report.summary.enemies, report.summary.wrecks, report.summary.bolts, report.summary.warningAt, report.summary.bossAt],
       [waves, expectedEnemies, wrecks, bolts, warningAt, bossAt],

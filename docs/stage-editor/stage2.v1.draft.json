@@ -75,7 +75,9 @@
       "legacy-aimed",
       "legacy-ring"
     ],
-    "barragePatterns": [],
+    "barragePatterns": [
+      "curve-seeder"
+    ],
     "itemPlugins": [
       "scroll-speed",
       "boss-warning",
@@ -125,7 +127,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 125
         },
         "spawn": {
@@ -164,7 +166,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 70
         },
         "spawn": {
@@ -199,7 +201,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 65
         },
         "spawn": {
@@ -234,7 +236,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 130
         },
         "spawn": {
@@ -273,7 +275,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 62
         },
         "spawn": {
@@ -309,7 +311,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 130
         },
         "spawn": {
@@ -348,7 +350,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 85
         },
         "spawn": {
@@ -474,7 +476,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 68
         },
         "spawn": {
@@ -509,7 +511,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 64
         },
         "spawn": {
@@ -545,7 +547,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 62
         },
         "spawn": {
@@ -580,7 +582,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 140
         },
         "spawn": {
@@ -672,7 +674,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 68
         },
         "spawn": {
@@ -707,7 +709,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 90
         },
         "spawn": {
@@ -752,7 +754,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 132
         },
         "spawn": {
@@ -791,7 +793,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 64
         },
         "spawn": {
@@ -827,7 +829,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 118
         },
         "spawn": {
@@ -867,7 +869,7 @@
       "payload": {
         "enemy": {
           "kind": "big",
-          "hp": 40,
+          "hp": 46,
           "speed": 85
         },
         "spawn": {
@@ -890,8 +892,7 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-aimed",
-          "interval": 2.2
+          "patternId": "curve-seeder"
         }
       }
     },
@@ -907,7 +908,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 64
         },
         "spawn": {
@@ -995,7 +996,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 66
         },
         "spawn": {
@@ -1031,7 +1032,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 92
         },
         "spawn": {
@@ -1076,7 +1077,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 132
         },
         "spawn": {
@@ -1154,7 +1155,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 68
         },
         "spawn": {
@@ -1189,7 +1190,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 66
         },
         "spawn": {
@@ -1225,7 +1226,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 64
         },
         "spawn": {
@@ -1260,7 +1261,7 @@
       "payload": {
         "enemy": {
           "kind": "big",
-          "hp": 40,
+          "hp": 46,
           "speed": 90
         },
         "spawn": {
@@ -1300,7 +1301,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 95
         },
         "spawn": {
@@ -1451,7 +1452,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 66
         },
         "spawn": {
@@ -1487,7 +1488,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 68
         },
         "spawn": {
@@ -1523,7 +1524,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 122
         },
         "spawn": {
@@ -1563,7 +1564,7 @@
       "payload": {
         "enemy": {
           "kind": "jelly",
-          "hp": 2,
+          "hp": 3,
           "speed": 95
         },
         "spawn": {
@@ -1608,7 +1609,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 145
         },
         "spawn": {
@@ -1647,7 +1648,7 @@
       "payload": {
         "enemy": {
           "kind": "fish",
-          "hp": 2,
+          "hp": 3,
           "speed": 145
         },
         "spawn": {
