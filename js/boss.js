@@ -29,6 +29,7 @@ class Boss {
     this.spiralAngle = 0;
     this.spikeT = 0;
     this.minionT = 4;
+    this.antiCampT = 2.7;
     this.transitionT = 0;     // 페이즈 전환 연출
     this.dead = false;
     this.deathT = 0;
@@ -166,6 +167,15 @@ class Boss {
           }});
         }
       }
+      // Easy/Normal은 부채꼴의 성긴 궤도 사이에 멈춰 있는 플레이어가 남지 않도록
+      // 느린 단발 조준탄을 별도 박자로 섞는다. Hard는 기존 5발 중심축이 이미 압박한다.
+      if (!g.barragePatternId && g.diff < 2) {
+        this.antiCampT -= dt;
+        if (this.antiCampT <= 0) {
+          this.antiCampT = (g.diff === 0 ? 2.8 : 2.35) * m;
+          g.bossAimed(this.x - 20 * this.scale, this.y, 138 + g.diff * 10, 1, 0);
+        }
+      }
     } else if (this.phase === 2) {
       // P2: 기포 링 16발(3초) + 링 2회마다 조준 세트
       this.fireT -= dt;
@@ -180,6 +190,9 @@ class Boss {
           g.bossAimed(this.x - 20 * this.scale, this.y, 125, 3, 0.22);
         } else {
           g.bossRing(this.x, this.y, 16, CFG.ebSpeedRing, Math.random() * 6.28);
+          // 링 사이의 고정 안전점은 약한 조준탄 한 세트로 움직이게 한다.
+          // Easy는 단발, Normal은 bossAimed 난이도 보정으로 2발이 된다.
+          if (g.diff < 2) g.bossAimed(this.x - 20 * this.scale, this.y, 136, 1, 0.16);
         }
       }
     } else if (this.phase >= 3) {

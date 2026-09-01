@@ -216,7 +216,10 @@ ring artillery.
 #### Boss 1
 
 Keep the current phase structure. Polish P2 ring origins and phase offsets so
-the boss reads as the final form of coral artillery.
+the boss reads as the final form of coral artillery. Easy and Normal also mix
+a slow aimed singleton into P1's sparse fan rhythm and P2's ordinary ring
+volleys so a stationary gap is not a complete answer; Hard keeps its existing
+dense centered fan without the extra overlay.
 
 ### 6.2 Stage 2 — 해파리 초원
 
@@ -287,6 +290,9 @@ Signature: speed and route reading rather than dense stationary bullet dodging.
 #### Boss 3
 
 Keep the current dash, lane-traffic, overtake, and Hard round-trip patterns.
+P2 lane centers use a deterministic six-volley vertical offset cycle, with a
+sparse inter-lane vehicle even on Easy, so no fixed Y coordinate remains safe
+for the whole phase.
 Add one 8–10 second transition between P2 and P3:
 
 1. the turtle taxi arrives;
@@ -685,11 +691,14 @@ Stage Sequencer tool milestones M1–M7.
   deterministic wall gaps, and one authored diagonal slalom instead of six
   nearly identical sine columns. Enemy count and the 22-second reward ride
   duration remain unchanged.
-- [x] Add Boss 3's P2→P3 turtle chase transition. The nine-second chase moves
-  a readable safe lane through traffic walls, adds destructible ray escorts,
-  and lets the player keep attacking 씽씽. Taxi protection is finite: three
-  durability segments on Easy and two on Normal/Hard, with no unconditional
-  invulnerability. P3 begins after the taxi exits or its protection breaks.
+- [x] Add Boss 3's P2→P3 turtle chase transition. The ten-second chase raises
+  background speed to 4.2×, keeps 씽씽 fleeing at the front, moves a readable
+  safe lane through traffic walls, and sends destructible fish and ray traffic
+  past the taxi from both directions while the player keeps attacking. Taxi
+  protection is finite: three durability segments on Easy and two on
+  Normal/Hard, with no unconditional invulnerability. P3 begins after the
+  pursuit timer ends; losing the protection does not turn the transition into
+  a stationary survival pattern.
 - [x] Rebuild Stage 4's darkness/reveal rhythm. A stage-wide authored curve now
   creates two bright contrast breaks and a final descent; the ordinary route is
   reduced to 12 vipers and 8 lanterns. Viper timing is now information-based:

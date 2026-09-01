@@ -33,14 +33,18 @@ class BossSsing {
     this.trailT = 0;
     this.laneT = 1.5;         // P2 차선 스트림
     this.laneIdx = 0;
+    this.laneVolley = 0;
+    this.laneShift = 0;
     this.summonT = 5;
     this.trafficT = 0.5;      // P3 트래픽
     this.dashCycleT = 4.5;    // P3 주기 돌진
     this.transitionT = 0;
     this.chaseT = 0;
     this.chaseLaneT = 0;
+    this.chaseTrafficT = 0;
     this.chaseEscortT = 0;
     this.chaseStep = 0;
+    this.chaseTrafficStep = 0;
     this.dead = false;
     this.deathT = 0;
   }
@@ -70,6 +74,9 @@ class BossSsing {
     this.x = CFG.W * 0.82;
     this.game.clearBulletsToPearls(false);
     if (p === 2) {
+      this.laneVolley = 0;
+      this.laneShift = 0;
+      this.carT = 2.2;
       this.game.message('"부릉부릉!! 차선 잘 봐!"', '#8fa3e8');
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
@@ -90,14 +97,16 @@ class BossSsing {
     this.phase = 2.5;
     this.mode = 'chase';
     this.transitionT = 0.6;
-    this.chaseT = 9;
-    this.chaseLaneT = 0.7;
-    this.chaseEscortT = 1.2;
+    this.chaseT = 10;
+    this.chaseLaneT = 0.65;
+    this.chaseTrafficT = 0.2;
+    this.chaseEscortT = 1.1;
     this.chaseStep = 0;
-    this.x = CFG.W * 0.86;
+    this.chaseTrafficStep = 0;
+    this.x = CFG.W * 0.91;
     g.message('거북 택시 추격전 — 씽씽을 따라잡아라!', '#7dffd8');
-    g.startRide(9, {
-      scrollMultiplier: 2.4,
+    g.startRide(10, {
+      scrollMultiplier: 4.2,
       playerInvulnerable: false,
       taxiDurability: g.diff === 0 ? 3 : 2,
       continueIntoBoss: true,
@@ -115,7 +124,7 @@ class BossSsing {
       pearlRing: { enabled: false },
       startMessages: [
         { text: '거북 택시 긴급 투입!', color: '#7dffd8' },
-        { text: '충격을 버티며 차선을 갈아타세요!', color: '#ffe28a' },
+        { text: '앞의 씽씽을 쫓으며 추월 교통을 피하세요!', color: '#ffe28a' },
       ],
       endMessage: { text: '', color: '#a8ffcf' },
       breakMessage: { text: '택시 보호막 파손 — 추격은 계속됩니다!', color: '#ffb3b3' },
@@ -128,12 +137,13 @@ class BossSsing {
     const route = [2, 0, 4, 1, 3];
     this.chaseT -= dt;
     const targetY = lanes[route[this.chaseStep % route.length]] * CFG.H;
-    this.x += (CFG.W * 0.86 + Math.sin(this.anim * 2.2) * 24 - this.x) * Math.min(1, dt * 4);
-    this.y += (targetY - this.y) * Math.min(1, dt * 2.8);
+    const leadX = CFG.W * 0.91 + Math.sin(this.anim * 2.6) * 30;
+    this.x += (leadX - this.x) * Math.min(1, dt * 4.5);
+    this.y += (targetY - this.y) * Math.min(1, dt * 3.4);
 
     this.chaseLaneT -= dt;
     if (this.chaseLaneT <= 0) {
-      this.chaseLaneT = 1.35 * mercy;
+      this.chaseLaneT = 1.45 * mercy;
       const safeLane = route[this.chaseStep % route.length];
       this.chaseStep++;
       for (let lane = 0; lane < lanes.length; lane++) {
@@ -141,19 +151,51 @@ class BossSsing {
         g.ebullets.push({
           x: CFG.W + 25 + (lane % 2) * 32,
           y: lanes[lane] * CFG.H,
-          vx: -(250 + g.diff * 25), vy: 0, r: CFG.ebR,
+          vx: -(300 + g.diff * 30), vy: 0, r: CFG.ebR,
           kind: lane % 2 ? 'bubble' : 'spike',
         });
       }
     }
 
+    // 화면 양쪽에서 실제 잡몹 교통이 고속으로 추월한다. 탄 벽만 흐르는 생존전이
+    // 아니라, 씽씽과 같은 방향으로 질주하며 앞차·역주행을 읽는 추격 장면을 만든다.
+    this.chaseTrafficT -= dt;
+    if (this.chaseTrafficT <= 0) {
+      this.chaseTrafficT = (g.diff === 0 ? 0.9 : g.diff === 1 ? 0.72 : 0.58) * mercy;
+      const fromBehind = this.chaseTrafficStep % 3 === 2;
+      const passCount = g.diff === 0 ? 2 : 3;
+      const safeLane = route[this.chaseStep % route.length];
+      const rearWarningDelay = fromBehind ? 0.55 : 0;
+      const warningLane = (this.chaseTrafficStep + (passCount - 1)) % lanes.length;
+      if (fromBehind && typeof g.addStageEntryWarning === 'function') {
+        g.addStageEntryWarning({
+          side: 'left', y: lanes[warningLane] * CFG.H,
+          spawnAt: g.stageT + rearWarningDelay, duration: rearWarningDelay, count: passCount,
+        });
+      }
+      for (let index = 0; index < passCount; index++) {
+        let lane = (this.chaseTrafficStep + index * 2) % lanes.length;
+        if (lane === safeLane) lane = (lane + 1) % lanes.length;
+        g.spawner.pending.push({ at: g.stageT + rearWarningDelay + index * 0.1, spec: {
+          kind: 'fish', M: 1, S: 0, hp: 1,
+          spd: 360 + g.diff * 35 + index * 18,
+          amp: 0, freq: 3,
+          x: fromBehind ? -45 - index * 38 : CFG.W + 45 + index * 38,
+          y: lanes[lane] * CFG.H + ((this.chaseTrafficStep + index) % 2 ? 9 : -9),
+          dirX: fromBehind ? 1 : -1, dirY: 0, groupId: -1,
+          phase: (this.chaseTrafficStep + index) * 0.7,
+        }});
+      }
+      this.chaseTrafficStep++;
+    }
+
     this.chaseEscortT -= dt;
     if (this.chaseEscortT <= 0) {
-      this.chaseEscortT = 2.8 * mercy;
+      this.chaseEscortT = 2.5 * mercy;
       const centerY = lanes[(this.chaseStep + 2) % lanes.length] * CFG.H;
       for (let index = 0; index < 1 + g.diff; index++) {
         g.spawner.pending.push({ at: g.stageT + index * 0.25, spec: {
-          kind: 'ray', M: 1, S: 0, hp: 2, spd: 285,
+          kind: 'ray', M: 1, S: 0, hp: 2, spd: 330 + g.diff * 20,
           amp: 0, freq: 3, x: CFG.W + 40 + index * 48,
           y: centerY + (index - g.diff * 0.5) * 48,
           dirX: -1, dirY: 0, groupId: -1, phase: 0,
@@ -262,8 +304,12 @@ class BossSsing {
       if (g.dolphin && this.laneT <= 0.5 && this.laneT > 0 && this.telegraph <= 0) this.telegraph = 0.5;
       if (this.laneT <= 0) {
         this.laneT = 1.7 * m;
-        const laneY = [0.15, 0.32, 0.5, 0.68, 0.85][this.laneIdx % 5] * CFG.H;
+        const lanes = [0.15, 0.32, 0.5, 0.68, 0.85];
+        const shiftCycle = [0, -0.055, 0.035, -0.025, 0.06, -0.04];
+        this.laneShift = shiftCycle[this.laneVolley % shiftCycle.length];
+        const laneY = Math.max(0.09, Math.min(0.91, lanes[this.laneIdx % 5] + this.laneShift)) * CFG.H;
         this.laneIdx += 2; // 5와 서로소 → 모든 차선 순회하되 연속 아님
+        this.laneVolley++;
         const cn = 8 + g.diff; // 난이도: 콘보이 길이 (틈은 2칸 유지)
         const gapIdx = 1 + Math.floor(Math.random() * (cn - 3));
         for (let i = 0; i < cn; i++) {
@@ -271,19 +317,18 @@ class BossSsing {
           g.ebullets.push({ x: CFG.W + 20 + i * 55, y: laneY, vx: -240, vy: 0, r: CFG.ebR, kind: 'spike' });
         }
       }
-      // 노멀+: 차선 "사이"로 큰 탄이 지나다닌다 (차처럼) — 통로 캠핑 방지
-      if (g.diff >= 1) {
-        this.carT = (this.carT ?? 2.5) - dt;
-        if (this.carT <= 0) {
-          this.carT = (g.diff >= 2 ? 1.9 : 3.2) * m; // 하드: 더 자주
-          const mids = [0.235, 0.41, 0.59, 0.765];   // 차선 사이 통로
-          const y = mids[Math.floor(Math.random() * mids.length)] * CFG.H;
-          const reverse = g.diff >= 2 && Math.random() < 0.35; // 하드: 가끔 역주행
-          g.ebullets.push({
-            x: reverse ? -30 : CFG.W + 30, y,
-            vx: reverse ? 300 : -300, vy: 0, r: 13, kind: 'car',
-          });
-        }
+      // 차선 사이도 저속 간격으로 통과 차량이 훑는다. Easy도 완전한 고정 통로는 없다.
+      this.carT = (this.carT ?? 2.2) - dt;
+      if (this.carT <= 0) {
+        this.carT = (g.diff >= 2 ? 1.9 : g.diff === 1 ? 3.2 : 4.2) * m;
+        const mids = [0.235, 0.41, 0.59, 0.765];
+        const base = mids[(this.laneVolley + g.diff) % mids.length];
+        const y = Math.max(0.1, Math.min(0.9, base + this.laneShift * 0.55)) * CFG.H;
+        const reverse = g.diff >= 2 && this.laneVolley % 3 === 0;
+        g.ebullets.push({
+          x: reverse ? -30 : CFG.W + 30, y,
+          vx: reverse ? 300 : -300, vy: 0, r: 13, kind: 'car',
+        });
       }
       this.summonT -= dt;
       if (this.summonT <= 0) {

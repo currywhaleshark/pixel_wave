@@ -892,7 +892,7 @@ const Game = {
 
     this.stageT += dt;
     this.spawner.update(this.stageT, dt);
-    const stageScrollMultiplier = this.stageRuntimeState?.scrollMultiplier ?? (this.ride?.params?.scrollMultiplier ?? 1);
+    const stageScrollMultiplier = this.ride?.params?.scrollMultiplier ?? (this.stageRuntimeState?.scrollMultiplier ?? 1);
     this.scroll += CFG.scrollSpeed * stageScrollMultiplier * dt; // 데이터 런타임은 활성 환경 클립의 곡선을 따른다
     if (this.shake > 0) this.shake -= dt;
     if (this.ride) this.updateRide(dt);

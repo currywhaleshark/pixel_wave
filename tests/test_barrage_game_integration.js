@@ -20,23 +20,30 @@ for (const file of ['js/config.js', 'js/stage/layerTransform.js', 'js/stage/enem
   vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context, { filename: file });
 }
 
-context.game = {
-  barragePatternId: null,
-  D: { bossInt: 1 },
-  diff: 0,
-  player: { x: 100, y: 270 },
-  dolphin: null,
-  ebullets: [],
-  pearls: [],
-  spawner: { pending: [] },
-  stageT: 0,
-  message() {},
-  clearBulletsToPearls() {},
-  addBattery() {},
-  phaseReward() {},
-  victory() {},
-  bossAimed() { throw new Error('데이터 패턴이 있는데 코드 폴백이 호출됨'); },
-};
+function makeBossGame(diff) {
+  return {
+    barragePatternId: null,
+    D: { bossInt: 1 },
+    diff,
+    player: { x: 100, y: 270 },
+    dolphin: null,
+    ebullets: [],
+    pearls: [],
+    spawner: { pending: [] },
+    stageT: 0,
+    aimedCalls: [],
+    ringCalls: [],
+    message() {},
+    clearBulletsToPearls() {},
+    addBattery() {},
+    phaseReward() {},
+    victory() {},
+    bossAimed(...args) { this.aimedCalls.push(args); },
+    bossRing(...args) { this.ringCalls.push(args); },
+  };
+}
+
+context.game = makeBossGame(0);
 
 const boss = vm.runInContext('new Boss(game)', context);
 boss.phase = 1;
@@ -48,6 +55,25 @@ assert.equal(context.game.ebullets.length, 0, '첫 발사는 1.5초 예고 뒤�
 boss.update(0.02);
 assert.equal(context.game.ebullets.length, 3, '팡팡 P1은 JSON의 조준 3발을 실제 적탄 배열에 넣는다');
 assert.ok(context.game.ebullets.every(bullet => bullet.vx < 0), '플레이어 쪽인 왼쪽으로 발사한다');
+assert.equal(context.game.aimedCalls.length, 0, '데이터 패턴 첫 발사를 코드 폴백이 대신하면 안 된다');
+boss.update(1.2);
+assert.equal(context.game.aimedCalls.length, 1, '이지 P1은 성긴 부채꼴 사이에 단발 조준 압박을 섞는다');
+
+context.normalGame = makeBossGame(1);
+const normalP2 = vm.runInContext('new Boss(normalGame)', context);
+normalP2.phase = 2;
+normalP2.fireT = 0;
+normalP2.update(0.02);
+assert.equal(context.normalGame.ringCalls.length, 1);
+assert.equal(context.normalGame.aimedCalls.length, 1, '노멀 P2 링에도 고정 안전점 방지 조준탄을 섞는다');
+
+context.hardGame = makeBossGame(2);
+const hardP2 = vm.runInContext('new Boss(hardGame)', context);
+hardP2.phase = 2;
+hardP2.fireT = 0;
+hardP2.update(0.02);
+assert.equal(context.hardGame.ringCalls.length, 1);
+assert.equal(context.hardGame.aimedCalls.length, 0, '이미 중심축이 닫히는 하드 패턴은 추가 압박을 덧대지 않는다');
 
 const enemy = vm.runInContext(`new Enemy({
   kind: 'fish', hp: 10, spd: 0, x: 400, y: 200, dirX: 0, dirY: 0,

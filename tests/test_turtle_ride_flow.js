@@ -8,6 +8,14 @@ const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
+{
+  const mainSource = read('js/main.js');
+  assert.ok(
+    mainSource.includes('this.ride?.params?.scrollMultiplier ?? (this.stageRuntimeState?.scrollMultiplier ?? 1)'),
+    '활성 택시의 속도 배율이 데이터 런타임 환경 기본값보다 우선해야 한다',
+  );
+}
+
 // 택시 탑승 중에는 적이 떨어뜨린 일반 진주도 트레일 진주와 같은 속도로 흐른다.
 {
   const context = vm.createContext({
