@@ -33,6 +33,9 @@ class BossUreu {
     this.ringT = 2.4;
     this.sprayT = 0.8;
     this.beamCycleT = 6.5;
+    this.undertowMode = 'telegraph';
+    this.undertowT = 0.7;
+    this.undertowDir = 1;
     this.transitionT = 0;
     this.dead = false;
     this.deathT = 0;
@@ -68,6 +71,9 @@ class BossUreu {
     } else if (p === 3) {
       this.game.message('"대폭풍이다아아—!! 우르르릉!!"', '#ffe9a8');
       this.game.stormScale = 2;   // 해류 2배 — 탄막이 크게 휜다
+      this.undertowMode = 'telegraph';
+      this.undertowT = 0.7;
+      this.undertowDir = 1;
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
     } else if (p === 4) {
@@ -84,6 +90,7 @@ class BossUreu {
     Sound.sfx('bossDeath');
     this.beam = null;
     this.game.stormScale = 0;     // 폭풍이 잦아든다
+    this.game.bossCurrentOverride = null;
     this.game.bolts = [];
     this.game.clearBulletsToPearls(true);
     for (let i = 0; i < 50; i++) {
@@ -95,6 +102,43 @@ class BossUreu {
       this.game.pearls.push(new Pearl(this.x, this.y, { vx: Math.cos(a) * 130, vy: Math.sin(a) * 130, big: true, life: 15, auto: true }));
     }
     this.game.say('"...오, 오늘은 봐준다! 왕은 관대하니까! 조심히 가라구!"', '"크윽... 오늘도 봐준 거다! 왕은 바쁘니까!"', '#a8ffcf');
+  }
+
+  updateUndertow(dt) {
+    const g = this.game;
+    this.undertowT -= dt;
+    if (this.undertowMode === 'telegraph') {
+      g.bossCurrentOverride = { x: this.undertowDir * 18, y: 0 };
+      if (Math.random() < 0.55) {
+        g.fx.push({
+          x: Math.random() * CFG.W, y: 40 + Math.random() * (CFG.H - 80),
+          vx: this.undertowDir * 90, vy: 0, life: 0.35, color: '#d8f7ff',
+        });
+      }
+      if (this.undertowT <= 0) {
+        this.undertowMode = 'pull';
+        this.undertowT = 1.2;
+        g.message(this.undertowDir > 0 ? '해류가 오른쪽으로 몰아친다!' : '해류가 왼쪽으로 몰아친다!', '#d8f7ff');
+      }
+    } else if (this.undertowMode === 'pull') {
+      g.bossCurrentOverride = { x: this.undertowDir * (g.diff >= 2 ? 90 : 80), y: 0 };
+      if (this.undertowT <= 0) {
+        const fractions = this.undertowDir > 0 ? [0.8, 0.6, 0.4, 0.2] : [0.2, 0.4, 0.6, 0.8];
+        for (let i = 0; i < fractions.length; i++) {
+          g.bolts.push({
+            x: fractions[i] * CFG.W, w: CFG.boltW,
+            telT: CFG.boltTelT + i * 0.22, strikeT: CFG.boltStrikeT, hitDone: false,
+          });
+        }
+        this.undertowMode = 'recovery';
+        this.undertowT = 1;
+        g.bossCurrentOverride = null;
+      }
+    } else if (this.undertowT <= 0) {
+      this.undertowDir *= -1;
+      this.undertowMode = 'telegraph';
+      this.undertowT = 0.7;
+    }
   }
 
   update(dt) {
@@ -123,6 +167,7 @@ class BossUreu {
 
     const m = this.mercy();
     if (this.telegraph > 0) this.telegraph -= dt;
+    if (this.phase < 3) g.bossCurrentOverride = null;
 
     // ---- 가로 빔 사이클 (P1·P3 공용): 스파크 예고 → 자기 줄 빔 ----
     const doBeamCycle = (interval) => {
@@ -207,6 +252,7 @@ class BossUreu {
         this.x += (CFG.W * 0.84 - this.x) * Math.min(1, dt * 2);
         { const ty = CFG.H * 0.5 + Math.sin(this.anim * 0.7) * 130; this.y += (ty - this.y) * Math.min(1, dt * 3); }
       }
+      this.updateUndertow(dt);
       this.sprayT -= dt;
       if (this.sprayT <= 0) {
         this.sprayT = 0.55 * m;
@@ -217,18 +263,6 @@ class BossUreu {
           vx: Math.cos(a) * 95, vy: Math.sin(a) * 95,
           r: CFG.ebR, kind: 'spike',
         });
-      }
-      this.boltT -= dt;
-      if (this.boltT <= 0) {
-        this.boltT = 4.8 * m;
-        // 낙뢰 파도: 좌→우 또는 우→좌 스윕 (난이도로 발수 증가, 화면 폭은 유지)
-        const ltr = Math.random() < 0.5;
-        const wn = 5 + g.diff;
-        for (let i = 0; i < wn; i++) {
-          const step = 0.72 / (wn - 1);
-          const frac = ltr ? 0.1 + i * step : 0.82 - i * step;
-          g.bolts.push({ x: frac * CFG.W, w: CFG.boltW, telT: CFG.boltTelT + i * 0.3, strikeT: CFG.boltStrikeT, hitDone: false });
-        }
       }
       doBeamCycle(7.2);
     }

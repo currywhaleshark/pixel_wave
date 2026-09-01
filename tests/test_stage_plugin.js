@@ -12,6 +12,7 @@ const { Simulation } = require('../js/stage/simulation.js');
 const root = path.resolve(__dirname, '..');
 const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/stage3.v1.draft.json'), 'utf8'));
 const stage4Source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/stage4.v1.draft.json'), 'utf8'));
+const stage6Source = JSON.parse(fs.readFileSync(path.join(root, 'data/stages/stage6.v1.json'), 'utf8'));
 const coverage5 = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/coverage-stage5-wreck.v1.draft.json'), 'utf8'));
 const coverage6 = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/coverage-stage6-storm.v1.draft.json'), 'utf8'));
 
@@ -235,6 +236,24 @@ const coverage6 = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/
   simulation.seek(60);
   simulation.restore(strikeSnapshot);
   assert.equal(simulation.stateHash(), strikeHash, '번개 타격 상태 snapshot/restore가 정확해야 한다');
+}
+
+{
+  const simulation = new Simulation(StageCompiler.compile(stage6Source, { difficulty: 'normal' }));
+  simulation.buildSnapshotCache();
+  simulation.seek(52);
+  assert.ok(simulation.pluginState.stormScale < 0.25, '50초대 회복 구간은 해류가 약해져야 한다');
+  simulation.seek(65);
+  assert.ok(simulation.pluginState.current.x < -20, '후반 돌입 전 해류 반전이 화면에서 읽혀야 한다');
+  simulation.seek(99);
+  assert.ok(simulation.pluginState.current.x > 20, '최종 낙뢰 스윕 전에는 해류가 오른쪽으로 전환되어야 한다');
+
+  simulation.seek(14.9);
+  const beforeBolt = { ...simulation.pluginState.current };
+  simulation.seek(15.25);
+  assert.equal(simulation.pluginState.lightning[0].phase, 'telegraph');
+  assert.ok(Math.abs(simulation.pluginState.current.x - beforeBolt.x) < 3,
+    '낙뢰 예고 중 해류는 안전지대가 밀리지 않도록 직전 값에 고정되어야 한다');
 }
 
 {

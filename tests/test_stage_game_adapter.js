@@ -21,14 +21,14 @@ const timelines = context.__stageTimelines;
 const legacy = timelines[2];
 
 const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-assert.ok(indexHtml.includes('js/stages.generated.js?v=7'));
+assert.ok(indexHtml.includes('js/stages.generated.js?v=8'));
 assert.ok(indexHtml.includes('js/boss3.js?v=4'));
 assert.ok(indexHtml.includes('js/boss5.js?v=6'));
 assert.ok(indexHtml.includes('js/stage/enemyState.js?v=1'));
 assert.ok(indexHtml.includes('js/stage/wreck.js?v=1'));
 assert.ok(indexHtml.includes('js/entities.js?v=13'));
 assert.ok(indexHtml.includes('js/stage/layerTransform.js?v=2'));
-assert.ok(indexHtml.includes('js/stage/plugin.js?v=7'));
+assert.ok(indexHtml.includes('js/stage/plugin.js?v=8'));
 assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=11'));
 assert.ok(indexHtml.indexOf('js/stage/compiler.js') < indexHtml.indexOf('js/stage/gameAdapter.js'));
 const mainSource = fs.readFileSync(path.join(root, 'js/main.js'), 'utf8');
@@ -56,7 +56,7 @@ assert.equal(Adapter.requestedMode('?stageRuntime=data'), 'legacy', 'debug 없�
 const expected = [
   [34, 185, 0, 0, 110, 114], [38, 193, 0, 0, 110, 114], [37, 207, 0, 0, 116, 120],
   [35, 145, 0, 0, 111, 115], [25, 139, 10, 0, 111, 115],
-  [35, 187, 0, 16, 111, 115], [34, 191, 2, 6, 111, 115],
+  [32, 177, 0, 13, 111, 115], [34, 191, 2, 6, 111, 115],
 ];
 assert.deepEqual(Adapter.CONFIG.optInStageIds, ['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7']);
 for (let stageIndex = 0; stageIndex < timelines.length; stageIndex++) {
@@ -80,6 +80,11 @@ for (let stageIndex = 0; stageIndex < timelines.length; stageIndex++) {
       for (const id of ['s5-w004', 's5-w015', 's5-w018']) {
         assert.ok(report.errors.some(error => error.includes(id)), `${id}의 의도적 교체가 parity report에 남아야 한다`);
       }
+    } else if (stageIndex === 5) {
+      assert.equal(report.ok, false, '재구성 중인 Stage 6은 legacy와 다른 점을 명시적으로 보고한다');
+      assert.ok(report.errors.some(error => error.includes('s6-w015')), '제거한 대물 웨이브가 parity report에 남아야 한다');
+      assert.ok(report.errors.some(error => error.includes('s6-w021')), '이동한 가오리 웨이브가 parity report에 남아야 한다');
+      assert.ok(report.errors.some(error => error.includes('번개 수 16/13')), '재구성한 낙뢰 수가 parity report에 남아야 한다');
     } else assert.deepEqual(report.errors, [], `stage${stageIndex + 1}/${report.summary.difficulty}: ${report.errors.join(' / ')}`);
     const [waves, enemies, wrecks, bolts, warningAt, bossAt] = expected[stageIndex];
     assert.deepEqual(
@@ -183,10 +188,10 @@ assert.equal(hazardGame.enemies[0].x, 960 + 37 + 95 * 0.6);
 assert.equal(hazardGame.enemies[0].wreckCueDuration, 0.6);
 assert.equal(hazardGame.enemies[0].wreckIndestructible, true);
 const stormSpawner = Adapter.createSpawner('stage6', 0, hazardGame, timelines[5], '?debug&stageRuntime=data');
-stormSpawner.seekRange(19.4);
-stormSpawner.update(19.5);
+stormSpawner.seekRange(14.9);
+stormSpawner.update(15);
 assert.deepEqual(hazardGame.bolts, [{
-  value: 0.42,
+  value: 0.25,
   options: { width: 46, telegraphDuration: 0.9, strikeDuration: 0.4 },
 }]);
 

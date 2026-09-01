@@ -459,9 +459,14 @@
           darknessRate = Math.max(0, finite(params.responseRate));
         }
       } else if (pluginId === 'storm-current') {
-        const scale = Math.max(0, finite(params.scale));
+        const scale = Math.max(0, Array.isArray(params.scaleCurve)
+          ? sampleCurve(params.scaleCurve, localTime, finite(params.scale))
+          : finite(params.scale));
+        const xBias = Array.isArray(params.xBiasCurve)
+          ? sampleCurve(params.xBiasCurve, localTime, 0)
+          : finite(params.xBias);
         state.stormScale = Math.max(state.stormScale, scale);
-        state.current.x += Math.sin(finite(at) * finite(params.current?.xAngularFrequency)) * finite(params.current?.xAmplitude) * scale;
+        state.current.x += (Math.sin(finite(at) * finite(params.current?.xAngularFrequency)) * finite(params.current?.xAmplitude) + xBias) * scale;
         state.current.y += Math.sin(finite(at) * finite(params.current?.yAngularFrequency)) * finite(params.current?.yAmplitude) * scale;
         addInfluence(state.influence, params.influence, scale);
         state.drawSurfaceWaves ||= params.drawSurfaceWaves === true;
@@ -484,6 +489,10 @@
             ? localTime / Math.max(telegraphDuration, EPS)
             : (localTime - telegraphDuration) / Math.max(strikeDuration, EPS),
         });
+        if (params.lockCurrent === true) {
+          state.current.x = finite(before.current?.x);
+          state.current.y = finite(before.current?.y);
+        }
       } else if (pluginId === 'wreck-corridor') {
         const wreck = WreckApi.positionAt(params, viewport, localTime);
         state.wrecks.push({

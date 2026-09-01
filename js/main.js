@@ -122,6 +122,7 @@ const Game = {
   perf: { fps: 60, worst: 60, samples: 0, acc: 0 }, // 디버그 통계
   runLog: null,          // 런 기록 (잡몹 구간·보스전·페이즈별 시간)
   storm: false, stormScale: 1, curX: 0, curY: 0, surfaceY: 20, // 폭풍 해류 (폭풍 수면)
+  bossCurrentOverride: null,
   stageRuntimeState: null,
   bolts: [], flashT: 0,   // 물속 번개
   stats: { pearls: 0, deaths: 0, bombs: 0, time: 0 },
@@ -166,6 +167,7 @@ const Game = {
     this.storm = !!stage.storm;
     this.stormScale = stage.stormLevel ?? 1;
     this.curX = 0; this.curY = 0;
+    this.bossCurrentOverride = null;
     this.stageRuntimeState = null;
     this.surfaceY = this.storm ? 58 : 20; // 수면 파도만큼 위 경계 하향
     this.bolts = [];
@@ -457,6 +459,12 @@ const Game = {
       currentSurfEnemy: { x: 1.4, y: 0.6 },
       raw: { x: 1, y: 1 },
     }[targetId] || { x: 0, y: 0 };
+    if (this.bossCurrentOverride) {
+      return {
+        x: this.bossCurrentOverride.x * influence.x,
+        y: this.bossCurrentOverride.y * influence.y,
+      };
+    }
     return { x: this.curX * influence.x, y: this.curY * influence.y };
   },
 

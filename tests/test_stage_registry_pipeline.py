@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class StageRegistryPipelineTest(unittest.TestCase):
     def test_generated_registry_matches_checked_in_stage(self):
-        converted_stage_ids = ['stage6', 'stage7']
+        converted_stage_ids = ['stage7']
         before_drafts = {
             stage_id: (ROOT / f'docs/stage-editor/{stage_id}.v1.draft.json').read_bytes()
             for stage_id in converted_stage_ids

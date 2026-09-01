@@ -712,8 +712,16 @@ Stage Sequencer tool milestones M1–M7.
   P3 alternates the long-body sweep with a six-second wreck route, moving 부우
   into the opposite safe lane so body, narrow wreck, and surround pressure do
   not stack at once.
-- Rebuild current/lightning rise and calm-eye contrast.
-- Add Boss 6 linear undertow cycle.
+- [x] Rebuild Stage 6's current/lightning rise and calm-eye contrast. The route
+  now uses 13 authored strikes: isolated side lessons, a paired crossing, a
+  three-step reversal sweep, a central pair, and a final four-step sweep. The
+  current changes direction visibly, weakens around 50 seconds and before the
+  warning, and freezes during each lightning telegraph so its safe route stays
+  trustworthy. Early and recovery waves no longer add incidental aimed fire.
+- [x] Add Boss 6's alternating linear undertow cycle. P3/P4 telegraph a lateral
+  pull, push at 80 px/s (90 on Hard), sweep four lightning lanes against the
+  flow, then grant a one-second recovery before reversing direction. Defeat and
+  lower phases explicitly clear the boss-owned current override.
 
 ### G6 — Stage 7 and Boss 7
 

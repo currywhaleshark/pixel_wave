@@ -129,6 +129,98 @@
         "pluginId": "storm-current",
         "params": {
           "scale": 1,
+          "scaleCurve": [
+            {
+              "at": 0,
+              "value": 0.35
+            },
+            {
+              "at": 13,
+              "value": 0.65
+            },
+            {
+              "at": 30,
+              "value": 0.85
+            },
+            {
+              "at": 48,
+              "value": 0.85
+            },
+            {
+              "at": 50,
+              "value": 0.18
+            },
+            {
+              "at": 57,
+              "value": 0.2
+            },
+            {
+              "at": 61,
+              "value": 1
+            },
+            {
+              "at": 77,
+              "value": 0.9
+            },
+            {
+              "at": 96,
+              "value": 1
+            },
+            {
+              "at": 108,
+              "value": 0.2
+            },
+            {
+              "at": 115,
+              "value": 0.15
+            }
+          ],
+          "xBiasCurve": [
+            {
+              "at": 0,
+              "value": 20
+            },
+            {
+              "at": 13,
+              "value": 35
+            },
+            {
+              "at": 30,
+              "value": 45
+            },
+            {
+              "at": 48,
+              "value": 45
+            },
+            {
+              "at": 50,
+              "value": 5
+            },
+            {
+              "at": 57,
+              "value": -20
+            },
+            {
+              "at": 61,
+              "value": -75
+            },
+            {
+              "at": 77,
+              "value": -50
+            },
+            {
+              "at": 96,
+              "value": 65
+            },
+            {
+              "at": 108,
+              "value": 5
+            },
+            {
+              "at": 115,
+              "value": 0
+            }
+          ],
           "surfaceBoundaryY": 58,
           "drawSurfaceWaves": true,
           "drawCurrentIndicator": true,
@@ -272,8 +364,7 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-aimed",
-          "interval": 2.3
+          "presetId": "none"
         }
       }
     },
@@ -347,8 +438,27 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-aimed",
-          "interval": 1.5
+          "presetId": "none"
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-01",
+      "type": "hazard",
+      "name": "물속 번개 01",
+      "timing": {
+        "domain": "time",
+        "start": 15,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.25,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4,
+          "lockCurrent": true
         }
       }
     },
@@ -388,25 +498,6 @@
         },
         "weapon": {
           "presetId": "none"
-        }
-      }
-    },
-    {
-      "id": "s6-bolt-01",
-      "type": "hazard",
-      "name": "물속 번개 01",
-      "timing": {
-        "domain": "time",
-        "start": 19.5,
-        "duration": 1.3
-      },
-      "payload": {
-        "pluginId": "lightning-strike",
-        "params": {
-          "xRatio": 0.42,
-          "width": 46,
-          "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
         }
       }
     },
@@ -461,10 +552,11 @@
       "payload": {
         "pluginId": "lightning-strike",
         "params": {
-          "xRatio": 0.62,
+          "xRatio": 0.75,
           "width": 46,
           "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
+          "strikeDuration": 0.4,
+          "lockCurrent": true
         }
       }
     },
@@ -706,16 +798,17 @@
       "name": "물속 번개 03",
       "timing": {
         "domain": "time",
-        "start": 40,
+        "start": 38,
         "duration": 1.3
       },
       "payload": {
         "pluginId": "lightning-strike",
         "params": {
-          "xRatio": 0.3,
+          "xRatio": 0.35,
           "width": 46,
           "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
+          "strikeDuration": 0.4,
+          "lockCurrent": true
         }
       }
     },
@@ -725,16 +818,17 @@
       "name": "물속 번개 04",
       "timing": {
         "domain": "time",
-        "start": 40.6,
+        "start": 38.6,
         "duration": 1.3
       },
       "payload": {
         "pluginId": "lightning-strike",
         "params": {
-          "xRatio": 0.55,
+          "xRatio": 0.65,
           "width": 46,
           "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
+          "strikeDuration": 0.4,
+          "lockCurrent": true
         }
       }
     },
@@ -777,6 +871,7 @@
     {
       "id": "s6-w015",
       "type": "wave",
+      "enabled": false,
       "name": "대물 웨이브 15",
       "timing": {
         "domain": "time",
@@ -859,6 +954,7 @@
     {
       "id": "s6-bolt-05",
       "type": "hazard",
+      "enabled": false,
       "name": "물속 번개 05",
       "timing": {
         "domain": "time",
@@ -871,13 +967,15 @@
           "xRatio": 0.7,
           "width": 46,
           "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
+          "strikeDuration": 0.4,
+          "lockCurrent": true
         }
       }
     },
     {
       "id": "s6-bolt-06",
       "type": "hazard",
+      "enabled": false,
       "name": "물속 번개 06",
       "timing": {
         "domain": "time",
@@ -890,7 +988,8 @@
           "xRatio": 0.45,
           "width": 46,
           "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
+          "strikeDuration": 0.4,
+          "lockCurrent": true
         }
       }
     },
@@ -929,8 +1028,7 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-aimed",
-          "interval": 2.2
+          "presetId": "none"
         }
       }
     },
@@ -969,8 +1067,7 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-aimed",
-          "interval": 2.2
+          "presetId": "none"
         }
       }
     },
@@ -1059,52 +1156,32 @@
       }
     },
     {
-      "id": "s6-w021",
-      "type": "wave",
-      "name": "가오리 웨이브 21",
-      "timing": {
-        "domain": "time",
-        "start": 62.5,
-        "duration": 0
-      },
-      "payload": {
-        "enemy": {
-          "kind": "ray",
-          "hp": 4,
-          "speed": 148
-        },
-        "spawn": {
-          "count": 5,
-          "interval": 0
-        },
-        "entry": {
-          "presetId": "right-to-left",
-          "x": 0.5,
-          "y": 0.55
-        },
-        "formation": {
-          "presetId": "v"
-        },
-        "movement": {
-          "presetId": "enter-pause-exit",
-          "params": {
-            "targetX": 0.68,
-            "pauseDuration": 3
-          }
-        },
-        "weapon": {
-          "presetId": "legacy-aimed",
-          "interval": 1.2
-        }
-      }
-    },
-    {
       "id": "s6-bolt-07",
       "type": "hazard",
       "name": "물속 번개 07",
       "timing": {
         "domain": "time",
-        "start": 63.5,
+        "start": 63,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.25,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4,
+          "lockCurrent": true
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-08",
+      "type": "hazard",
+      "name": "물속 번개 08",
+      "timing": {
+        "domain": "time",
+        "start": 63.6,
         "duration": 1.3
       },
       "payload": {
@@ -1113,7 +1190,28 @@
           "xRatio": 0.5,
           "width": 46,
           "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
+          "strikeDuration": 0.4,
+          "lockCurrent": true
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-09",
+      "type": "hazard",
+      "name": "물속 번개 09",
+      "timing": {
+        "domain": "time",
+        "start": 64.2,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.75,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4,
+          "lockCurrent": true
         }
       }
     },
@@ -1197,6 +1295,46 @@
       }
     },
     {
+      "id": "s6-w021",
+      "type": "wave",
+      "name": "가오리 웨이브 21",
+      "timing": {
+        "domain": "time",
+        "start": 68.5,
+        "duration": 0
+      },
+      "payload": {
+        "enemy": {
+          "kind": "ray",
+          "hp": 4,
+          "speed": 148
+        },
+        "spawn": {
+          "count": 5,
+          "interval": 0
+        },
+        "entry": {
+          "presetId": "right-to-left",
+          "x": 0.5,
+          "y": 0.55
+        },
+        "formation": {
+          "presetId": "v"
+        },
+        "movement": {
+          "presetId": "enter-pause-exit",
+          "params": {
+            "targetX": 0.68,
+            "pauseDuration": 3
+          }
+        },
+        "weapon": {
+          "presetId": "legacy-aimed",
+          "interval": 1.2
+        }
+      }
+    },
+    {
       "id": "s6-w024",
       "type": "wave",
       "name": "물고기 웨이브 24",
@@ -1232,82 +1370,6 @@
         },
         "weapon": {
           "presetId": "none"
-        }
-      }
-    },
-    {
-      "id": "s6-bolt-08",
-      "type": "hazard",
-      "name": "물속 번개 08",
-      "timing": {
-        "domain": "time",
-        "start": 76,
-        "duration": 1.3
-      },
-      "payload": {
-        "pluginId": "lightning-strike",
-        "params": {
-          "xRatio": 0.2,
-          "width": 46,
-          "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
-        }
-      }
-    },
-    {
-      "id": "s6-bolt-09",
-      "type": "hazard",
-      "name": "물속 번개 09",
-      "timing": {
-        "domain": "time",
-        "start": 76.5,
-        "duration": 1.3
-      },
-      "payload": {
-        "pluginId": "lightning-strike",
-        "params": {
-          "xRatio": 0.4,
-          "width": 46,
-          "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
-        }
-      }
-    },
-    {
-      "id": "s6-bolt-10",
-      "type": "hazard",
-      "name": "물속 번개 10",
-      "timing": {
-        "domain": "time",
-        "start": 77,
-        "duration": 1.3
-      },
-      "payload": {
-        "pluginId": "lightning-strike",
-        "params": {
-          "xRatio": 0.6,
-          "width": 46,
-          "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
-        }
-      }
-    },
-    {
-      "id": "s6-bolt-11",
-      "type": "hazard",
-      "name": "물속 번개 11",
-      "timing": {
-        "domain": "time",
-        "start": 77.5,
-        "duration": 1.3
-      },
-      "payload": {
-        "pluginId": "lightning-strike",
-        "params": {
-          "xRatio": 0.78,
-          "width": 46,
-          "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
         }
       }
     },
@@ -1351,8 +1413,49 @@
       }
     },
     {
+      "id": "s6-bolt-10",
+      "type": "hazard",
+      "name": "물속 번개 10",
+      "timing": {
+        "domain": "time",
+        "start": 80,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.35,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4,
+          "lockCurrent": true
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-11",
+      "type": "hazard",
+      "name": "물속 번개 11",
+      "timing": {
+        "domain": "time",
+        "start": 80.6,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.65,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4,
+          "lockCurrent": true
+        }
+      }
+    },
+    {
       "id": "s6-w026",
       "type": "wave",
+      "enabled": false,
       "name": "대물 웨이브 26",
       "timing": {
         "domain": "time",
@@ -1510,63 +1613,6 @@
       }
     },
     {
-      "id": "s6-bolt-12",
-      "type": "hazard",
-      "name": "물속 번개 12",
-      "timing": {
-        "domain": "time",
-        "start": 93,
-        "duration": 1.3
-      },
-      "payload": {
-        "pluginId": "lightning-strike",
-        "params": {
-          "xRatio": 0.72,
-          "width": 46,
-          "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
-        }
-      }
-    },
-    {
-      "id": "s6-bolt-13",
-      "type": "hazard",
-      "name": "물속 번개 13",
-      "timing": {
-        "domain": "time",
-        "start": 93.5,
-        "duration": 1.3
-      },
-      "payload": {
-        "pluginId": "lightning-strike",
-        "params": {
-          "xRatio": 0.5,
-          "width": 46,
-          "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
-        }
-      }
-    },
-    {
-      "id": "s6-bolt-14",
-      "type": "hazard",
-      "name": "물속 번개 14",
-      "timing": {
-        "domain": "time",
-        "start": 94,
-        "duration": 1.3
-      },
-      "payload": {
-        "pluginId": "lightning-strike",
-        "params": {
-          "xRatio": 0.28,
-          "width": 46,
-          "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
-        }
-      }
-    },
-    {
       "id": "s6-w030",
       "type": "wave",
       "name": "물고기 웨이브 30",
@@ -1601,8 +1647,7 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-aimed",
-          "interval": 2
+          "presetId": "none"
         }
       }
     },
@@ -1641,8 +1686,7 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-aimed",
-          "interval": 2
+          "presetId": "none"
         }
       }
     },
@@ -1692,6 +1736,66 @@
       }
     },
     {
+      "id": "s6-bolt-12",
+      "type": "hazard",
+      "name": "물속 번개 12",
+      "timing": {
+        "domain": "time",
+        "start": 100,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.2,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4,
+          "lockCurrent": true
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-13",
+      "type": "hazard",
+      "name": "물속 번개 13",
+      "timing": {
+        "domain": "time",
+        "start": 100.35,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.4,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4,
+          "lockCurrent": true
+        }
+      }
+    },
+    {
+      "id": "s6-bolt-14",
+      "type": "hazard",
+      "name": "물속 번개 14",
+      "timing": {
+        "domain": "time",
+        "start": 100.7,
+        "duration": 1.3
+      },
+      "payload": {
+        "pluginId": "lightning-strike",
+        "params": {
+          "xRatio": 0.6,
+          "width": 46,
+          "telegraphDuration": 0.9,
+          "strikeDuration": 0.4,
+          "lockCurrent": true
+        }
+      }
+    },
+    {
       "id": "s6-w033",
       "type": "wave",
       "name": "물고기 웨이브 33",
@@ -1736,22 +1840,24 @@
       "name": "물속 번개 15",
       "timing": {
         "domain": "time",
-        "start": 103.5,
+        "start": 101.05,
         "duration": 1.3
       },
       "payload": {
         "pluginId": "lightning-strike",
         "params": {
-          "xRatio": 0.35,
+          "xRatio": 0.8,
           "width": 46,
           "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
+          "strikeDuration": 0.4,
+          "lockCurrent": true
         }
       }
     },
     {
       "id": "s6-bolt-16",
       "type": "hazard",
+      "enabled": false,
       "name": "물속 번개 16",
       "timing": {
         "domain": "time",
@@ -1764,7 +1870,8 @@
           "xRatio": 0.65,
           "width": 46,
           "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
+          "strikeDuration": 0.4,
+          "lockCurrent": true
         }
       }
     },
@@ -1810,6 +1917,7 @@
     {
       "id": "s6-w035",
       "type": "wave",
+      "enabled": false,
       "name": "물고기 웨이브 35",
       "timing": {
         "domain": "time",
