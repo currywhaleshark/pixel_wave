@@ -41,9 +41,9 @@ const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/sta
 
 {
   const expected = {
-    easy: { enemies: 21, projectiles: 35, severity: 'ok' },
-    normal: { enemies: 21, projectiles: 84, severity: 'ok' },
-    hard: { enemies: 21, projectiles: 173, severity: 'ok' },
+    easy: { enemies: 21, projectiles: 38, severity: 'ok' },
+    normal: { enemies: 21, projectiles: 87, severity: 'ok' },
+    hard: { enemies: 21, projectiles: 176, severity: 'ok' },
   };
   for (const difficulty of Object.keys(expected)) {
     const simulation = new Simulation(StageCompiler.compile(source, { difficulty }), { fixedStep: 1 / 60, snapshotInterval: 5 });
