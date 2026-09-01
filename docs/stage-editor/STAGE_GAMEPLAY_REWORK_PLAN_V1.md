@@ -725,9 +725,20 @@ Stage Sequencer tool milestones M1–M7.
 
 ### G6 — Stage 7 and Boss 7
 
-- Author the six memories and three pairwise syntheses.
-- Add radial/tangential current support to Boss 7.
-- Preserve a quiet emotional approach to the final boss.
+- [x] Author Stage 7's six memories and three pairwise syntheses. Fourteen waves
+  now recall a real coral turret, authored lantern mines, high-speed and U-turn
+  traffic, a darkness-backed viper reveal, wreck/ghost routing, and strong
+  current with isolated lightning. The final three phrases combine current with
+  a turret, mines with fast traffic, and a wreck exit with ghosts followed by
+  lightning, rather than stacking all systems at once.
+- [x] Add radial/tangential current support to Boss 7. A shared position-aware
+  sampler now gives the player, pointer target, current-surf enemies, and every
+  enemy projectile their own vector. 휘이 uses inward spiral flow in P1,
+  uniform breathing gusts in P2, and fixed-direction rotational outflow around
+  the storm eye in P3/P4.
+- [x] Preserve a quiet emotional approach to the final boss. From 106.5 seconds
+  only six slow, non-shooting fish remain while authored current falls below
+  20% before the warning.
 
 ### G7 — Difficulty, integration, and release QA
 

@@ -54,7 +54,8 @@
       "jelly",
       "ghost",
       "big",
-      "viper"
+      "viper",
+      "turret"
     ],
     "entryPresets": [
       "right-to-left",
@@ -76,7 +77,8 @@
       "enter-pause-exit",
       "straight",
       "tracking",
-      "u-turn"
+      "u-turn",
+      "turret-scroll"
     ],
     "weaponPresets": [
       "none",
@@ -90,6 +92,7 @@
     "itemPlugins": [
       "scroll-speed",
       "storm-current",
+      "darkness",
       "lightning-strike",
       "wreck-corridor",
       "boss-warning",
@@ -140,6 +143,27 @@
         "pluginId": "storm-current",
         "params": {
           "scale": 0.55,
+          "scaleCurve": [
+            { "at": 0, "value": 0.1 },
+            { "at": 60, "value": 0.1 },
+            { "at": 62, "value": 0.75 },
+            { "at": 76, "value": 0.75 },
+            { "at": 78, "value": 0.35 },
+            { "at": 97, "value": 0.35 },
+            { "at": 106, "value": 0.18 },
+            { "at": 111, "value": 0.08 },
+            { "at": 115, "value": 0.08 }
+          ],
+          "xBiasCurve": [
+            { "at": 0, "value": 0 },
+            { "at": 60, "value": 0 },
+            { "at": 62, "value": 55 },
+            { "at": 69, "value": -45 },
+            { "at": 76, "value": 30 },
+            { "at": 97, "value": 20 },
+            { "at": 106, "value": 5 },
+            { "at": 115, "value": 0 }
+          ],
           "surfaceBoundaryY": 58,
           "drawSurfaceWaves": true,
           "drawCurrentIndicator": true,
@@ -171,47 +195,78 @@
       }
     },
     {
-      "id": "s7-w001",
-      "type": "wave",
-      "name": "물고기 웨이브 01",
+      "id": "s7-memory-darkness",
+      "type": "environment",
+      "name": "심해 기억 암전",
       "timing": {
         "domain": "time",
-        "start": 2,
-        "duration": 1.5
+        "start": 36,
+        "duration": 12
+      },
+      "payload": {
+        "pluginId": "darkness",
+        "params": {
+          "target": 0,
+          "responseRate": 3,
+          "curve": [
+            { "at": 0, "value": 0 },
+            { "at": 2, "value": 0.78 },
+            { "at": 8, "value": 0.78 },
+            { "at": 12, "value": 0 }
+          ]
+        }
+      }
+    },
+    {
+      "id": "s7-w001",
+      "type": "wave",
+      "name": "산호 포대 기억",
+      "timing": {
+        "domain": "time",
+        "start": 3,
+        "duration": 0
       },
       "payload": {
         "enemy": {
-          "kind": "fish",
-          "hp": 2,
-          "speed": 125
+          "kind": "turret",
+          "hp": 8,
+          "speed": 45
         },
         "spawn": {
-          "count": 6,
-          "interval": 0.3
+          "count": 1,
+          "interval": 0
         },
         "entry": {
           "presetId": "right-to-left",
           "x": 0.5,
-          "y": 0.35
+          "y": 0.78
         },
         "formation": {
-          "presetId": "column"
+          "presetId": "single"
         },
         "movement": {
-          "presetId": "current-surf",
-          "params": {
-            "amplitude": 25,
-            "frequency": 3
-          }
+          "presetId": "turret-scroll"
         },
         "weapon": {
-          "presetId": "none"
+          "presetId": "legacy-ring",
+          "interval": 3.2,
+          "startDelay": 1,
+          "params": {
+            "count": 6,
+            "phase": 0.4,
+            "phaseStep": 0.18,
+            "gapIndex": 1,
+            "gapCount": 1,
+            "chargeDuration": 0.75,
+            "authoredGeometry": 1
+          }
         }
       }
     },
     {
       "id": "s7-w002",
       "type": "wave",
+      "enabled": false,
       "name": "물고기 웨이브 02",
       "timing": {
         "domain": "time",
@@ -251,6 +306,7 @@
     {
       "id": "s7-w003",
       "type": "wave",
+      "enabled": false,
       "name": "물고기 웨이브 03",
       "timing": {
         "domain": "time",
@@ -290,6 +346,7 @@
     {
       "id": "s7-w004",
       "type": "wave",
+      "enabled": false,
       "name": "물고기 웨이브 04",
       "timing": {
         "domain": "time",
@@ -329,6 +386,7 @@
     {
       "id": "s7-w005",
       "type": "wave",
+      "enabled": false,
       "name": "가오리 웨이브 05",
       "timing": {
         "domain": "time",
@@ -369,11 +427,11 @@
     {
       "id": "s7-w006",
       "type": "wave",
-      "name": "등불해파리 웨이브 06",
+      "name": "등불 기뢰 기억",
       "timing": {
         "domain": "time",
-        "start": 17,
-        "duration": 0
+        "start": 14,
+        "duration": 2
       },
       "payload": {
         "enemy": {
@@ -382,8 +440,8 @@
           "speed": 56
         },
         "spawn": {
-          "count": 1,
-          "interval": 0
+          "count": 3,
+          "interval": 1
         },
         "entry": {
           "presetId": "right-to-left",
@@ -402,13 +460,27 @@
         },
         "weapon": {
           "presetId": "legacy-mine",
-          "interval": 2.4
+          "interval": 4.8,
+          "startDelay": 0.9,
+          "params": {
+            "fuseDuration": 3.2,
+            "fuseStep": 0.35,
+            "ringCount": 6,
+            "ringPhase": 0.35,
+            "ringPhaseStep": 0.72,
+            "shotPhaseStep": -0.18,
+            "ringSpeed": 92,
+            "warningLead": 0.75,
+            "warningSound": 1,
+            "authoredGeometry": 1
+          }
         }
       }
     },
     {
       "id": "s7-w007",
       "type": "wave",
+      "enabled": false,
       "name": "해파리 웨이브 07",
       "timing": {
         "domain": "time",
@@ -445,6 +517,7 @@
     {
       "id": "s7-bolt-01",
       "type": "hazard",
+      "enabled": false,
       "name": "물속 번개 01",
       "timing": {
         "domain": "time",
@@ -467,7 +540,7 @@
       "name": "물고기 웨이브 08",
       "timing": {
         "domain": "time",
-        "start": 23,
+        "start": 21,
         "duration": 1.68
       },
       "payload": {
@@ -496,40 +569,36 @@
           }
         },
         "weapon": {
-          "presetId": "legacy-aimed",
-          "interval": 2.2
+          "presetId": "none"
         }
       }
     },
     {
       "id": "s7-w009",
       "type": "wave",
-      "name": "유령 물고기 웨이브 09",
+      "name": "고속 역방향 통과",
       "timing": {
         "domain": "time",
-        "start": 27,
-        "duration": 1.2000000000000002
+        "start": 25,
+        "duration": 1.28
       },
       "payload": {
         "enemy": {
-          "kind": "ghost",
+          "kind": "fish",
           "hp": 2,
-          "speed": 122
+          "speed": 240
         },
         "spawn": {
-          "count": 4,
-          "interval": 0.4
+          "count": 5,
+          "interval": 0.32
         },
         "entry": {
-          "presetId": "diagonal",
-          "x": 0.75,
-          "y": 0.5,
-          "params": {
-            "vertical": "down"
-          }
+          "presetId": "left-to-right",
+          "x": 0.5,
+          "y": 0.35
         },
         "formation": {
-          "presetId": "single"
+          "presetId": "column"
         },
         "movement": {
           "presetId": "straight"
@@ -542,21 +611,21 @@
     {
       "id": "s7-w010",
       "type": "wave",
-      "name": "물고기 웨이브 10",
+      "name": "고속 유턴 기억",
       "timing": {
         "domain": "time",
-        "start": 28.5,
-        "duration": 1.4000000000000001
+        "start": 30,
+        "duration": 1.28
       },
       "payload": {
         "enemy": {
           "kind": "fish",
           "hp": 2,
-          "speed": 128
+          "speed": 185
         },
         "spawn": {
-          "count": 6,
-          "interval": 0.28
+          "count": 5,
+          "interval": 0.32
         },
         "entry": {
           "presetId": "right-to-left",
@@ -567,10 +636,10 @@
           "presetId": "column"
         },
         "movement": {
-          "presetId": "current-surf",
+          "presetId": "u-turn",
           "params": {
-            "amplitude": 40,
-            "frequency": 3
+            "turnX": 0.72,
+            "turnRate": 1.2
           }
         },
         "weapon": {
@@ -581,6 +650,7 @@
     {
       "id": "s7-w011",
       "type": "wave",
+      "enabled": false,
       "name": "물고기 웨이브 11",
       "timing": {
         "domain": "time",
@@ -620,20 +690,23 @@
     {
       "id": "s7-w012",
       "type": "wave",
-      "name": "유령 물고기 웨이브 12",
+      "name": "난파선 유령 기억",
       "timing": {
         "domain": "time",
-        "start": 36,
+        "start": 51,
         "duration": 0
       },
       "payload": {
         "enemy": {
           "kind": "ghost",
           "hp": 2,
-          "speed": 62
+          "speed": 64,
+          "params": {
+            "phaseStep": 0.2
+          }
         },
         "spawn": {
-          "count": 10,
+          "count": 6,
           "interval": 0
         },
         "entry": {
@@ -644,8 +717,8 @@
         "formation": {
           "presetId": "surround-ring",
           "params": {
-            "radius": 310,
-            "angleJitter": 0.25
+            "radius": 290,
+            "angleJitter": 0.16
           }
         },
         "movement": {
@@ -659,6 +732,7 @@
     {
       "id": "s7-w013",
       "type": "wave",
+      "enabled": false,
       "name": "물고기 웨이브 13",
       "timing": {
         "domain": "time",
@@ -701,17 +775,19 @@
       "name": "상단 난파선 34%",
       "timing": {
         "domain": "time",
-        "start": 41.5,
-        "duration": 11
+        "start": 49,
+        "duration": 9
       },
       "payload": {
         "pluginId": "wreck-corridor",
         "params": {
-          "side": "top",
-          "heightFraction": 0.34,
+          "side": "bottom",
+          "heightFraction": 0.42,
           "speed": 100,
           "width": 74,
-          "indestructible": true
+          "indestructible": true,
+          "variant": "bow",
+          "entryCueDuration": 0.7
         }
       }
     },
@@ -721,23 +797,26 @@
       "name": "하단 난파선 34%",
       "timing": {
         "domain": "time",
-        "start": 41.7,
-        "duration": 11
+        "start": 97,
+        "duration": 8
       },
       "payload": {
         "pluginId": "wreck-corridor",
         "params": {
           "side": "bottom",
-          "heightFraction": 0.34,
+          "heightFraction": 0.4,
           "speed": 100,
           "width": 74,
-          "indestructible": true
+          "indestructible": true,
+          "variant": "stern",
+          "entryCueDuration": 0.7
         }
       }
     },
     {
       "id": "s7-w014",
       "type": "wave",
+      "enabled": false,
       "name": "물고기 웨이브 14",
       "timing": {
         "domain": "time",
@@ -777,6 +856,7 @@
     {
       "id": "s7-w015",
       "type": "wave",
+      "enabled": false,
       "name": "대물 웨이브 15",
       "timing": {
         "domain": "time",
@@ -820,6 +900,7 @@
     {
       "id": "s7-w016",
       "type": "wave",
+      "enabled": false,
       "name": "해파리 웨이브 16",
       "timing": {
         "domain": "time",
@@ -855,21 +936,25 @@
     {
       "id": "s7-w017",
       "type": "wave",
-      "name": "독니고기 웨이브 17",
+      "name": "암전 독니 기억",
       "timing": {
         "domain": "time",
-        "start": 53.5,
-        "duration": 2.4000000000000004
+        "start": 39,
+        "duration": 1.2
       },
       "payload": {
         "enemy": {
           "kind": "viper",
           "hp": 3,
-          "speed": 126
+          "speed": 118,
+          "params": {
+            "revealDelay": 1,
+            "glintDuration": 0.65
+          }
         },
         "spawn": {
-          "count": 4,
-          "interval": 0.8
+          "count": 2,
+          "interval": 1.2
         },
         "entry": {
           "presetId": "right-to-left",
@@ -890,6 +975,7 @@
     {
       "id": "s7-w018",
       "type": "wave",
+      "enabled": false,
       "name": "물고기 웨이브 18",
       "timing": {
         "domain": "time",
@@ -930,6 +1016,7 @@
     {
       "id": "s7-w019",
       "type": "wave",
+      "enabled": false,
       "name": "해파리 웨이브 19",
       "timing": {
         "domain": "time",
@@ -978,7 +1065,7 @@
       "name": "물속 번개 02",
       "timing": {
         "domain": "time",
-        "start": 61,
+        "start": 67,
         "duration": 1.3
       },
       "payload": {
@@ -987,7 +1074,8 @@
           "xRatio": 0.3,
           "width": 46,
           "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
+          "strikeDuration": 0.4,
+          "lockCurrent": true
         }
       }
     },
@@ -997,16 +1085,17 @@
       "name": "물속 번개 03",
       "timing": {
         "domain": "time",
-        "start": 61.6,
+        "start": 69,
         "duration": 1.3
       },
       "payload": {
         "pluginId": "lightning-strike",
         "params": {
-          "xRatio": 0.6,
+          "xRatio": 0.7,
           "width": 46,
           "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
+          "strikeDuration": 0.4,
+          "lockCurrent": true
         }
       }
     },
@@ -1016,17 +1105,17 @@
       "name": "물고기 웨이브 20",
       "timing": {
         "domain": "time",
-        "start": 62.5,
-        "duration": 1.2
+        "start": 63,
+        "duration": 1.5
       },
       "payload": {
         "enemy": {
           "kind": "fish",
           "hp": 2,
-          "speed": 128
+          "speed": 140
         },
         "spawn": {
-          "count": 5,
+          "count": 6,
           "interval": 0.3
         },
         "entry": {
@@ -1055,7 +1144,7 @@
       "name": "가오리 웨이브 21",
       "timing": {
         "domain": "time",
-        "start": 66.5,
+        "start": 72,
         "duration": 0
       },
       "payload": {
@@ -1092,6 +1181,7 @@
     {
       "id": "s7-w022",
       "type": "wave",
+      "enabled": false,
       "name": "가오리 웨이브 22",
       "timing": {
         "domain": "time",
@@ -1132,6 +1222,7 @@
     {
       "id": "s7-w023",
       "type": "wave",
+      "enabled": false,
       "name": "물고기 웨이브 23",
       "timing": {
         "domain": "time",
@@ -1171,17 +1262,17 @@
     {
       "id": "s7-w024",
       "type": "wave",
-      "name": "대물 웨이브 24",
+      "name": "해류 속 산호 포대",
       "timing": {
         "domain": "time",
-        "start": 76,
+        "start": 78,
         "duration": 0
       },
       "payload": {
         "enemy": {
-          "kind": "big",
-          "hp": 70,
-          "speed": 92
+          "kind": "turret",
+          "hp": 10,
+          "speed": 45
         },
         "spawn": {
           "count": 1,
@@ -1190,23 +1281,26 @@
         "entry": {
           "presetId": "right-to-left",
           "x": 0.5,
-          "y": 0.45
+          "y": 0.24
         },
         "formation": {
           "presetId": "single"
         },
         "movement": {
-          "presetId": "sine",
-          "params": {
-            "amplitude": 40,
-            "frequency": 0.8
-          }
+          "presetId": "turret-scroll"
         },
         "weapon": {
           "presetId": "legacy-ring",
-          "interval": 1.7,
+          "interval": 2.8,
+          "startDelay": 0.8,
           "params": {
-            "count": 14
+            "count": 8,
+            "phase": 0.2,
+            "phaseStep": 0.18,
+            "gapIndex": 2,
+            "gapCount": 1,
+            "chargeDuration": 0.7,
+            "authoredGeometry": 1
           }
         }
       }
@@ -1217,8 +1311,8 @@
       "name": "등불해파리 웨이브 25",
       "timing": {
         "domain": "time",
-        "start": 77.5,
-        "duration": 2
+        "start": 86,
+        "duration": 1.1
       },
       "payload": {
         "enemy": {
@@ -1227,8 +1321,8 @@
           "speed": 58
         },
         "spawn": {
-          "count": 3,
-          "interval": 1
+          "count": 2,
+          "interval": 1.1
         },
         "entry": {
           "presetId": "right-to-left",
@@ -1247,7 +1341,20 @@
         },
         "weapon": {
           "presetId": "legacy-mine",
-          "interval": 2.3
+          "interval": 4.4,
+          "startDelay": 0.8,
+          "params": {
+            "fuseDuration": 3,
+            "fuseStep": 0.35,
+            "ringCount": 6,
+            "ringPhase": 0.5,
+            "ringPhaseStep": 0.8,
+            "shotPhaseStep": -0.2,
+            "ringSpeed": 94,
+            "warningLead": 0.75,
+            "warningSound": 1,
+            "authoredGeometry": 1
+          }
         }
       }
     },
@@ -1257,14 +1364,14 @@
       "name": "물고기 웨이브 26",
       "timing": {
         "domain": "time",
-        "start": 82,
+        "start": 90,
         "duration": 1.28
       },
       "payload": {
         "enemy": {
           "kind": "fish",
           "hp": 2,
-          "speed": 165
+          "speed": 210
         },
         "spawn": {
           "count": 5,
@@ -1282,13 +1389,14 @@
           "presetId": "u-turn"
         },
         "weapon": {
-          "presetId": "legacy-death-shot"
+          "presetId": "none"
         }
       }
     },
     {
       "id": "s7-w027",
       "type": "wave",
+      "enabled": false,
       "name": "물고기 웨이브 27",
       "timing": {
         "domain": "time",
@@ -1332,22 +1440,24 @@
       "name": "물속 번개 04",
       "timing": {
         "domain": "time",
-        "start": 88,
+        "start": 103,
         "duration": 1.3
       },
       "payload": {
         "pluginId": "lightning-strike",
         "params": {
-          "xRatio": 0.25,
+          "xRatio": 0.55,
           "width": 46,
           "telegraphDuration": 0.9,
-          "strikeDuration": 0.4
+          "strikeDuration": 0.4,
+          "lockCurrent": true
         }
       }
     },
     {
       "id": "s7-bolt-05",
       "type": "hazard",
+      "enabled": false,
       "name": "물속 번개 05",
       "timing": {
         "domain": "time",
@@ -1367,6 +1477,7 @@
     {
       "id": "s7-bolt-06",
       "type": "hazard",
+      "enabled": false,
       "name": "물속 번개 06",
       "timing": {
         "domain": "time",
@@ -1386,20 +1497,23 @@
     {
       "id": "s7-w028",
       "type": "wave",
-      "name": "유령 물고기 웨이브 28",
+      "name": "난파선 출구 유령",
       "timing": {
         "domain": "time",
-        "start": 90,
+        "start": 99,
         "duration": 0
       },
       "payload": {
         "enemy": {
           "kind": "ghost",
           "hp": 2,
-          "speed": 64
+          "speed": 66,
+          "params": {
+            "phaseStep": 0.22
+          }
         },
         "spawn": {
-          "count": 12,
+          "count": 6,
           "interval": 0
         },
         "entry": {
@@ -1410,8 +1524,8 @@
         "formation": {
           "presetId": "surround-ring",
           "params": {
-            "radius": 320,
-            "angleJitter": 0.25
+            "radius": 280,
+            "angleJitter": 0.14
           }
         },
         "movement": {
@@ -1425,6 +1539,7 @@
     {
       "id": "s7-w029",
       "type": "wave",
+      "enabled": false,
       "name": "해파리 웨이브 29",
       "timing": {
         "domain": "time",
@@ -1470,6 +1585,7 @@
     {
       "id": "s7-w030",
       "type": "wave",
+      "enabled": false,
       "name": "물고기 웨이브 30",
       "timing": {
         "domain": "time",
@@ -1510,6 +1626,7 @@
     {
       "id": "s7-w031",
       "type": "wave",
+      "enabled": false,
       "name": "물고기 웨이브 31",
       "timing": {
         "domain": "time",
@@ -1550,6 +1667,7 @@
     {
       "id": "s7-w032",
       "type": "wave",
+      "enabled": false,
       "name": "물고기 웨이브 32",
       "timing": {
         "domain": "time",
@@ -1589,6 +1707,7 @@
     {
       "id": "s7-w033",
       "type": "wave",
+      "enabled": false,
       "name": "물고기 웨이브 33",
       "timing": {
         "domain": "time",
@@ -1631,18 +1750,18 @@
       "name": "물고기 웨이브 34",
       "timing": {
         "domain": "time",
-        "start": 106,
-        "duration": 1.68
+        "start": 106.5,
+        "duration": 1.6
       },
       "payload": {
         "enemy": {
           "kind": "fish",
           "hp": 2,
-          "speed": 148
+          "speed": 110
         },
         "spawn": {
-          "count": 8,
-          "interval": 0.24
+          "count": 6,
+          "interval": 0.32
         },
         "entry": {
           "presetId": "right-to-left",
@@ -1655,8 +1774,8 @@
         "movement": {
           "presetId": "sine",
           "params": {
-            "amplitude": 45,
-            "frequency": 2.8
+            "amplitude": 20,
+            "frequency": 2.5
           }
         },
         "weapon": {

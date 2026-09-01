@@ -13,6 +13,7 @@ const root = path.resolve(__dirname, '..');
 const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/stage3.v1.draft.json'), 'utf8'));
 const stage4Source = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/stage4.v1.draft.json'), 'utf8'));
 const stage6Source = JSON.parse(fs.readFileSync(path.join(root, 'data/stages/stage6.v1.json'), 'utf8'));
+const stage7Source = JSON.parse(fs.readFileSync(path.join(root, 'data/stages/stage7.v1.json'), 'utf8'));
 const coverage5 = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/coverage-stage5-wreck.v1.draft.json'), 'utf8'));
 const coverage6 = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/coverage-stage6-storm.v1.draft.json'), 'utf8'));
 
@@ -254,6 +255,19 @@ const coverage6 = JSON.parse(fs.readFileSync(path.join(root, 'docs/stage-editor/
   assert.equal(simulation.pluginState.lightning[0].phase, 'telegraph');
   assert.ok(Math.abs(simulation.pluginState.current.x - beforeBolt.x) < 3,
     '낙뢰 예고 중 해류는 안전지대가 밀리지 않도록 직전 값에 고정되어야 한다');
+}
+
+{
+  const simulation = new Simulation(StageCompiler.compile(stage7Source, { difficulty: 'normal' }));
+  simulation.buildSnapshotCache();
+  simulation.seek(37);
+  const dimming = simulation.pluginState.darkness;
+  simulation.seek(42);
+  assert.ok(simulation.pluginState.darkness > dimming + 0.3, 'Stage 4 기억은 실제 암전 상승을 포함해야 한다');
+  simulation.seek(64);
+  assert.ok(simulation.pluginState.stormScale > 0.6, 'Stage 6 기억에서 해류가 분명하게 강해져야 한다');
+  simulation.seek(109);
+  assert.ok(simulation.pluginState.stormScale < 0.2, '보스 경고 전에는 해류가 잦아들어야 한다');
 }
 
 {

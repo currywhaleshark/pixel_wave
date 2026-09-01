@@ -57,7 +57,7 @@ class Player {
       // 해류가 추종 목표를 민다 — 위치추종 조작은 힘이 자동 보정되므로
       // 목표 오프셋으로 줘야 "몸이 쓸리는" 체감이 생긴다 (커서보다 흐름 쪽으로 밀림)
       const pointerCurrent = typeof game.sampleStageCurrent === 'function'
-        ? game.sampleStageCurrent('pointerTarget')
+        ? game.sampleStageCurrent('pointerTarget', { x: Input.pointer.x, y: Input.pointer.y })
         : { x: (game.curX || 0) * 0.6, y: (game.curY || 0) * 0.6 };
       const tx = Input.pointer.x + pointerCurrent.x;
       const ty = Input.pointer.y + pointerCurrent.y;
@@ -75,7 +75,7 @@ class Player {
     vy -= 6;
     // 해류 (폭풍 수면): 흐름이 몸을 민다
     const playerCurrent = typeof game.sampleStageCurrent === 'function'
-      ? game.sampleStageCurrent('player')
+      ? game.sampleStageCurrent('player', this)
       : { x: game.curX || 0, y: game.curY || 0 };
     vx += playerCurrent.x;
     vy += playerCurrent.y;
@@ -466,7 +466,7 @@ class Enemy {
       } else this.x -= CFG.scrollSpeed * dt;
     } else if (M === 7) {       // 해류 편승: 흐름을 타고 가감속 (서핑)
       const current = typeof game.sampleStageCurrent === 'function'
-        ? game.sampleStageCurrent('currentSurfEnemy')
+        ? game.sampleStageCurrent('currentSurfEnemy', this)
         : { x: (game.curX || 0) * 1.4, y: (game.curY || 0) * 0.6 };
       this.x += ((this.dirX || -1) * spd + current.x) * dt;
       this.y = this.y0 + this.amp * Math.sin(this.t * this.freq + this.phase) + current.y;

@@ -123,6 +123,7 @@ const Game = {
   runLog: null,          // 런 기록 (잡몹 구간·보스전·페이즈별 시간)
   storm: false, stormScale: 1, curX: 0, curY: 0, surfaceY: 20, // 폭풍 해류 (폭풍 수면)
   bossCurrentOverride: null,
+  bossCurrentField: null,
   stageRuntimeState: null,
   bolts: [], flashT: 0,   // 물속 번개
   stats: { pearls: 0, deaths: 0, bombs: 0, time: 0 },
@@ -168,6 +169,7 @@ const Game = {
     this.stormScale = stage.stormLevel ?? 1;
     this.curX = 0; this.curY = 0;
     this.bossCurrentOverride = null;
+    this.bossCurrentField = null;
     this.stageRuntimeState = null;
     this.surfaceY = this.storm ? 58 : 20; // 수면 파도만큼 위 경계 하향
     this.bolts = [];
@@ -448,10 +450,7 @@ const Game = {
     this.stageRuntimeState = null;
   },
 
-  sampleStageCurrent(targetId = 'player') {
-    if (this.stageRuntimeState && typeof StagePlugin !== 'undefined') {
-      return StagePlugin.sampleCurrent(this.stageRuntimeState, targetId);
-    }
+  sampleStageCurrent(targetId = 'player', position = null) {
     const influence = {
       player: { x: 1, y: 1 },
       pointerTarget: { x: 0.6, y: 0.6 },
@@ -459,6 +458,19 @@ const Game = {
       currentSurfEnemy: { x: 1.4, y: 0.6 },
       raw: { x: 1, y: 1 },
     }[targetId] || { x: 0, y: 0 };
+    if (this.bossCurrentField) {
+      const raw = StageCurrentField.sample(
+        this.bossCurrentField,
+        position || this.player || this.bossCurrentField.center,
+      );
+      return {
+        x: raw.x * influence.x,
+        y: raw.y * influence.y,
+      };
+    }
+    if (this.stageRuntimeState && typeof StagePlugin !== 'undefined') {
+      return StagePlugin.sampleCurrent(this.stageRuntimeState, targetId);
+    }
     if (this.bossCurrentOverride) {
       return {
         x: this.bossCurrentOverride.x * influence.x,
@@ -980,7 +992,6 @@ const Game = {
     // 적탄 (JSON 탄막은 에디터와 같은 공통 런타임으로 이동·행동을 처리한다)
     const barrageSpawned = [];
     const barrageSpawnBudget = { remaining: 1200 };
-    const projectileCurrent = this.sampleStageCurrent('enemyProjectile');
     for (const b of this.ebullets) {
       if (b.kind === 'storm' && this.boss && !this.boss.dead) {
         // 폭풍탄 (라스보스): 바깥에서 계속 생성되어 감겨들고, 안쪽 벽(반경 175)에서
@@ -1363,6 +1374,7 @@ const Game = {
         ctx.fillStyle = index < filled ? '#fff2b8' : 'rgba(255,242,184,0.28)';
         ctx.fillRect(x - direction * (12 + index * 8) - 3, y + 19, 6, 6);
       }
+      const projectileCurrent = this.sampleStageCurrent('enemyProjectile', b);
       if (warning.count > 1) {
         ctx.fillStyle = '#fff2b8';
         ctx.font = "bold 12px 'Galmuri11', monospace";

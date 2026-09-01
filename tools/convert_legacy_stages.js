@@ -2,7 +2,7 @@
 'use strict';
 
 // waves.js의 검증된 레거시 타임라인을 Stage JSON v1 초안으로 옮긴다.
-// Stage 1~3은 수작업 스테이지 재구성이 시작되어 이 도구가 덮어쓰지 않는다.
+// Stage 1~7은 수작업 스테이지 재구성이 완료되어 이 도구가 덮어쓰지 않는다.
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
@@ -20,7 +20,6 @@ vm.runInContext(`${wavesSource}\nglobalThis.__legacyStages = [
 
 const META = {
   stage1: { name: '산호 초입', seed: 1001, boss: 'pangpang', bossName: '팡팡', sections: ['도입', '압박', '혼합과 파밍'] },
-  stage7: { name: '용궁 앞바다', seed: 7007, boss: 'hwii', bossName: '휘이', storm: 0.55, sections: ['여명', '총력', '문 앞'] },
 };
 
 const KIND_NAMES = {
@@ -195,7 +194,7 @@ function convert(stageNumber, timeline) {
   };
 }
 
-for (const stageNumber of [7]) {
+for (const stageNumber of []) {
   const output = path.join(root, 'docs/stage-editor', `stage${stageNumber}.v1.draft.json`);
   fs.writeFileSync(output, `${JSON.stringify(convert(stageNumber, context.__legacyStages[stageNumber - 1]), null, 2)}\n`, 'utf8');
   console.log(path.relative(root, output));

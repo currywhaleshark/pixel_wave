@@ -59,6 +59,8 @@ class BossHwii {
   enterPhase(p) {
     this.phase = p;
     this.transitionT = 1.4;
+    this.game.bossCurrentOverride = null;
+    this.game.bossCurrentField = null;
     this.game.clearBulletsToPearls(false);
     if (p === 2) {
       this.game.message('"바람도, 파도도, 전부 나를 지나쳐 가!"', '#b8d8f0');
@@ -82,6 +84,8 @@ class BossHwii {
     this.deathT = 0;
     Sound.sfx('bossDeath');
     this.game.stormScale = 0;   // 폭풍이 걷힌다
+    this.game.bossCurrentOverride = null;
+    this.game.bossCurrentField = null;
     this.game.bolts = [];
     this.game.clearBulletsToPearls(true);
     for (let i = 0; i < 60; i++) {
@@ -136,6 +140,8 @@ class BossHwii {
     const m = this.mercy();
     if (this.telegraph > 0) this.telegraph -= dt;
     const pl = g.player;
+    g.bossCurrentOverride = null;
+    g.bossCurrentField = null;
 
     if (this.phase === 1) {
       // P1: 소용돌이 — 나선탄 + 부드러운 흡인 (빨려들지 않게 헤엄쳐라)
@@ -153,10 +159,12 @@ class BossHwii {
           });
         }
       }
-      // 흡인: 해류를 보스 방향으로 덮어씀
-      const dx = this.x - pl.x, dy = this.y - pl.y;
-      const d = Math.hypot(dx, dy) || 1;
-      g.curX = dx / d * 58; g.curY = dy / d * 58;
+      // 흡인 + 약한 회전: 모든 대상이 자기 위치에서 같은 소용돌이를 탄다.
+      g.bossCurrentField = {
+        center: { x: this.x, y: this.y },
+        radialStrength: -58,
+        tangentialStrength: 18,
+      };
     } else if (this.phase === 2) {
       // P2: 돌풍 밀당 — 좌우 강풍이 번갈아 (해류 화살표가 예고) + 낙뢰 + 링
       { const ty = CFG.H * 0.5 + Math.sin(this.anim * 0.7) * 120; this.y += (ty - this.y) * Math.min(1, dt * 3); }
@@ -166,8 +174,7 @@ class BossHwii {
         this.gustDir = -this.gustDir;
         if (g.dolphin && this.telegraph <= 0) this.telegraph = 0.6;
       }
-      g.curX = this.gustDir * 110;
-      g.curY = Math.sin(this.anim * 1.3) * 30;
+      g.bossCurrentOverride = { x: this.gustDir * 110, y: Math.sin(this.anim * 1.3) * 30 };
       this.ringT -= dt;
       if (this.ringT <= 0) {
         this.ringT = 2.7 * m;
@@ -192,11 +199,14 @@ class BossHwii {
         this.x += (CFG.W * 0.62 - this.x) * Math.min(1, dt * 0.8);
         this.y += (CFG.H * 0.5 - this.y) * Math.min(1, dt * 0.8);
       }
-      // 방출 해류: 눈에서 밀어냄
-      const dx = pl.x - this.x, dy = pl.y - this.y;
-      const d = Math.hypot(dx, dy) || 1;
-      const push = d < 320 ? 88 : 40;
-      g.curX = dx / d * push; g.curY = dy / d * push;
+      // 방출 + 회전 해류: 안전한 눈 주위를 한 방향으로 감아 돈다.
+      g.bossCurrentField = {
+        center: { x: this.x, y: this.y },
+        radialStrength: 40,
+        innerRadius: 320,
+        innerRadialStrength: 88,
+        tangentialStrength: this.phase === 4 ? 68 : 54,
+      };
       // 폭풍탄: 바깥에서 나선으로 감겨들다 눈 앞(반경 175)에서 멈춘다
       this.stormBulletT -= dt;
       if (this.stormBulletT <= 0) {
