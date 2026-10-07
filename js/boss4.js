@@ -109,6 +109,14 @@ class BossChorong {
     g.message('초롱불이 꺼진다 — 8초를 버텨라!', '#aef7ee');
   }
 
+  dolphinHint() {
+    if (this.dead || this.phase !== 2.5 || this.survivalT <= 0) return null;
+    return {
+      kind: 'blackout', remaining: this.survivalT,
+      targets: this.game.enemies.filter(enemy => enemy.chorongSurvival === true),
+    };
+  }
+
   onEnemyKilled(enemy) {
     if (this.phase !== 2.5 || enemy?.chorongSurvival !== true) return;
     this.survivalT = Math.max(0, this.survivalT - 0.7);

@@ -1,7 +1,7 @@
 // ============================================================
 // dolphin.js — 옵션 돌고래 3종 (GDD 6장)
 // 유도(homing) / 폭발(burst) / 관통(pierce), Lv1~3
-// 공통 기능: 보스 발사 예고 "힌트!" (Lv1부터, 종류 무관)
+// 공통 기능: 위험 대상·대응 요령 안내 (Lv1부터, 종류 무관)
 // ============================================================
 class Dolphin {
   constructor(type, lv) {
@@ -13,6 +13,7 @@ class Dolphin {
     this.fireT = 0.6;
     this.waveT = 4;      // 관통 Lv3: 더블 파도 주기
     this.slowCd = 0;     // 유도 Lv3: 자동 슬로우 쿨다운
+    this.hints = new DolphinHints();
   }
 
   update(dt, game) {
@@ -152,9 +153,8 @@ class Dolphin {
 
   draw(ctx, game) {
     this.drawBeam(ctx);
-    // 스프라이트 우선 (힌트 말풍선은 아래 공통 처리)
+    // 안내는 어둠 위 표식 + HUD로 별도 렌더한다.
     if (Sprites.draw(ctx, `dolphin.${this.type}`, this.x, this.y, { t: this.t })) {
-      this.drawHint(ctx, game);
       return;
     }
     ctx.save();
@@ -171,23 +171,6 @@ class Dolphin {
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.beginPath(); ctx.ellipse(2, 2.5, 8, 2.5, -0.1, 0, 6.28); ctx.fill(); // 배
 
-    ctx.restore();
-    this.drawHint(ctx, game);
-  }
-
-  // 공통 기능: 보스 발사 예고에 맞춰 "힌트!" 말풍선
-  drawHint(ctx, game) {
-    if (!(game.boss && !game.boss.dead && game.boss.telegraph > 0)) return;
-    ctx.save();
-    ctx.translate(this.x, this.y);
-    ctx.fillStyle = 'rgba(255,255,255,0.95)';
-    ctx.strokeStyle = '#5aa9ff'; ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(-24, -38, 48, 18, 8);
-    ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#2b5bb8';
-    ctx.font = Fonts.f(11, true); ctx.textAlign = 'center';
-    ctx.fillText('힌트!', 0, -25);
     ctx.restore();
   }
 }

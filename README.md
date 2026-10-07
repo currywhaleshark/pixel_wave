@@ -55,6 +55,7 @@ js/input.js         키보드/마우스/터치 (속도 상한 통일)
 js/meta.js          영구 저장 · 상점 카탈로그
 js/entities.js      플레이어 · 잡몹 · 진주
 js/dolphin.js       옵션 돌고래 3종
+js/dolphinHints.js  돌고래 전술 안내 (등불 폭발 순서 · 소등 공략 · 해류 반전)
 js/waves.js         잡몹 문법(5축) + 스테이지 타임라인
 js/stage/            Stage JSON 검증·컴파일·편집 문서·결정론 미리보기
 js/barrage.js        데이터 기반 탄막 실행기 (게임·탄막 공방 공용)

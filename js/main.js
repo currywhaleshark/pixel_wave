@@ -1095,6 +1095,9 @@ const Game = {
 
     this.collide(dt);
 
+    // 공격·이동·소거 결과를 읽어 사라진 위험이나 잠복 중인 적을 안내하지 않는다.
+    if (this.dolphin) this.dolphin.hints.update(dt, this, CFG);
+
     // 이펙트/메시지
     for (const f of this.fx) {
       f.life -= dt;
@@ -1344,15 +1347,17 @@ const Game = {
 
     // 심해 어둠 (광원 구멍 + 탄 희미 재드로)
     this.drawDarkness();
+    if (this.state === 'play' && this.dolphin) this.dolphin.hints.drawMarkers(ctx);
 
     // ---- 여기부터 UI 레이어 (풀 해상도) ----
     this.endWorld();
 
     this.drawHud();
     if (this.boss) this.boss.drawHpBar(ctx);
+    if (this.state === 'play' && this.dolphin) this.dolphin.hints.drawCaption(ctx, CFG, this.dolphin);
 
     // 중앙 메시지
-    let my = CFG.H * 0.3;
+    let my = CFG.H * 0.3 + (this.state === 'play' && this.dolphin?.hints.cue ? 34 : 0);
     for (const m of this.msgs) {
       ctx.save();
       ctx.globalAlpha = Math.min(1, m.life / 0.5);
@@ -2059,7 +2064,7 @@ const Game = {
     // 해류 표시 (폭풍 수면 — 방향·세기를 읽을 수 있게)
     if (this.storm) {
       const cx = CFG.W / 2, cy = 72;
-      const len = this.curX * 0.35;
+      const len = this.sampleStageCurrent('player', this.player).x * 0.35;
       ctx.strokeStyle = 'rgba(220,235,255,0.7)'; ctx.lineWidth = 3;
       ctx.beginPath(); ctx.moveTo(cx - len, cy); ctx.lineTo(cx + len, cy); ctx.stroke();
       if (Math.abs(len) > 4) {

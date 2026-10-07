@@ -32,7 +32,7 @@ assert.ok(indexHtml.includes('js/stage/currentField.js?v=1'));
 assert.ok(indexHtml.includes('js/stage/layerTransform.js?v=2'));
 assert.ok(indexHtml.includes('js/stage/plugin.js?v=8'));
 assert.ok(indexHtml.includes('js/stage/gameAdapter.js?v=13'));
-assert.ok(indexHtml.includes('js/main.js?v=28'));
+assert.ok(indexHtml.includes('js/main.js?v=29'));
 assert.ok(indexHtml.indexOf('js/stage/compiler.js') < indexHtml.indexOf('js/stage/gameAdapter.js'));
 const mainSource = fs.readFileSync(path.join(root, 'js/main.js'), 'utf8');
 assert.ok(mainSource.includes("StageGameAdapter.requestedMode(location.search)"));

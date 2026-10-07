@@ -104,6 +104,18 @@ class BossUreu {
     this.game.say('"...오, 오늘은 봐준다! 왕은 관대하니까! 조심히 가라구!"', '"크윽... 오늘도 봐준 거다! 왕은 바쁘니까!"', '#a8ffcf');
   }
 
+  dolphinHint() {
+    if (this.dead || this.phase < 3) return null;
+    // 회복 다음의 반전 방향도 같은 패턴 상태에서 읽는다. 별도 타임라인은 없다.
+    const recovering = this.undertowMode === 'recovery';
+    return {
+      kind: 'current',
+      direction: recovering ? -this.undertowDir : this.undertowDir,
+      upcoming: this.undertowMode !== 'pull',
+      remaining: Math.max(0, this.transitionT) + Math.max(0, this.undertowT) + (recovering ? 0.7 : 0),
+    };
+  }
+
   updateUndertow(dt) {
     const g = this.game;
     this.undertowT -= dt;
