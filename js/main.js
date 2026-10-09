@@ -2123,23 +2123,13 @@ const Game = {
       ctx.beginPath(); ctx.arc(fx, fy, 4, 0, 6.28); ctx.fill();
     }
 
-    // 친구들의 행진 (인어 뒤로 일곱 친구)
+    // 친구들의 행진 (인어 뒤로 일곱 친구) — 보스 스프라이트를 반으로 줄여 인어를 향해 돌려 세운다
     const p = this.player;
     for (let i = STAGES.length - 1; i >= 0; i--) {
-      const fx2 = p.x - 52 - i * 46;
+      const fx2 = p.x - 58 - i * 58;
       const fy2 = p.y + Math.sin(now * 2 + i * 0.9) * 9 + 4;
-      if (fx2 < -30) continue;
-      const c = STAGES[i].friendColor;
-      ctx.save();
-      ctx.translate(fx2, fy2);
-      ctx.fillStyle = c;
-      ctx.beginPath(); ctx.arc(0, 0, 13, 0, 6.28); ctx.fill();
-      ctx.fillStyle = '#333';
-      ctx.beginPath(); ctx.arc(-4, -3, 1.7, 0, 6.28); ctx.fill();
-      ctx.beginPath(); ctx.arc(4, -3, 1.7, 0, 6.28); ctx.fill();
-      ctx.strokeStyle = '#333'; ctx.lineWidth = 1.3;
-      ctx.beginPath(); ctx.arc(0, 2, 4.5, 0.25, Math.PI - 0.25); ctx.stroke();
-      ctx.restore();
+      if (fx2 < -60) continue;
+      this.drawEndingFriend(i, fx2, fy2, now);
     }
     this.player.draw(ctx);
 
@@ -2164,6 +2154,60 @@ const Game = {
       ctx.font = Fonts.f(14);
       ctx.fillText('아무 키 / 클릭 — 항해도로', CFG.W / 2, CFG.H * 0.94);
     }
+    ctx.restore();
+  },
+
+  // 엔딩 행진용 미니 친구. 0.5배면 원본 한 픽셀이 화면 한 픽셀에 정확히 떨어져 뭉개지지 않는다.
+  // 보스는 모두 왼쪽(플레이어 쪽)을 보고 그려졌으니 좌우 반전해 인어를 따라가게 한다.
+  // 우르릉은 세로 전신 그대로 — 머리가 행렬 높이에 오고 몸은 아래로 늘어진다.
+  drawEndingFriend(i, x, y, now) {
+    const S = 0.5;
+    const id = ['boss.pangpang', 'boss.mongsil', 'boss.ssing', 'boss.chorong', 'boss.buu', 'boss.ureu', 'boss.hwii'][i];
+    if (id === 'boss.hwii' && Sprites.has(id)) {
+      // 휘이는 눈알(코드) 위에 구름·눈꺼풀을 덮는다. 팔은 행렬에서 너무 커서 뺀다.
+      // 눈은 앞서가는 인어를 바라본다.
+      ctx.save();
+      ctx.translate(Math.round(x / 2) * 2, Math.round(y / 2) * 2);
+      ctx.fillStyle = '#f7f3df';
+      ctx.beginPath(); ctx.ellipse(0, 0, 25 * S, 18 * S, 0, 0, 6.28); ctx.fill();
+      ctx.fillStyle = '#789bc7';
+      ctx.beginPath(); ctx.ellipse(5 * S, 0, 10 * S, 13 * S, 0, 0, 6.28); ctx.fill();
+      ctx.fillStyle = '#17345d';
+      ctx.beginPath(); ctx.ellipse(5 * S, 0, 5.5 * S, 10 * S, 0, 0, 6.28); ctx.fill();
+      ctx.restore();
+      Sprites.draw(ctx, id, x, y, { frame: 0, scale: S });
+      return;
+    }
+    if (id === 'boss.buu' && Sprites.has(id)) {
+      // 부우 스프라이트는 머리뿐이라 목에서 몸통 몇 마디를 잇는다.
+      // 보스전 몸통과 같은 색·모양, 뒤로 갈수록 가늘고 흐려져 짧게 사라진다.
+      const neckX = x - 15, n = 5;
+      for (let j = n - 1; j >= 0; j--) {
+        const k = j / (n - 1);
+        const sx = neckX - 2 - j * 6.5;
+        const sy = y + Math.sin(now * 4 - j * 0.9) * (1 + j * 0.7);
+        const rx = (17 - k * 8) * S, ry = (10 - k * 5) * S;
+        ctx.save();
+        ctx.globalAlpha = 0.8 * (1 - k * 0.85);
+        ctx.translate(Math.round(sx), Math.round(sy));
+        ctx.fillStyle = '#7fb99a';
+        ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, 6.28); ctx.fill();
+        ctx.fillStyle = '#c9f0d8';
+        ctx.beginPath(); ctx.ellipse(1, -1.5, Math.max(1, rx - 2.5), Math.max(1, ry - 3), 0, Math.PI, 6.28); ctx.fill();
+        ctx.restore();
+      }
+    }
+    if (Sprites.draw(ctx, id, x, y, { t: now, scale: S, flipX: true })) return;
+    // 스프라이트 로딩 전 폴백: 친구 색 스마일
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = STAGES[i].friendColor;
+    ctx.beginPath(); ctx.arc(0, 0, 13, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#333';
+    ctx.beginPath(); ctx.arc(-4, -3, 1.7, 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(4, -3, 1.7, 0, 6.28); ctx.fill();
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.arc(0, 2, 4.5, 0.25, Math.PI - 0.25); ctx.stroke();
     ctx.restore();
   },
 
