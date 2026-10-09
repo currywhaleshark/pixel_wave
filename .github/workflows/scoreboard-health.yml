@@ -1,0 +1,50 @@
+name: Scoreboard health check
+
+on:
+  schedule:
+    # UTC 00:23/06:23/12:23/18:23 = KST 09:23/15:23/21:23/03:23.
+    - cron: '23 */6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/scoreboard-health.yml'
+      - 'tools/check_scoreboard.js'
+      - 'tests/test_scoreboard_health.js'
+      - 'js/board.js'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scoreboard-health
+  cancel-in-progress: false
+
+jobs:
+  check:
+    # A fork must not generate traffic against the original project's database.
+    if: github.repository == 'currywhaleshark/pixel_wave'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout health-check files only
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            js/board.js
+            tools/check_scoreboard.js
+            tests/test_scoreboard_health.js
+          sparse-checkout-cone-mode: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Test the checker without network access
+        run: node tests/test_scoreboard_health.js
+
+      - name: Read one scoreboard row
+        run: node tools/check_scoreboard.js
