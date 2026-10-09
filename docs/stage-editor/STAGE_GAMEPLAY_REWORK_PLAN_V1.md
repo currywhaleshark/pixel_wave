@@ -379,7 +379,7 @@ non-repeating transition between P2 and the star finale:
 1. slow stars appear and provide sparse light;
 2. 초롱's lure dims in three readable steps;
 3. the lure turns off, the boss hides, and `hittable` becomes false;
-4. an eight-second survival timer begins;
+4. a 14/16/18-second survival timer begins on Easy/Normal/Hard;
 5. 3/4/5 vipers reveal sequentially on Easy/Normal/Hard;
 6. killing a viper removes about 0.7 seconds or leaves a small temporary light;
 7. the lure relights, remaining vipers clear, and the star-night phase begins.
@@ -705,9 +705,12 @@ Stage Sequencer tool milestones M1–M7.
   Easy reveals earlier and telegraphs longer, while Hard staggers consecutive
   reveals and shortens the eye-glint without adding turn speed.
 - [x] Add Boss 4's one-time P2→P3 blackout survival transition. 초롱 dims its
-  lure in three steps, becomes unhittable for eight seconds, and releases
+  lure in three steps, becomes unhittable for 14/16/18 seconds, and releases
   3/4/5 sequential vipers on Easy/Normal/Hard amid sparse slow stars. Each
   tagged viper kill removes 0.7 seconds before the lure returns and P3 begins.
+  The first viper appears at 0.8 seconds; the last is scheduled 3.4 seconds
+  before the unshortened deadline, spreading encounters through the longer
+  blackout. This replaces the original eight-second timer after play feedback.
 
 ### G5 — Stages 5 and 6
 

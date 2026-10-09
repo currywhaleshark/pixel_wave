@@ -13,6 +13,13 @@ const BOSS4_PATTERNS = {
   4: { id: 'chorong-falling-stars', name: '진·심해의 별밤' },  // 하드 전용: 별똥별
 };
 
+const BOSS4_SURVIVAL = Object.freeze({
+  durations: Object.freeze([14, 16, 18]),
+  firstSpawnAt: 0.8,
+  lastSpawnLead: 3.4,  // 마지막 독니도 잠복·안광 예고 뒤 대응할 시간이 남도록 한다.
+  killReduction: 0.7,
+});
+
 class BossChorong {
   constructor(game) {
     this.game = game;
@@ -97,16 +104,19 @@ class BossChorong {
     this.hittable = false;
     this.transitionT = 0.65;
     this.mode = 'drift';
-    this.survivalT = 8;
+    this.survivalDuration = BOSS4_SURVIVAL.durations[g.diff] ?? 16;
+    this.survivalT = this.survivalDuration;
     this.survivalElapsed = 0;
-    this.survivalSpawnT = 0.8;
+    this.survivalSpawnT = BOSS4_SURVIVAL.firstSpawnAt;
     this.survivalSpawned = 0;
     this.survivalCount = 3 + g.diff;
+    this.survivalSpawnInterval = (this.survivalDuration - BOSS4_SURVIVAL.firstSpawnAt
+      - BOSS4_SURVIVAL.lastSpawnLead) / Math.max(1, this.survivalCount - 1);
     this.starT = 0.1;
     this.lurePower = 1;
     g.clearBulletsToPearls(false);
     g.targetDark = 0.96;
-    g.message('초롱불이 꺼진다 — 8초를 버텨라!', '#aef7ee');
+    g.message(`초롱불이 꺼진다 — ${this.survivalDuration}초를 버텨라!`, '#aef7ee');
   }
 
   dolphinHint() {
@@ -119,9 +129,9 @@ class BossChorong {
 
   onEnemyKilled(enemy) {
     if (this.phase !== 2.5 || enemy?.chorongSurvival !== true) return;
-    this.survivalT = Math.max(0, this.survivalT - 0.7);
+    this.survivalT = Math.max(0, this.survivalT - BOSS4_SURVIVAL.killReduction);
     this.game.addFx(enemy.x, enemy.y, '#aef7ee', 16);
-    this.game.message('독니고기 격파 — 어둠이 0.7초 짧아졌다!', '#aef7ee');
+    this.game.message(`독니고기 격파 — 어둠이 ${BOSS4_SURVIVAL.killReduction}초 짧아졌다!`, '#aef7ee');
   }
 
   updateSurvival(dt) {
@@ -149,7 +159,7 @@ class BossChorong {
     this.survivalSpawnT -= dt;
     if (this.survivalSpawned < this.survivalCount && this.survivalSpawnT <= 0) {
       const index = this.survivalSpawned++;
-      this.survivalSpawnT += 5.8 / Math.max(1, this.survivalCount - 1);
+      this.survivalSpawnT += this.survivalSpawnInterval;
       const lanes = [0.2, 0.8, 0.38, 0.64, 0.5];
       g.spawner.pending.push({ at: g.stageT, spec: {
         kind: 'viper', M: 5, S: 0, hp: 3, spd: 112,
