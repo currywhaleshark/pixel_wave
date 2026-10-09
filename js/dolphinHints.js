@@ -9,6 +9,31 @@
       && target.x >= 0 && target.x <= viewport.W && target.y >= 0 && target.y <= viewport.H;
   }
 
+  function mineCue(mines) {
+    const remaining = Math.min(...mines.map(b => b.timer));
+    const targets = mines.filter(b => Math.abs(b.timer - remaining) < 0.001);
+    // 줄은 배치한 패턴이 명시한다. 우연히 높이가 비슷한 등불을 한 줄로 추측하지 않는다.
+    const byRow = new Map();
+    for (const target of targets) {
+      if (!Number.isInteger(target.mineHintRow)) continue;
+      if (!byRow.has(target.mineHintRow)) byRow.set(target.mineHintRow, []);
+      byRow.get(target.mineHintRow).push(target);
+    }
+    const rows = [...byRow.values()].filter(row => row.length > 1);
+    const allRows = rows.length > 0 && rows.reduce((count, row) => count + row.length, 0) === targets.length;
+    const mode = allRows ? (rows.length === 1 ? 'row' : 'rows') : (targets.length > 1 ? 'together' : 'order');
+    const text = {
+      order: '저 등불부터 터져!', together: '표시된 등불이 함께 터져!',
+      row: '저 줄이 한꺼번에 터져!', rows: rows.length === 2 ? '저 두 줄이 함께 터져!' : '표시된 줄이 함께 터져!',
+    }[mode];
+    const label = allRows ? `${rows.length}줄 동시 폭발` : (targets.length > 1 ? '등불 동시 폭발' : '등불 폭발');
+    return {
+      key: `mine-${mode}`, topic: `mine-${mode}`, kind: 'mine', remaining,
+      priority: remaining < 0.8 ? 90 : 50,
+      text, short: `${label} · ${remaining.toFixed(1)}초`, targets, rows,
+    };
+  }
+
   class DolphinHints {
     constructor() {
       this.cue = null;
@@ -31,15 +56,7 @@
       // 설치 순서가 아니라 남은 신관 시간으로 선택한다. 동시 폭발은 모두 표시한다.
       const mines = game.ebullets.filter(b => b.kind === 'mine' && Number.isFinite(b.timer)
         && b.timer > 0 && b.timer <= 2.2 && onScreen(b, viewport));
-      if (mines.length) {
-        const remaining = Math.min(...mines.map(b => b.timer));
-        candidates.push({
-          key: 'mine-order', topic: 'mine-order', kind: 'mine', remaining,
-          priority: remaining < 0.8 ? 90 : 50,
-          text: '저 등불부터 터져!', short: `등불 폭발 · ${remaining.toFixed(1)}초`,
-          targets: mines.filter(b => Math.abs(b.timer - remaining) < 0.001),
-        });
-      }
+      if (mines.length) candidates.push(mineCue(mines));
 
       const boss = game.boss;
       const advice = boss && !boss.dead ? boss.dolphinHint?.() : null;
@@ -80,8 +97,23 @@
       ctx.save();
       ctx.strokeStyle = COLORS[this.cue.kind];
       ctx.lineWidth = 2;
+      const grouped = new Set();
+      // 같은 순간에 터질 줄만 빈 점선 테두리로 묶는다. 두 줄 사이의 빈 공간은 묶지 않는다.
+      ctx.save();
+      ctx.setLineDash([8, 6]);
+      for (const row of this.cue.rows || []) {
+        const radius = target => Math.max(14, (target.r || 7) + 7);
+        const left = Math.floor(Math.min(...row.map(target => target.x - radius(target))) / 2) * 2;
+        const top = Math.floor(Math.min(...row.map(target => target.y - radius(target))) / 2) * 2;
+        const right = Math.ceil(Math.max(...row.map(target => target.x + radius(target))) / 2) * 2;
+        const bottom = Math.ceil(Math.max(...row.map(target => target.y + radius(target))) / 2) * 2;
+        ctx.strokeRect(left, top, right - left, bottom - top);
+        for (const target of row) grouped.add(target);
+      }
+      ctx.restore();
       // 속을 채우지 않는 모서리 표식: 탄·눈·피격판정을 덮지 않는다.
       for (const target of this.cue.targets) {
+        if (grouped.has(target)) continue;
         const x = Math.round(target.x / 2) * 2, y = Math.round(target.y / 2) * 2;
         const r = this.cue.kind === 'mine' ? Math.max(14, (target.r || 7) + 7) : 20;
         const arm = 6;

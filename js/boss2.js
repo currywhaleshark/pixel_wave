@@ -178,13 +178,15 @@ class BossMongsil {
         const rowsToLight = this.phase === 4 ? 2 : 1;
         const gn = 5 + g.diff; // 난이도: 정원 등불 밀도
         for (let rr = 0; rr < rowsToLight; rr++) {
-          const rowY = [0.22, 0.5, 0.78][this.gardenRow] * CFG.H;
+          const row = this.gardenRow;
+          const rowY = [0.22, 0.5, 0.78][row] * CFG.H;
           this.gardenRow = (this.gardenRow + 1) % 3;
           for (let i = 0; i < gn; i++) {
             g.ebullets.push({
               x: 60 + i * (CFG.W * 0.68 / (gn - 1)),
               y: rowY + (Math.random() - 0.5) * 20,
               vx: 0, vy: 0, r: 7, kind: 'mine', timer: 1.4,
+              mineHintRow: row, // 돌고래가 실제 동시 폭발 줄을 묶어 안내한다.
             });
           }
         }

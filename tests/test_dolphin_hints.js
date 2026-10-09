@@ -25,14 +25,24 @@ function makeGame() {
 }
 const mine = (timer, x = 360) => ({ kind: 'mine', timer, x, y: 270, r: 7 });
 
+function captureMarkers(hints) {
+  const rectangles = [], corners = [];
+  hints.drawMarkers({
+    save() {}, restore() {}, setLineDash() {}, beginPath() {}, moveTo() {}, lineTo() {},
+    strokeRect(...bounds) { rectangles.push(bounds); }, stroke() { corners.push(true); },
+  });
+  return { rectangles, corners };
+}
+
 {
   const game = makeGame(), hints = new DolphinHints();
-  const first = mine(1.2), tied = mine(1.2, 410), later = mine(1.8);
-  game.ebullets = [later, first, tied, mine(0.1, -1), { ...mine(0.1), dead: true }, mine(NaN)];
+  const first = mine(1.2), later = mine(1.8);
+  game.ebullets = [later, first, mine(0.1, -1), { ...mine(0.1), dead: true }, mine(NaN)];
   hints.update(0.1, game, viewport);
-  assert.deepEqual(hints.cue.targets, [first, tied], '동시 폭발은 모두 표시하고 화면 밖·소거된 등불은 제외');
+  assert.deepEqual(hints.cue.targets, [first], '가장 먼저 터질 등불만 표시하고 화면 밖·소거된 등불은 제외');
   assert.equal(hints.speech.text, '저 등불부터 터져!');
-  first.timer = 2; tied.timer = 2;
+  assert.equal(captureMarkers(hints).corners.length, 1);
+  first.timer = 2;
   hints.update(0.1, game, viewport);
   assert.deepEqual(hints.cue.targets, [later], '신관 편집 결과를 매번 다시 읽는다');
   game.ebullets = [];
@@ -47,15 +57,81 @@ const mine = (timer, x = 360) => ({ kind: 'mine', timer, x, y: 270, r: 7 });
 
 {
   const game = makeGame(), hints = new DolphinHints();
+  const first = mine(1.2), tied = { ...mine(1.2005, 410), y: 340 }, later = mine(1.8);
+  game.ebullets = [later, first, tied];
+  hints.update(0.1, game, viewport);
+  assert.deepEqual(hints.cue.targets, [first, tied], '동시 폭발 묶음 전체를 선택한다');
+  assert.equal(hints.speech.text, '표시된 등불이 함께 터져!');
+  assert.equal(hints.cue.short, '등불 동시 폭발 · 1.2초');
+  assert.deepEqual(hints.cue.rows, [], '흩어진 동시 폭발을 한 줄이라고 부르지 않는다');
+  assert.equal(captureMarkers(hints).corners.length, 2);
+  tied.y = first.y;
+  hints.update(0.1, game, viewport);
+  assert.deepEqual(hints.cue.rows, [], '높이가 우연히 같아도 패턴의 줄 정보 없이는 묶지 않는다');
+  first.timer = 2; tied.timer = 2;
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue.text, '저 등불부터 터져!');
+  assert.equal(hints.speech, null, '묶음이 단일 등불로 바뀌면 기존 동시 폭발 대사를 즉시 지운다');
+  hints.update(6, game, viewport);
+  assert.equal(hints.speech.text, '저 등불부터 터져!', '순차 폭발 설명은 별도로 한 번 제공한다');
+}
+
+for (const [diff, phase, rowCount] of [[0, 3, 1], [1, 3, 1], [2, 3, 1], [2, 4, 2]]) {
+  const game = makeGame(), hints = new DolphinHints();
+  game.diff = diff;
   game.boss = new BossMongsil(game);
-  game.boss.phase = 3;
+  game.boss.phase = phase;
+  game.boss.gardenRow = 2; // 하드의 아래→위 두 줄도 빈 가운데 줄을 묶으면 안 된다.
   game.boss.gardenT = 0;
   game.boss.curtainT = 5;
   game.boss.update(0.01);
   hints.update(0.01, game, viewport);
   assert.equal(hints.cue.kind, 'mine');
-  assert.equal(hints.cue.targets.length, 5, '실제 몽실 정원의 한 줄 전체를 표시');
+  assert.equal(hints.cue.targets.length, (5 + diff) * rowCount, '실제 몽실 정원의 동시 폭발 줄 전체를 표시');
   assert.ok(hints.cue.targets.every(target => game.ebullets.includes(target)));
+  assert.equal(hints.cue.rows.length, rowCount);
+  assert.equal(hints.speech.text, rowCount === 1 ? '저 줄이 한꺼번에 터져!' : '저 두 줄이 함께 터져!');
+  assert.equal(hints.cue.short, `${rowCount}줄 동시 폭발 · 1.4초`);
+  const drawing = captureMarkers(hints);
+  assert.equal(drawing.rectangles.length, rowCount, '각 줄은 하나의 테두리로 표시');
+  assert.equal(drawing.corners.length, 0, '줄에는 개별 등불 표식을 중복하지 않는다');
+  for (const [index, [x, y, width, height]] of drawing.rectangles.entries()) {
+    assert.ok([x, y, width, height].every(value => value % 2 === 0), '월드 픽셀 격자에 스냅');
+    assert.ok(height <= 52, '위아래 픽셀 스냅 여유를 포함해도 다른 줄이나 그 사이 공간을 감싸지 않는다');
+    assert.ok(width > 650, '점선이 줄의 양 끝 등불까지 감싼다');
+    assert.ok(hints.cue.rows[index].every(target => target.x >= x && target.x <= x + width
+      && target.y >= y && target.y <= y + height));
+  }
+  const later = { ...game.ebullets[0], timer: 2 };
+  game.ebullets.push(later);
+  hints.update(0.1, game, viewport);
+  assert.ok(!hints.cue.targets.includes(later), '같은 줄이어도 신관이 다르면 함께 묶지 않는다');
+  game.ebullets = [game.ebullets[0]];
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue.text, '저 등불부터 터져!', '소거 후 한 개만 남으면 줄 안내를 해제');
+  assert.equal(hints.speech, null);
+  assert.equal(captureMarkers(hints).rectangles.length, 0);
+  assert.equal(captureMarkers(hints).corners.length, 1);
+  game.ebullets = [];
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue, null);
+}
+
+{
+  const game = makeGame(), hints = new DolphinHints();
+  game.boss = new BossMongsil(game);
+  game.boss.phase = 3; game.boss.gardenT = 0; game.boss.curtainT = 5;
+  game.boss.update(0.01);
+  hints.update(0.01, game, viewport);
+  game.diff = 2;
+  game.boss.phase = 4; game.boss.gardenT = 0;
+  game.ebullets = [];
+  game.boss.update(0.01);
+  hints.update(0.01, game, viewport);
+  assert.equal(hints.speech, null, '두 줄로 바뀌면 한 줄이라는 기존 대사는 지운다');
+  assert.equal(hints.cue.short, '2줄 동시 폭발 · 1.4초', '대사 간격 중에도 현재 줄 개수는 정확히 표시');
+  hints.update(6, game, viewport);
+  assert.equal(hints.speech.text, '저 두 줄이 함께 터져!');
 }
 
 {
