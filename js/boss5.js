@@ -160,6 +160,12 @@ class BossBuu {
     }
   }
 
+  // 난파선 통로 중에는 몸통이 보이기만 하고 판정이 없다. 모르면 없는 벽을 피해 다닌다.
+  dolphinHint() {
+    if (this.dead || this.phase < 3 || this.transitionT > 0 || this.routeModeT <= 0) return null;
+    return { kind: 'passage', remaining: this.routeModeT };
+  }
+
   die() {
     this.dead = true;
     this.deathT = 0;

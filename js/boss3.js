@@ -209,6 +209,14 @@ class BossSsing {
     }
   }
 
+  // 진 대파도의 왕복 돌진: 나간 씽씽이 왼쪽에서 되돌아온다는 사실만 알려준다.
+  // 되돌아올 차선은 기존 예고선이 보여주므로 여기서는 짚지 않는다.
+  dolphinHint() {
+    if (this.dead || this.phase !== 4) return null;
+    if (this.mode !== 'dash' && this.mode !== 'telBack') return null;
+    return { kind: 'dashBack', upcoming: this.mode === 'dash' };
+  }
+
   die() {
     if (this.phase === 2.5 && this.game.ride) this.game.finishRide('complete');
     this.dead = true;

@@ -84,6 +84,12 @@ class Boss {
     }
   }
 
+  // 진 대파도의 역회전 나선: 두 흐름의 방향이 반대라는 것만 알려준다.
+  dolphinHint() {
+    if (this.dead || this.phase !== 4 || this.transitionT > 0) return null;
+    return { kind: 'counterSpiral' };
+  }
+
   die() {
     this.dead = true;
     this.deathT = 0;

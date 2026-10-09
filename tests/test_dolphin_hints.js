@@ -8,11 +8,11 @@ const DolphinHints = require('../js/dolphinHints.js');
 const root = path.resolve(__dirname, '..');
 const viewport = { W: 960, H: 540 };
 const context = vm.createContext({ console, Math, Sound: { sfx() {} }, Assets: {}, Sprites: {} });
-for (const file of ['js/config.js', 'js/stage/enemyState.js', 'js/entities.js', 'js/boss2.js', 'js/boss4.js', 'js/boss6.js']) {
+for (const file of ['js/config.js', 'js/stage/enemyState.js', 'js/entities.js', 'js/boss2.js', 'js/boss4.js', 'js/boss.js', 'js/boss3.js', 'js/boss5.js', 'js/boss6.js', 'js/boss7.js']) {
   vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context, { filename: file });
 }
-vm.runInContext('globalThis.Subjects = { Enemy, BossMongsil, BossChorong, BossUreu };', context);
-const { Enemy, BossMongsil, BossChorong, BossUreu } = context.Subjects;
+vm.runInContext('globalThis.Subjects = { Enemy, BossMongsil, BossChorong, BossUreu, BossHwii, Boss, BossSsing, BossBuu };', context);
+const { Enemy, BossMongsil, BossChorong, BossUreu, BossHwii, Boss, BossSsing, BossBuu } = context.Subjects;
 
 function makeGame() {
   return {
@@ -189,6 +189,128 @@ for (const [diff, phase, rowCount] of [[0, 3, 1], [1, 3, 1], [2, 3, 1], [2, 4, 2
   game.boss.dead = true;
   hints.update(0.1, game, viewport);
   assert.equal(hints.cue, null);
+}
+
+{
+  const game = makeGame(), hints = new DolphinHints();
+  const hint = BossHwii.prototype.dolphinHint;
+  game.boss = { dead: false, phase: 2, transitionT: 0, x: 595, y: 270, dolphinHint: hint };
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue, null, '태풍의 눈 전에는 안내하지 않는다');
+  game.boss.phase = 3; game.boss.transitionT = 1;
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue, null, '전환 대사와 겹치지 않게 전환이 끝난 뒤 안내');
+  game.boss.transitionT = 0;
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.speech.text, '다가가! 눈 속은 고요해');
+  assert.equal(hints.cue.short, '태풍의 눈 →', '눈 쪽 방향만 알려준다');
+  assert.equal(captureMarkers(hints).corners.length, 0, '안전지대 테두리는 그리지 않는다');
+  game.player.x = 560;
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue.short, '태풍의 눈 · 고요');
+  assert.ok(hints.speech, '같은 주제 안의 상태 변화는 설명을 끊지 않는다');
+  game.player.x = 595; game.player.y = 470;
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue.short, '태풍의 눈 ↑');
+  game.boss.phase = 4;
+  hints.update(6, game, viewport);
+  assert.equal(hints.speech.text, '눈이 움직여! 같이 헤엄쳐!', '진 대파도의 바뀐 규칙은 따로 한 번');
+}
+
+// 보스 상태만 흉내 내 prototype 훅을 호출한다 (보스 전체 생성 없이 계약만 검증).
+const bossStub = (Cls, fields) => ({ dead: false, transitionT: 0, ...fields, dolphinHint: Cls.prototype.dolphinHint });
+
+{
+  const game = makeGame(), hints = new DolphinHints();
+  game.boss = bossStub(BossHwii, { phase: 2, gustT: 2.5, gustDir: 1, x: 595, y: 270 });
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue, null, '돌풍 전환이 멀면 안내하지 않는다');
+  game.boss.gustT = 1.2;
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue.kind, 'current', '휘이 돌풍은 해류 안내를 재사용');
+  assert.equal(hints.cue.direction, -1, '다음 돌풍 방향 = 현재의 반대');
+  assert.equal(hints.speech.text, '곧 왼쪽으로 밀려!');
+}
+
+{
+  const game = makeGame(), hints = new DolphinHints();
+  game.boss = bossStub(BossSsing, { phase: 3, mode: 'dash' });
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue, null, '일반 대파도 돌진은 예고선으로 충분');
+  game.boss.phase = 4;
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.speech.text, '돌아온다! 왼쪽에서 다시 와!');
+  assert.equal(hints.cue.short, '되돌아옴 ←');
+  game.boss.mode = 'telBack';
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue.short, '왼쪽에서 돌진 →');
+  assert.ok(hints.speech, '나감 → 되돌아옴 전환에 설명이 끊기지 않는다');
+  game.boss.mode = 'dashBack';
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue, null, '돌진이 시작되면 안내를 거둔다');
+}
+
+{
+  const game = makeGame(), hints = new DolphinHints();
+  game.boss = bossStub(BossBuu, { phase: 3, routeModeT: 0 });
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue, null, '몸통이 판정을 가질 때는 안내하지 않는다');
+  game.boss.routeModeT = 4.2;
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.speech.text, '지금 몸통은 통과돼! 유령만 피해!');
+  assert.equal(hints.cue.short, '몸통 통과 · 4.2초');
+}
+
+{
+  const game = makeGame(), hints = new DolphinHints();
+  game.boss = bossStub(Boss, { phase: 3 });
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue, null, '팡팡은 튜토리얼 — 대파도에는 안내 없음');
+  game.boss.phase = 4;
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue.short, '기포 시계 · 가시 반시계');
+}
+
+{
+  const game = makeGame(), hints = new DolphinHints();
+  const far = { kind: 'ghostflame', x: 700, y: 270, homing: { duration: 2.1, t: 0 } };
+  game.ebullets = [far];
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue, null, '멀리 있는 유도탄은 세지 않는다');
+  const near = { kind: 'ghostflame', x: 260, y: 270, homing: { duration: 2.1, t: 0.6 } };
+  const spent = { kind: 'ghostflame', x: 250, y: 270, homing: { duration: 2.1, t: 2.5 } };
+  game.ebullets = [far, near, spent];
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.speech.text, '유령불은 잠깐만 따라와! 끌고 다녀!');
+  assert.equal(hints.cue.short, '유도 1.5초', '가까이서 아직 따라오는 탄의 남은 유도 시간');
+  game.ebullets = [{ kind: 'dart', x: 260, y: 270, barrage: { age: 0.5, motion: { homingTurnRate: 80, homingDuration: 2.3 } } }];
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue.short, '유도 1.8초', '탄막 공방 유도탄도 같은 정보');
+  game.ebullets = [spent];
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue, null, '유도가 풀리면 안내도 사라진다');
+}
+
+{
+  const game = makeGame(), hints = new DolphinHints();
+  const viper = (t, phase = 'unlit') => ({ kind: 'viper', x: 600, y: 200, t, params: { revealDelay: 2.6 }, lifecycle: { phase } });
+  game.enemies = [viper(1.0), viper(2.0), viper(3.0, 'hunt')];
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.speech.text, '어둠 속에 뭔가 숨어 있어!');
+  assert.equal(hints.cue.short, '잠복 2 · 0.6초', '잠복 수와 가장 이른 등장까지');
+  assert.equal(captureMarkers(hints).corners.length, 0, '잠복 위치는 짚지 않는다');
+}
+
+{
+  const game = makeGame(), hints = new DolphinHints();
+  const ring = at => ({ type: 'spawn-enemy', at, enemy: { kind: 'ghost', surroundAngle: 1 } });
+  game.spawner = { idx: 1, events: [ring(100), { type: 'spawn-enemy', at: 120.5, enemy: { kind: 'fish' } }, ring(121), ring(121), ring(125)] };
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.speech.text, '포위 온다! 둘레를 봐!');
+  assert.equal(hints.cue.short, '포위 · 1.0초', '이미 나온 링·먼 링은 세지 않는다');
+  game.spawner = { pending: [] };
+  hints.update(0.1, game, viewport);
+  assert.equal(hints.cue, null, '구형 스포너에서는 조용히 넘어간다');
 }
 
 for (const type of ['homing', 'burst', 'pierce']) {

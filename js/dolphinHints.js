@@ -2,7 +2,13 @@
 (function initDolphinHints(root) {
   'use strict';
 
-  const COLORS = { mine: '#ffe39a', blackout: '#aef7ee', current: '#b8e6ff' };
+  const COLORS = {
+    mine: '#ffe39a', blackout: '#aef7ee', current: '#b8e6ff', eye: '#ffe9a8',
+    homing: '#c8d8ff', passage: '#bfe8d0', dash: '#ff9f8f', spiral: '#ffd76e',
+    ambush: '#d8ffb0', surround: '#e4c8ff',
+  };
+  const HOMING_NEAR = 200;   // 이 거리 안에서 따라오는 탄만 안내한다 (멀리 있는 탄까지 세면 잔소리)
+  const SURROUND_LEAD = 1.2; // 포위 진입 몇 초 전부터 알려줄지
 
   function onScreen(target, viewport) {
     return !target.dead && !target.escaped && Number.isFinite(target.x) && Number.isFinite(target.y)
@@ -34,6 +40,128 @@
     };
   }
 
+  // 약추적 탄의 남은 유도 시간. 일반 탄(homing)과 탄막 공방 탄(motion) 둘 다 읽는다.
+  function homingLeft(b) {
+    if (b.homing && Number.isFinite(b.homing.duration)) return b.homing.duration - (b.homing.t || 0);
+    const motion = b.barrage?.motion;
+    if (motion?.homingTurnRate > 0) return motion.homingDuration - (b.barrage.age || 0);
+    return 0;
+  }
+
+  function homingCue(game, viewport) {
+    const p = game.player;
+    let left = 0, ghost = false;
+    for (const b of game.ebullets) {
+      if (b.dead || !onScreen(b, viewport)) continue;
+      const t = homingLeft(b);
+      if (t > 0 && Math.hypot(b.x - p.x, b.y - p.y) < HOMING_NEAR) {
+        left = Math.max(left, t);
+        ghost ||= b.kind === 'ghostflame';
+      }
+    }
+    if (left <= 0) return null;
+    return {
+      key: 'homing', topic: 'homing', kind: 'homing', priority: 30,
+      text: `${ghost ? '유령불' : '저 탄'}은 잠깐만 따라와! 끌고 다녀!`, short: `유도 ${left.toFixed(1)}초`, targets: [],
+    };
+  }
+
+  // 잠복 중인 바이퍼: 어둠 속이라 거의 안 보인다. 위치는 짚지 않고 "있다"와 시간만.
+  function ambushCue(game, viewport) {
+    const api = root.StageEnemyState;
+    let count = 0, left = Infinity;
+    for (const e of game.enemies) {
+      if (e.kind !== 'viper' || e.lifecycle?.phase !== 'unlit' || !onScreen(e, viewport)) continue;
+      const reveal = api ? api.normalize('viper', e.params).revealDelay : (e.params?.revealDelay ?? 0.8);
+      count++;
+      left = Math.min(left, Math.max(0, reveal - e.t));
+    }
+    if (!count) return null;
+    return {
+      key: 'ambush', topic: 'ambush', kind: 'ambush', priority: 45,
+      text: '어둠 속에 뭔가 숨어 있어!', short: `잠복 ${count} · ${left.toFixed(1)}초`, targets: [],
+    };
+  }
+
+  // 포위 링: 플레이어 둘레(일부는 화면 밖)에서 동시에 들어온다. 빈틈은 알려주지 않는다.
+  function surroundCue(game) {
+    const sp = game.spawner;
+    if (!sp?.events || !Number.isInteger(sp.idx) || !Number.isFinite(game.stageT)) return null;
+    let count = 0, left = Infinity;
+    for (let i = sp.idx; i < sp.events.length; i++) {
+      const ev = sp.events[i];
+      const dt = ev.at - game.stageT;
+      if (dt > SURROUND_LEAD) break;
+      if (ev.type !== 'spawn-enemy' || !Number.isFinite(ev.enemy?.surroundAngle)) continue;
+      count++;
+      left = Math.min(left, Math.max(0, dt));
+    }
+    if (!count) return null;
+    return {
+      key: 'surround', topic: 'surround', kind: 'surround', priority: 70,
+      text: '포위 온다! 둘레를 봐!', short: `포위 · ${left.toFixed(1)}초`, targets: [],
+    };
+  }
+
+  // 보스가 내놓는 상태를 안내로 바꾼다. 보스는 상태만 알리고 문구는 여기서 정한다.
+  function bossCue(advice, game, viewport) {
+    if (!advice) return null;
+    if (advice.kind === 'blackout' && advice.remaining > 0) {
+      return {
+        key: 'blackout', topic: 'blackout', kind: 'blackout', priority: 60,
+        text: '독니를 잡으면 빨리 끝나!',
+        short: `독니 격파로 단축 · ${advice.remaining.toFixed(1)}초`,
+        targets: advice.targets.filter(e => onScreen(e, viewport)
+          && e.lifecycle?.hittable === true && e.isHittable()),
+      };
+    }
+    if (advice.kind === 'current' && advice.remaining > 0) {
+      const right = advice.direction > 0;
+      return {
+        key: `current-${right ? 'right' : 'left'}-${advice.upcoming ? 'next' : 'now'}`,
+        topic: 'current', kind: 'current', priority: 80,
+        text: advice.upcoming ? `곧 ${right ? '오른쪽' : '왼쪽'}으로 밀려!` : null,
+        short: `${advice.upcoming ? '곧' : '지금'} 해류 ${right ? '→' : '←'}`,
+        direction: advice.direction, targets: [],
+      };
+    }
+    if (advice.kind === 'eye') {
+      // 폭풍탄은 눈 반경에서 멈춘다. 판정 반경만큼 안쪽이어야 "눈 속"이라 부른다.
+      const dx = advice.center.x - game.player.x, dy = advice.center.y - game.player.y;
+      const inside = Math.hypot(dx, dy) < advice.radius - 12;
+      const arrow = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? '→' : '←') : (dy > 0 ? '↓' : '↑');
+      const topic = advice.moving ? 'eye-move' : 'eye';
+      return {
+        key: topic, topic, kind: 'eye', priority: 40,
+        text: advice.moving ? '눈이 움직여! 같이 헤엄쳐!' : '다가가! 눈 속은 고요해',
+        short: inside ? '태풍의 눈 · 고요' : `태풍의 눈 ${arrow}`,
+        targets: [],
+      };
+    }
+    if (advice.kind === 'passage' && advice.remaining > 0) {
+      return {
+        key: 'passage', topic: 'passage', kind: 'passage', priority: 35,
+        text: '지금 몸통은 통과돼! 유령만 피해!',
+        short: `몸통 통과 · ${advice.remaining.toFixed(1)}초`, targets: [],
+      };
+    }
+    if (advice.kind === 'dashBack') {
+      return {
+        key: 'dashBack', topic: 'dashBack', kind: 'dash', priority: 85,
+        text: '돌아온다! 왼쪽에서 다시 와!',
+        short: advice.upcoming ? '되돌아옴 ←' : '왼쪽에서 돌진 →', targets: [],
+      };
+    }
+    if (advice.kind === 'counterSpiral') {
+      return {
+        key: 'counterSpiral', topic: 'counterSpiral', kind: 'spiral', priority: 35,
+        text: '가시는 반대로 돌아! 교차하는 틈을 봐!',
+        short: '기포 시계 · 가시 반시계', targets: [],
+      };
+    }
+    return null;
+  }
+
   class DolphinHints {
     constructor() {
       this.cue = null;
@@ -59,24 +187,9 @@
       if (mines.length) candidates.push(mineCue(mines));
 
       const boss = game.boss;
-      const advice = boss && !boss.dead ? boss.dolphinHint?.() : null;
-      if (advice?.kind === 'blackout' && advice.remaining > 0) {
-        candidates.push({
-          key: 'blackout', topic: 'blackout', kind: 'blackout', priority: 60,
-          text: '독니를 잡으면 빨리 끝나!',
-          short: `독니 격파로 단축 · ${advice.remaining.toFixed(1)}초`,
-          targets: advice.targets.filter(e => onScreen(e, viewport)
-            && e.lifecycle?.hittable === true && e.isHittable()),
-        });
-      } else if (advice?.kind === 'current' && advice.remaining > 0) {
-        const right = advice.direction > 0;
-        candidates.push({
-          key: `current-${right ? 'right' : 'left'}-${advice.upcoming ? 'next' : 'now'}`,
-          topic: 'current', kind: 'current', priority: 80,
-          text: advice.upcoming ? `곧 ${right ? '오른쪽' : '왼쪽'}으로 밀려!` : null,
-          short: `${advice.upcoming ? '곧' : '지금'} 해류 ${right ? '→' : '←'}`,
-          direction: advice.direction, targets: [],
-        });
+      const fromBoss = bossCue(boss && !boss.dead ? boss.dolphinHint?.() : null, game, viewport);
+      for (const cue of [fromBoss, surroundCue(game), ambushCue(game, viewport), homingCue(game, viewport)]) {
+        if (cue) candidates.push(cue);
       }
 
       candidates.sort((a, b) => b.priority - a.priority);

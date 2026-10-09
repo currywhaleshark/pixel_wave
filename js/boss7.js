@@ -68,7 +68,6 @@ class BossHwii {
       this.game.phaseReward(this.x, this.y);
     } else if (p === 3) {
       this.game.say('"...오지 마. 가까이 오면... 다 망가진단 말이야."', '"...이번에도, 눈 속에서 만나자."', '#d8e8f8');
-      this.game.message('(...태풍의 눈 속은 고요하다)', '#ffe9a8');
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
     } else if (p === 4) {
@@ -77,6 +76,18 @@ class BossHwii {
       this.game.addBattery(1);
       this.game.phaseReward(this.x, this.y);
     }
+  }
+
+  // 태풍의 눈: 직관과 반대인 규칙(다가가야 안전)이라 돌고래가 알려 준다.
+  // 안전지대 테두리는 그리지 않는다 — 방향만 알려 주고 헤엄쳐 가는 건 플레이어 몫.
+  // P2 돌풍은 우르릉 해류와 같은 종류의 정보라 같은 안내를 쓴다.
+  dolphinHint() {
+    if (this.dead || this.transitionT > 0) return null;
+    if (this.phase === 2 && this.gustT > 0 && this.gustT <= 1.4) {
+      return { kind: 'current', direction: -this.gustDir, upcoming: true, remaining: this.gustT };
+    }
+    if (this.phase < 3) return null;
+    return { kind: 'eye', center: { x: this.x, y: this.y }, radius: 175, moving: this.phase === 4 };
   }
 
   die() {
