@@ -54,6 +54,8 @@ const Meta = {
       best: {},                                   // 해역별 최고 점수
       diffSel: 0,                                 // 마지막 선택 난이도 (해역 무관 기억)
       nick: null,                                 // 랭킹 닉네임
+      heardMusic: {},                             // 실제 재생을 시작한 BGM key
+      endingSeen: false,                           // 엔딩 진입 기록 (다시보기 해금)
     };
   },
 
@@ -65,6 +67,30 @@ const Meta = {
       // 마이그레이션: 예전 클리어 기록(true) → 난이도 인덱스(0 = 이지)
       for (const k of Object.keys(this.data.cleared)) {
         if (this.data.cleared[k] === true) this.data.cleared[k] = 0;
+      }
+      const heard = this.data.heardMusic;
+      this.data.heardMusic = {};
+      if (heard && typeof heard === 'object' && !Array.isArray(heard)) {
+        for (const [key, value] of Object.entries(heard)) {
+          if (this.isMusicKey(key) && value === true) this.data.heardMusic[key] = true;
+        }
+      }
+      this.data.endingSeen = this.data.endingSeen === true;
+      // 옛 세이브에는 청취 기록이 없다. 클리어로 증명되는 곡만 복원하고,
+      // 다음 해역이 열려 있다는 이유로 그 해역·보스곡까지 풀지는 않는다.
+      if (raw && !Object.prototype.hasOwnProperty.call(raw, 'heardMusic')) {
+        for (let i = 1; i <= 7; i++) {
+          if (this.clearedLevel(`stage${i}`) < 0) continue;
+          this.data.heardMusic[`stage${i}`] = true;
+          this.data.heardMusic[`boss${i}`] = true;
+          this.data.heardMusic.title = true;
+          this.data.heardMusic.map = true;
+        }
+        if (this.clearedLevel('stage7') >= 0) {
+          this.data.endingSeen = true;
+          this.data.heardMusic.ending = true;
+        }
+        this.save();
       }
     } catch {
       this.data = this.defaults();
@@ -96,6 +122,22 @@ const Meta = {
   },
   save() {
     try { localStorage.setItem(this.KEY, JSON.stringify(this.data)); } catch {}
+  },
+
+  isMusicKey(key) { return /^(title|map|ending|stage[1-7]|boss[1-7])$/.test(key); },
+  hasHeardMusic(key) {
+    return this.isMusicKey(key) && this.data.heardMusic?.[key] === true
+      && (key !== 'ending' || this.data.endingSeen === true);
+  },
+  recordHeardMusic(key) {
+    if (!this.isMusicKey(key) || (key === 'ending' && !this.data.endingSeen) || this.hasHeardMusic(key)) return;
+    this.data.heardMusic[key] = true;
+    this.save();
+  },
+  recordEndingSeen() {
+    if (this.data.endingSeen) return;
+    this.data.endingSeen = true;
+    this.save();
   },
 
   has(id) { return !!this.data.owned[id]; },

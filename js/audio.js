@@ -114,8 +114,13 @@ const Sound = {
     const el = new window.Audio(`assets/bgm/${key}.mp3`);
     el.loop = true;
     el.preload = 'auto';
-    const rec = { el, node: null, gain: null, dead: false };
+    const rec = { el, node: null, gain: null, dead: false, pauseTimer: null };
     el.addEventListener('error', () => { rec.dead = true; });  // 파일 없음 → 조용히 무시
+    el.addEventListener('playing', () => {
+      // 프리로드/재생 요청만으로 해금하지 않는다. 초안 시험은 영구 세이브에 남기지 않는다.
+      if (this.currentKey !== key || rec.dead || (typeof Game !== 'undefined' && Game.stageTest)) return;
+      if (typeof Meta !== 'undefined' && Meta.data) Meta.recordHeardMusic?.(key);
+    });
     this.tracks[key] = rec;
     return rec;
   },
@@ -129,12 +134,14 @@ const Sound = {
       return;
     }
     const prev = this.currentKey;
+    this.pendingBgm = null;
     this.currentKey = key;
     if (prev) this.fadeOut(prev, fade);
     if (!key) return;
 
     const rec = this.track(key);
     if (rec.dead) return;
+    if (rec.pauseTimer !== null) { clearTimeout(rec.pauseTimer); rec.pauseTimer = null; }
     try {
       if (!rec.node) {
         rec.node = this.ctx.createMediaElementSource(rec.el);
@@ -161,10 +168,15 @@ const Sound = {
     rec.gain.gain.cancelScheduledValues(t);
     rec.gain.gain.setValueAtTime(rec.gain.gain.value, t);
     rec.gain.gain.linearRampToValueAtTime(0.0001, t + fade);
-    setTimeout(() => { try { rec.el.pause(); } catch {} }, fade * 1000 + 50);
+    if (rec.pauseTimer !== null) clearTimeout(rec.pauseTimer);
+    rec.pauseTimer = setTimeout(() => {
+      rec.pauseTimer = null;
+      if (this.currentKey !== key) { try { rec.el.pause(); } catch {} }
+    }, fade * 1000 + 50);
   },
 
   stopBgm(fade = 1.2) {
+    this.pendingBgm = null;
     if (this.currentKey) this.fadeOut(this.currentKey, fade);
     this.currentKey = null;
   },

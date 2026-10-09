@@ -130,6 +130,7 @@ const Game = {
   shake: 0,
 
   reset() {
+    HomeUI.reset();
     this.player = new Player();
     this.enemies = []; this.shots = []; this.ebullets = [];
     this.pearls = []; this.fx = []; this.msgs = [];
@@ -689,7 +690,7 @@ const Game = {
     let want = null;
     if (this.state === 'boot') want = 'title';        // 자동재생 허용 환경이면 로딩 중에도 흐른다
     else if (this.state === 'title') want = 'title';
-    else if (this.state === 'map') want = 'map';
+    else if (this.state === 'map') want = HomeUI.bgmKey();
     else if (this.state === 'ending') want = 'ending';
     else if (this.state === 'play') {
       want = this.boss && !this.boss.dead
@@ -744,6 +745,23 @@ const Game = {
   startEnding() {
     if (this.stageTest) { this.finishStageTest('victory'); return; }
     this.commitRun();
+    Meta.recordEndingSeen();
+    this.beginEnding();
+  },
+
+  // 집의 다시보기는 런 정산·점수 제출·보상을 전혀 호출하지 않는다.
+  replayEnding() {
+    if (this.state !== 'map' || !Meta.data.endingSeen) return false;
+    this.beginEnding();
+    return true;
+  },
+
+  beginEnding() {
+    HomeUI.reset();
+    this.paused = false;
+    this.player = new Player();
+    this.player.bubble = 0;
+    this.player.x = 120; this.player.y = CFG.H * 0.56;
     this.msgs = [];
     this.state = 'ending';
     this.endingT = 0;
@@ -751,6 +769,7 @@ const Game = {
     this.ebullets = [];
     this.enemies = [];
     Input.anyPressed = false;
+    Input.consumeClicks(); Input.consumeKeyPresses(); Input.consumeBomb();
   },
 
   victory() {

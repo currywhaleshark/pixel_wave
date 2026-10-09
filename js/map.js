@@ -192,6 +192,8 @@ const MapUI = {
     const clicks = Input.consumeClicks();
     Input.consumeAny(); Input.consumeBomb();
 
+    if (HomeUI.view) { HomeUI.update(game, Input.consumeKeyPresses(), clicks); return; }
+
     // ---- 랭킹 보드 ----
     if (this.boardOpen) {
       for (const k of Input.consumeKeyPresses()) {
@@ -240,6 +242,7 @@ const MapUI = {
         else if (k === 'enter' || k === 'z') { this.openLaunch(); return; }
         else if (k === 's' || k === 'x') { this.shopOpen = true; this.shopCursor = 0; }
         else if (k === 'r' && Board.ready()) { this.openBoard(); }
+        else if (k === 'h') { HomeUI.open(); return; }
       }
     }
 
@@ -260,6 +263,7 @@ const MapUI = {
       if (this.inRect(p, this.volBtn(1))) { Sound.cycleVol('sfx'); continue; }
       if (this.inRect(p, this.shopBtn())) { this.shopOpen = true; continue; }
       if (Board.ready() && this.inRect(p, this.BTN.board)) { this.openBoard(); continue; }
+      if (this.inRect(p, { x: this.HOME.x - 52, y: this.HOME.y - 44, w: 104, h: 110 })) { HomeUI.open(); return; }
       // 해금된 노드 클릭 = 선택 (같은 노드 다시 클릭 = 출격 준비 창)
       for (let i = 0; i < this.unlockedCount() && i < STAGES.length; i++) {
         const n = this.NODES[i];
@@ -415,7 +419,7 @@ const MapUI = {
     }
     ctx.fillStyle = 'rgba(255,255,255,0.85)';
     ctx.font = Fonts.f(12, true); ctx.textAlign = 'center';
-    ctx.fillText('집', 0, 56);
+    ctx.fillText('집 (H)', 0, 56);
     ctx.restore();
 
     // ---- 하단 바 ----
@@ -447,6 +451,7 @@ const MapUI = {
     if (this.launchOpen) this.drawLaunch(ctx);
     if (this.shopOpen) this.drawShop(ctx);
     if (this.boardOpen) this.drawBoard(ctx);
+    HomeUI.draw(ctx);
 
     // 토스트
     if (this.toastT > 0 && this.toast) {
