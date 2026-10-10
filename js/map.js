@@ -8,6 +8,8 @@ const MapUI = {
   sel: 0,           // 키보드로 선택된 해역
   diffSel: 0,       // 선택된 난이도 (출격 준비 창에서 결정, Meta에 기억)
   shopCursor: 0,    // 상점 키보드 커서
+  confirmItem: null, // 구매 확인 창에 올라온 상품 (잘못 누른 구매 방지)
+  confirmSel: 1,     // 확인 창 커서: 0 구매 · 1 취소 (기본은 안전한 취소)
   launchOpen: false,             // 출격 준비 창
   cursor: { row: 3, col: 0 },    // 창 안 마커 — 열릴 때 출격 버튼(3행)에 붙는다
   boardOpen: false,              // 랭킹 보드
@@ -39,6 +41,26 @@ const MapUI = {
     bdNick:{ x: 330, y: 448, w: 170, h: 30 },      // 보드 안 이름 버튼
   },
   shopBtn() { return Board.ready() ? this.BTN.shop2 : this.BTN.shop; },
+
+  // ---- 구매 확인 창 ----
+  CF: { x: 290, y: 172, w: 380, h: 196 },
+  cfBtn(i) { return { x: 318 + i * 170, y: 306, w: 154, h: 40 }; },
+  // 상품 선택: 살 수 없으면 이유만 알리고, 살 수 있으면 확인 창을 띄운다
+  askBuy(item) {
+    const c = Meta.canBuy(item);
+    if (!c.ok) { Sound.sfx('deny'); this.showToast(c.why, false); return; }
+    this.confirmItem = item;
+    this.confirmSel = 1;
+    Sound.sfx('uiSelect');
+  },
+  closeConfirm(buy) {
+    const item = this.confirmItem;
+    this.confirmItem = null;
+    if (!buy || !item) { Sound.sfx('uiMove'); return; }
+    const r = Meta.buy(item);
+    Sound.sfx(r.ok ? 'buy' : 'deny');
+    this.showToast(r.ok ? `${item.name} 구매!` : `${r.why}`, r.ok);
+  },
 
   openBoard() {
     this.boardOpen = true;
@@ -218,6 +240,12 @@ const MapUI = {
 
     // ---- 키보드 조작 ----
     for (const k of Input.consumeKeyPresses()) {
+      if (this.shopOpen && this.confirmItem) {
+        if (k === 'escape' || k === 'x') this.closeConfirm(false);
+        else if (k === 'arrowleft' || k === 'arrowright' || k === 'a' || k === 'd') { this.confirmSel = 1 - this.confirmSel; Sound.sfx('uiMove'); }
+        else if (k === 'enter' || k === 'z' || k === ' ') this.closeConfirm(this.confirmSel === 0);
+        continue;
+      }
       if (this.shopOpen) {
         const rows = this.shopRows();
         const leftN = rows.filter(r => !r.item.dolphin).length;
@@ -230,12 +258,7 @@ const MapUI = {
             ? leftN + Math.min(this.shopCursor, rows.length - leftN - 1)
             : Math.min(this.shopCursor - leftN, leftN - 1);
         }
-        else if (k === 'enter' || k === 'z' || k === ' ') {
-          const row = rows[this.shopCursor];
-          const r = Meta.buy(row.item);
-          Sound.sfx(r.ok ? 'buy' : 'deny');
-          this.showToast(r.ok ? `${row.item.name} 구매!` : `${r.why}`, r.ok);
-        }
+        else if (k === 'enter' || k === 'z' || k === ' ') this.askBuy(rows[this.shopCursor].item);
       } else {
         if (k === 'arrowleft' || k === 'a') { this.sel = Math.max(0, this.sel - 1); Sound.sfx('uiMove'); }
         else if (k === 'arrowright' || k === 'd') { this.sel = Math.min(this.unlockedCount() - 1, this.sel + 1); Sound.sfx('uiMove'); }
@@ -247,14 +270,16 @@ const MapUI = {
     }
 
     for (const p of clicks) {
+      if (this.shopOpen && this.confirmItem) {
+        if (this.inRect(p, this.cfBtn(0))) this.closeConfirm(true);
+        else if (this.inRect(p, this.cfBtn(1)) || !this.inRect(p, this.CF)) this.closeConfirm(false);
+        continue;   // 창 안의 빈 곳 클릭은 무시
+      }
       if (this.shopOpen) {
         if (this.inRect(p, this.BTN.close)) { this.shopOpen = false; continue; }
-        for (const row of this.shopRows()) {
-          if (this.inRect(p, row)) {
-            const r = Meta.buy(row.item);
-            Sound.sfx(r.ok ? 'buy' : 'deny');
-            this.showToast(r.ok ? `${row.item.name} 구매!` : `${r.why}`, r.ok);
-          }
+        for (let ri = 0; ri < this.shopRows().length; ri++) {
+          const row = this.shopRows()[ri];
+          if (this.inRect(p, row)) { this.shopCursor = ri; this.askBuy(row.item); break; }
         }
         continue;
       }
@@ -729,6 +754,27 @@ const MapUI = {
         ctx.fillText(`◉ ${it.cost}`, row.x + row.w - 10, row.y + 18);
       }
     }
+    ctx.restore();
+    if (this.confirmItem) this.drawConfirm(ctx);
+  },
+
+  drawConfirm(ctx) {
+    const it = this.confirmItem, F = this.CF;
+    ctx.save();
+    ctx.fillStyle = 'rgba(2, 6, 24, 0.55)';
+    ctx.fillRect(0, 0, CFG.W, CFG.H);
+    PXUI.panel(ctx, F.x, F.y, F.w, F.h, { border: '#ffe9a8', fill: 'rgba(8, 18, 50, 0.98)' });
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffe9a8'; ctx.font = Fonts.f(18, true);
+    ctx.fillText(`${it.name}`, CFG.W / 2, F.y + 40);
+    ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = Fonts.f(12);
+    ctx.fillText(it.desc, CFG.W / 2, F.y + 64);
+    ctx.fillStyle = '#fff'; ctx.font = Fonts.f(15, true);
+    ctx.fillText(`◉ ${it.cost} 진주로 구매할까요?`, CFG.W / 2, F.y + 96);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = Fonts.f(12);
+    ctx.fillText(`보유 ${Meta.data.bank} → 남는 진주 ${Meta.data.bank - it.cost}`, CFG.W / 2, F.y + 118);
+    PXUI.button(ctx, this.cfBtn(0), '구매', '#7dffd8', { pressed: this.confirmSel === 0 });
+    PXUI.button(ctx, this.cfBtn(1), '취소', '#ffb0c8', { pressed: this.confirmSel === 1 });
     ctx.restore();
   },
 };

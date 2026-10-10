@@ -25,12 +25,21 @@ const Input = {
       if (document.activeElement && document.activeElement.tagName === 'INPUT') return; // 닉네임 입력 중
       Sound.unlock();   // 브라우저 자동재생 정책: 첫 입력에서 오디오 활성화
       this.keys[e.key.toLowerCase()] = true;
+      this.keys['shift'] = e.shiftKey;   // 수식키는 이벤트의 실제 상태로 맞춘다 (keyup을 놓쳐도 복구)
       this.mode = 'keys';
       this.anyPressed = true;
       if (!e.repeat) this.keyPresses.push(e.key.toLowerCase());
       if (e.key === ' ' || e.key.toLowerCase() === 'b') this.bombQueued = true;
     });
-    window.addEventListener('keyup', (e) => { this.keys[e.key.toLowerCase()] = false; });
+    window.addEventListener('keyup', (e) => {
+      this.keys[e.key.toLowerCase()] = false;
+      this.keys['shift'] = e.shiftKey;
+    });
+    // 키를 누른 채 포커스를 잃으면(Alt+Tab, 캡처 도구 Win+Shift+S 등) keyup이 오지 않는다.
+    // 그대로 두면 Shift가 눌린 채로 남아 키보드 이동이 저속에 갇히므로 전부 뗀 것으로 본다.
+    const releaseAll = () => { this.keys = {}; };
+    window.addEventListener('blur', releaseAll);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) releaseAll(); });
 
     const toGame = (clientX, clientY) => {
       const r = canvas.getBoundingClientRect();
